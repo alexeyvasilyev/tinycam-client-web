@@ -1,0 +1,90 @@
+/* .mat-button-wrapper {
+  margin: 5px;
+  padding: 5px;
+} */
+
+/**
+ * MUI Container module
+ */
+.app-container {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.app-container:before, .app-container:after {
+  content: " ";
+  display: table;
+}
+
+.app-container:after {
+  clear: both;
+}
+
+/* .app-background {
+    background: #E0E0E0
+} */
+
+.app-text-dark-hint {
+    color: #616161;
+}
+
+.app-text-dark-secondary {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+@media (min-width: 544px) {
+  .app-container {
+    max-width: 570px;
+  }
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    max-width: 740px;
+  }
+}
+
+@media (min-width: 992px) {
+  .app-container {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .app-container {
+    max-width: 1170px;
+  }
+}
+
+.app-text-center {
+  text-align: center !important;
+}
+
+.app-text-right {
+  text-align: right !important;
+}
+
+/* .app-text-danger {
+  color: #F44336;
+} */
+
+.app-card-warning {
+  color: #FFFFFF !important;
+  background-color: #b71c1c !important;
+}
+
+/* Create two equal columns that floats next to each other */
+.app-column {
+  box-sizing: border-box;
+  float: left;
+  padding: 10px;
+}
+.app-row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
