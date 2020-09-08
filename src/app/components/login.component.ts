@@ -27,7 +27,7 @@ import { LoginService } from '../services';
   `],
   template: `
     <div class="login-screen">
-      <div class="app-text-center"><img src="assets/applogo.png"/></div>
+      <div class="app-text-center"><img src="assets/img/applogo.png"/></div>
       <h3 class="app-text-center mat-display-1">tinyCam Login</h3>
       <mat-card>
         <mat-card-content>

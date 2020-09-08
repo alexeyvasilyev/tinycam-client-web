@@ -62,7 +62,7 @@ export class CamListSelectionComponent implements OnInit {
         // var newWarnings = [];
         // if (cameras) {
         //     for (let i = 0; i < cameras.length; i++) {
-        //         if (cameras[i].cam_id != null) {
+        //         if (cameras[i].id != null) {
         //             newCameras.push(cameras[i]);
         //             if (cameras[i].cam_last_error != null && cameras[i].cam_last_error.length > 0) {
         //                 newWarnings.push(cameras[i]);

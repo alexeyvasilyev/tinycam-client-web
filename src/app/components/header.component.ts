@@ -39,11 +39,11 @@ import { MatButtonModule } from '@angular/material/button';
       <button
         mat-raised-button
         class="header-button"
-        routerLink="/account"
+        routerLink="/admin"
         routerLinkActive="active"
         color="accent"
         [disabled]="selected == 2">
-          <i class="fas fa-user fa-lg"></i> &nbsp; Account</button>
+          <i class="fas fa-user fa-lg"></i> &nbsp; Admin</button>
 
       <button
         mat-raised-button

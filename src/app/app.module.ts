@@ -10,7 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
-// import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 // import { MatRadioModule } from '@angular/material/radio';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
@@ -23,6 +23,7 @@ import {
   WindowRefService
 } from './services';
 import {
+  ArchiveTimelineComponent,
   CamListSelectionComponent,
   EventCamListComponent,
   EventsComponent,
@@ -31,6 +32,8 @@ import {
   HeaderComponent,
   LoginComponent,
   PageNotFoundComponent,
+  TimelineCamListComponent,
+  TimelineComponent,
   VideoDialogComponent,
 } from './components';
 import { AuthGuard } from './guards';
@@ -41,6 +44,7 @@ import { AppComponent } from './app.component';
 @NgModule({
   declarations: [
     AppComponent,
+    ArchiveTimelineComponent,
     CamListSelectionComponent,
     EventCamListComponent,
     EventsComponent,
@@ -49,6 +53,8 @@ import { AppComponent } from './app.component';
     HeaderComponent,
     LoginComponent,
     PageNotFoundComponent,
+    TimelineCamListComponent,
+    TimelineComponent,
     VideoDialogComponent,
   ],
   imports: [
@@ -64,7 +70,7 @@ import { AppComponent } from './app.component';
     // MatToolbarModule,
     // MatIconModule,
     MatInputModule,
-    // MatCheckboxModule,
+    MatCheckboxModule,
     MatNativeDateModule,
     // MatRadioModule,
     MatSelectModule,

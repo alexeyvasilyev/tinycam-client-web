@@ -166,6 +166,7 @@ export class EventCamListComponent extends CamListSelectionComponent implements 
       console.log('camerasLoaded()');
         if (this.cameras.length > 0) {
             this.camId = this.cameras[0].id;
+            this.selectedCamId = this.camId;
             this.onSelected(this.camId);
         }
     }

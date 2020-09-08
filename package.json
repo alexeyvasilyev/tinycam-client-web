@@ -1,6 +1,6 @@
 {
   "name": "tinycam-client-web",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -21,11 +21,13 @@
     "@angular/platform-browser": "~10.1.0",
     "@angular/platform-browser-dynamic": "~10.1.0",
     "@angular/router": "~10.1.0",
-    "rxjs": "~6.6.2",
-    "rxjs-compat": "~6.6.2",
+    "rxjs": "~6.6.3",
+    "rxjs-compat": "~6.6.3",
     "tslib": "^2.0.1",
     "zone.js": "~0.11.1",
-    "ngx-infinite-scroll": "^9.0.0"
+    "ngx-infinite-scroll": "^9.0.0",
+    "resize-observer-polyfill": "^1.5.1",
+    "core-js": "^3.6.5"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.1001.0",

@@ -60,8 +60,6 @@ import { Platform } from '@angular/cdk/platform';
   `
 })
 
-// http://52.178.37.238/v1/archive_file.php?data=%7B%22login%22%3A%22eu%22%2C%22pwd%22%3A%229fd858c200d2cad1d6b5e587e96e6dfb1e6a8bd9de359861608800f052327f57%22%2C%22file%22%3A%7B%22cam_id%22%3A14716977849097%2C%22name%22%3A%222016-12-26_19h14m29s_28242.jpg%22%2C%22date%22%3A%222016-12-26T21%3A14%3A29%2B02%3A00%22%7D%7D
-// http://52.178.37.238/v1/archive_file.php?data=%7B%22login%22%3A%22eu%22%2C%22pwd%22%3A%229fd858c200d2cad1d6b5e587e96e6dfb1e6a8bd9de359861608800f052327f57%22%2C%22file%22%3A%7B%22name%22%3A%222016-12-26_21h37m07s_29316.jpg%22%2C%22cam_id%22%3A14716977849097%7D%7D
 export class EventListComponent implements OnInit {
 
     private EVENTS_TO_LOAD = 30;
@@ -95,13 +93,13 @@ export class EventListComponent implements OnInit {
         // this.loadLastEvents();
         this.autoplayOnHover = this.platform.FIREFOX;
 
-        // // Mapping cam_id to cam_name
+        // // Mapping cam id to cam name
         // // 15593704483417 - "Cam 1"
         // // 15123704434122 - "Cam 2"
         // for (let camera of this.cameras) {
         //     let cameraRecord = new CameraRecord();
-        //     cameraRecord.name = camera.cam_name;
-        //     this.camerasMap.set(camera.cam_id, cameraRecord);
+        //     cameraRecord.name = camera.name;
+        //     this.camerasMap.set(camera.id, cameraRecord);
         // }
     }
 
@@ -177,7 +175,7 @@ export class EventListComponent implements OnInit {
 
     getEventTitleHint(event: EventRecord): string {
         return "";
-    //     return (this.camId == -1 && this.cameras.length > 1) ? this.camerasMap.get(event.cam_id).name : null;
+    //     return (this.camId == -1 && this.cameras.length > 1) ? this.camerasMap.get(event.cid).name : null;
     }
 
     getEventImage(event: EventRecord): string {

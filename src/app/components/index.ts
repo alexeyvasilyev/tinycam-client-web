@@ -1,3 +1,4 @@
+export * from './archive-timeline.component';
 export * from './cam-list-selection.component';
 export * from './event-cam-list.component';
 export * from './event-list.component';
@@ -6,4 +7,6 @@ export * from './events.component';
 export * from './header.component';
 export * from './login.component';
 export * from './pagenotfound.component';
+export * from './timeline-cam-list.component';
+export * from './timeline.component';
 export * from './video-dialog.component';
