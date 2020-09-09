@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
-import { Login, Server, CameraSettings, EventRecord } from '../models'
+import { CameraSettings, EventRecord } from '../models'
 import { EventListService, LoginService } from '../services';
 import Utils from '../utils';
 import ResizeObserver from 'resize-observer-polyfill';
@@ -80,11 +80,11 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
   },
   template: `
   <div #component>
-    <mat-card *ngIf="!eventsLoaded" style="margin:10px 0;">
+    <mat-card *ngIf="!isAllEventsLoaded()" style="margin:10px 0;">
       Loading archive...
     </mat-card>
 
-    <div *ngIf="eventsLoaded">
+    <div *ngIf="isAllEventsLoaded()">
       <div class="app-text-center" style="padding-bottom: 10px">
         <div *ngIf="events.length > 0; else no_archives_content">
         </div>
@@ -225,8 +225,8 @@ export class ArchiveTimelineComponent implements OnInit {
 
     // [timelineIndex][records]
     events: EventRecord[][] = null;
-    archivesLoaded = false;
-    eventsLoaded = false;
+    // archivesLoaded = false;
+    eventsLoaded: boolean[] = null;
     timeline = null;
     videoUrl: string = null;
     videoPlaying = false;
@@ -285,10 +285,12 @@ export class ArchiveTimelineComponent implements OnInit {
         this.events = new Array(options.timelines);
         // this.noOldArchivesAvailable = new Array(options.timelines);
         this.noOldEventsAvailable = new Array(options.timelines);
+        this.eventsLoaded = new Array(options.timelines);
         for (var i = 0; i < options.timelines; i++) {
             this.events[i] = [];
             // this.noOldArchivesAvailable[i] = false;
             this.noOldEventsAvailable[i] = false;
+            this.eventsLoaded[i] = false;
         }
 
         this.updateTimeline();
@@ -466,7 +468,6 @@ export class ArchiveTimelineComponent implements OnInit {
         }
 
         this.timeline.draw();
-        console.log('updateTimeline() 2');
     }
 
     private fitToContainerWidth(canvas) {
@@ -627,27 +628,37 @@ export class ArchiveTimelineComponent implements OnInit {
         }
     }
 
+    isAllEventsLoaded(): boolean {
+        let timelines = this.timeline.getTotalTimelines();
+        for (let i = 0; i < timelines; ++i) {
+            if (!this.eventsLoaded[i])
+                return false;
+        }
+        return true;
+    }
+
     private loadLastEvents() {
         console.log('loadLastEvents()');
-        this.eventsLoaded = false;
         // Clear events
         let timelines = this.timeline.getTotalTimelines();
         this.events = new Array(timelines);
-        for (var i = 0; i < timelines; i++) {
-           this.events[i] = [];
+        for (let i = 0; i < timelines; i++) {
+          this.eventsLoaded[i] = false;
+          this.events[i] = [];
         }
-        let eventsToLoad = this.getEventsToLoad() * timelines;
-        this.eventListService.getEventList(
-            this.loginService.server,
-            this.loginService.login,
-            timelines > 1 ? -1 : this.selectedCamId,
-            null,
-            eventsToLoad)
-                .then(events => {
-                    this.requestingMoreVideoEvents = false;
-                    this.processEventList(timelines > 1 ? -1 : 0, events, true);
-                    this.gotoLastEvent();
-                });
+        for (let i = 0; i < timelines; ++i) {
+           this.eventListService.getEventList(
+               this.loginService.server,
+               this.loginService.login,
+               timelines > 1 ? this.cameras[i].id : this.selectedCamId,
+               null,
+               this.getEventsToLoad())
+                   .then(events => {
+                       this.requestingMoreVideoEvents = false;
+                       this.processEventList(i, events, true);
+                       this.gotoLastEvent();
+                   });
+           }
     }
 
     private processEventList(timelineIndex: number, events: EventRecord[], firstLoad: boolean) {
@@ -673,18 +684,7 @@ export class ArchiveTimelineComponent implements OnInit {
                         this.noOldEventsAvailable[timelineIndex] = true;
                 } else {
                     // Concatinate arrays
-                    let timelines = this.timeline.getTotalTimelines();
-                    if (timelines > 1) {
-                        for (let i = 0; i < timelines; i++) {
-                            let camId = this.cameras[i].id;
-                            for (let event of newEvents) {
-                                if (event.id == camId)
-                                  this.events[i].push(event);
-                            }
-                        }
-                    } else {
-                        this.events[0] = this.events[0].concat(newEvents);
-                    }
+                    this.events[timelineIndex] = this.events[timelineIndex].concat(newEvents);
                 }
                 console.log('Filtered events: ' + newEvents.length);
             }
@@ -692,20 +692,27 @@ export class ArchiveTimelineComponent implements OnInit {
             console.log('Events empty');
         }
 
-        this.eventsLoaded = true;
+        this.eventsLoaded[timelineIndex] = true;
         this.updateTimeline();
 
         // Check that all timelines have at least one archive loaded
         if (firstLoad) {
-            let timelines = this.timeline.getTotalTimelines();
-            for (let i = 0; i < timelines; i++) {
-                if (this.events[i].length == 0) {
-                    console.log('Found empty events for timeline ' + i + '. Requesting more data.');
-                    // Force to load background data
-                    this.requestingMoreVideoEvents = false;
-                    this.requestMoreVideoEvents(i);
-                }
-            }
+          if (this.events[timelineIndex].length == 0) {
+            console.log('Found empty events for timeline ' + timelineIndex + '. Requesting more data.');
+            // Force to load background data
+            this.requestingMoreVideoEvents = false;
+            this.requestMoreVideoEvents(timelineIndex);
+          }
+
+            // let timelines = this.timeline.getTotalTimelines();
+            // for (let i = 0; i < timelines; i++) {
+            //     if (this.events[i].length == 0) {
+            //         console.log('Found empty events for timeline ' + i + '. Requesting more data.');
+            //         // Force to load background data
+            //         this.requestingMoreVideoEvents = false;
+            //         this.requestMoreVideoEvents(i);
+            //     }
+            // }
         }
     }
 
@@ -815,7 +822,7 @@ export class ArchiveTimelineComponent implements OnInit {
             this.requestingMoreVideoEvents = true;
             let event = this.events[timelineIndex][this.events[timelineIndex].length - 1];
             let timelines = this.timeline.getTotalTimelines();
-            let eventsToLoad = this.getEventsToLoad() * 2 * timelines;
+            let eventsToLoad = this.getEventsToLoad() * 2;
             this.eventListService.getEventList(
                 this.loginService.server,
                 this.loginService.login,
@@ -824,7 +831,7 @@ export class ArchiveTimelineComponent implements OnInit {
                 // this.cameras[timelineIndex].id,//this.selectedCamId,
                 event.time,
                 //this.EVENTS_TO_LOAD)//
-                eventsToLoad * timelines)
+                eventsToLoad)
                     .then(events => {
                        // console.log("this.requestingMoreVideoEvents = false");
                         this.requestingMoreVideoEvents = false;

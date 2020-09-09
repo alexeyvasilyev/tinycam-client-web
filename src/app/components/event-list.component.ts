@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, SimpleChanges, ViewEncapsulation } from '@angular/core';
-import { EventRecord, Login, Server, CameraSettings, } from '../models';
+import { EventRecord, CameraSettings, } from '../models';
 // import { FormControl } from '@angular/forms';
 import { EventListService, LoginService } from '../services';
 import { MatDatepicker, MatDatepickerInputEvent } from '@angular/material/datepicker';
