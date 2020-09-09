@@ -276,6 +276,7 @@ export class ArchiveTimelineComponent implements OnInit {
             colorDigits: "#cccccc",
         };
         this.timeline = new Timeline(options);
+        this.timeline.setIntervalWithAnimation(INTERVAL_DAY_1);
         this.timeline.setCanvas(this.canvasTimelineEl.nativeElement);
         this.timeline.setTimeSelectedCallback(this.timeSelectedCallback.bind(this));
         // this.timeline.setRequestMoreBackgroundDataCallback(this.requestMoreBackgroundData.bind(this));
@@ -457,11 +458,11 @@ export class ArchiveTimelineComponent implements OnInit {
         for (let i = 0; i < totalTimelines; i++) {
             let recordsVideoEvents = this.getVideoEventRecords(i);
             let recordsAudioEvents = this.getAudioEventRecords(i);
-            // let recordsArchives = this.getBackgroundRecords(i);
+            let recordsArchives = this.getBackgroundRecords(i);
 
             this.timeline.setMajor1Records(i, recordsVideoEvents);
             this.timeline.setMajor2Records(i, recordsAudioEvents);
-            // this.timeline.setBackgroundRecords(i, recordsArchives);
+            this.timeline.setBackgroundRecords(i, recordsArchives);
         }
 
         this.timeline.draw();
@@ -516,6 +517,7 @@ export class ArchiveTimelineComponent implements OnInit {
     }
 
     gotoRecord() {
+      console.log('gotoRecord()');
       let i = this.timeline.getCurrentTimeline();
       let records = this.timeline.getBackgroundRecords(i);
       if (records.length > 0) {
@@ -853,14 +855,15 @@ export class ArchiveTimelineComponent implements OnInit {
         return records;
     }
 
-    // private getBackgroundRecords(timelineIndex: number): object[] {
-    //     var records = [];
-    //     for (let archive of this.archives[timelineIndex]) {
-    //         let l = new Date(archive.date).getTime();
-    //         records.push(new TimeRecord(l, archive.duration, archive));
-    //     }
-    //     return records;
-    // }
+    private getBackgroundRecords(timelineIndex: number): object[] {
+        // var records = [];
+        // for (let archive of this.archives[timelineIndex]) {
+        //     let l = new Date(archive.date).getTime();
+        //     records.push(new TimeRecord(l, archive.duration, archive));
+        // }
+        // return records;
+        return this.getVideoEventRecords(timelineIndex);
+    }
 
     // private getArchiveImage(archive: ArchiveRecord): string {
     //     return JsonUtils.getArchiveFilename(

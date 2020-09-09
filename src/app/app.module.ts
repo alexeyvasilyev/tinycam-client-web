@@ -23,6 +23,7 @@ import {
   WindowRefService
 } from './services';
 import {
+  AdminComponent,
   ArchiveTimelineComponent,
   CamListSelectionComponent,
   EventCamListComponent,
@@ -40,9 +41,11 @@ import { AuthGuard } from './guards';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { MomentModule } from 'angular2-moment';
 
 @NgModule({
   declarations: [
+    AdminComponent,
     AppComponent,
     ArchiveTimelineComponent,
     CamListSelectionComponent,
@@ -76,7 +79,7 @@ import { AppComponent } from './app.component';
     MatSelectModule,
     // MatSliderModule,
     // MatSnackBarModule,
-    // MomentModule,
+    MomentModule,
     FormsModule
   ],
   providers: [

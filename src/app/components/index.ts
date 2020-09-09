@@ -1,3 +1,4 @@
+export * from './admin.component';
 export * from './archive-timeline.component';
 export * from './cam-list-selection.component';
 export * from './event-cam-list.component';

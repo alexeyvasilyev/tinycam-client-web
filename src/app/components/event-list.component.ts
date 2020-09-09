@@ -4,7 +4,6 @@ import { EventRecord, Login, Server, CameraSettings, } from '../models';
 import { EventListService, LoginService } from '../services';
 import { MatDatepicker, MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { Platform } from '@angular/cdk/platform';
-// import JsonUtils from '../jsonutils';
 
 // <video> tag is shown only for Chrome/Firefox/Safari browsers. Not shown for IE.
 // For Chrome browser only first 5 events are shown as <video>,
@@ -47,7 +46,7 @@ import { Platform } from '@angular/cdk/platform';
                     [videoUrl]="getEventVideo(event)"
                     [hasVideo]="event.has_video"
                     [hasAudio]="event.has_audio"
-                    [date]="event.date"></event>
+                    [date]="event.time"></event>
             </div>
         </div>
       </div>
@@ -174,7 +173,7 @@ export class EventListComponent implements OnInit {
     }
 
     getEventTitleHint(event: EventRecord): string {
-        return "";
+        return event.motion;
     //     return (this.camId == -1 && this.cameras.length > 1) ? this.camerasMap.get(event.cid).name : null;
     }
 

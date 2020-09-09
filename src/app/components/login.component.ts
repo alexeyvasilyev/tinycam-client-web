@@ -51,6 +51,14 @@ import { LoginService } from '../services';
                 [(ngModel)]="password" name="Password">
             </mat-form-field>
 
+            <mat-form-field class="login-full-width" style="padding-top:10px;">
+              <input
+                matInput
+                type="text"
+                placeholder="Server, e.g. http://192.168.0.3:8083"
+                [(ngModel)]="server" name="Server">
+            </mat-form-field>
+
             <div class="app-text-center">
               <button type="submit" [disabled]="!loginForm.form.valid" mat-raised-button color="accent" class="login-button">LOGIN</button>
               <mat-card *ngIf="error" class="app-card-warning" style="padding: 30px;">
@@ -72,6 +80,7 @@ export class LoginComponent implements OnInit {
     login = this.loginService.login;
     error = false;
     password: string = '';
+    server: string = '';
 
     // loginFormControl = new FormControl('', [
     //     Validators.required,
@@ -86,18 +95,7 @@ export class LoginComponent implements OnInit {
     }
 
     ngOnInit() {
-    //   var login = JSON.parse(localStorage.getItem('login'));
-    //   if (login != null && login.user != null && login.hash != null) {
-    //       console.log('Found previous login. Skipping login screen.');
-    //       this.loginService.login.username     = login.user;
-    //       this.loginService.login.passwordHash = login.hash;
-    //       // Send HTTP request
-    //       this.mainUserGetService.getMainUser(this.loginService.login)
-    //           .then(
-    //               server => {
-    //               this.processMainServer(server);}
-    //           );
-    //   }
+      this.server = this.loginService.server.server_addr;
     }
 
     processLogin(newLogin: Login) {
@@ -105,6 +103,17 @@ export class LoginComponent implements OnInit {
         // this.loginService.server = server;
         this.loginService.login.succeeded = true;
         this.loginService.login.token = newLogin.token;
+        this.loginService.server.server_addr = this.server;
+
+        // Save credentials to database
+        localStorage.setItem(
+          'login',
+          JSON.stringify({ user: this.loginService.login.username, token: this.loginService.login.token }))
+        // Save server to database
+        localStorage.setItem(
+          'server',
+          JSON.stringify({ server: this.loginService.server.server_addr }));
+
         this.router.navigate(['/events']);
     }
 
@@ -112,8 +121,7 @@ export class LoginComponent implements OnInit {
         console.log('Trying to login...');
         this.error = false;
         this.loginService.login.username = this.loginService.login.username.trim();
-        // this.loginService.login.updatePasswordHash();
-        //console.log('Hash: ' + this.loginService.login.getPasswordHash());
+        this.loginService.server.server_addr = this.server;
 
         // Send HTTP request
         this.loginService.getLogin(this.loginService.server, this.login.username, this.password)
@@ -126,8 +134,4 @@ export class LoginComponent implements OnInit {
         return Promise.reject(error.message || error);
     }
 
-    signup(event) {
-        event.preventDefault();
-        this.router.navigate(['signup']);
-    }
 }

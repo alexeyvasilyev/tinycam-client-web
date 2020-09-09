@@ -11,21 +11,20 @@ export class AuthGuard implements CanActivate {
         private loginService: LoginService) {
     }
 
-    // private restoreDatabase() {
-    //     var login = JSON.parse(localStorage.getItem('login'));
-    //     if (login != null && login.user != null && login.hash != null) {
-    //         console.log('Restoring login...');
-    //         this.loginService.login.username     = login.user;
-    //         this.loginService.login.passwordHash = login.hash;
-    //         this.loginService.login.succeeded = true; //???
-    //     }
-    //     var server = JSON.parse(localStorage.getItem('server'));
-    //     if (server != null && server.server != null && server.name != null) {
-    //         console.log('Restoring server...');
-    //         this.loginService.server.server_addr = server.server;
-    //         this.loginService.server.server_name = server.name;
-    //     }
-    // }
+    private restoreDatabase() {
+        var login = JSON.parse(localStorage.getItem('login'));
+        if (login != null && login.user != null && login.token != null) {
+            console.log('Restoring login...');
+            this.loginService.login.username = login.user;
+            this.loginService.login.token = login.token;
+            this.loginService.login.succeeded = true; //???
+        }
+        var server = JSON.parse(localStorage.getItem('server'));
+        if (server != null && server.server != null) {
+            console.log('Restoring server...');
+            this.loginService.server.server_addr = server.server;
+        }
+    }
 
     makeRedirection(url: string) {
         console.log('Redirecting to ' + url);
@@ -33,9 +32,9 @@ export class AuthGuard implements CanActivate {
     }
 
     canActivate() {
-        // if (!this.loginService.login.succeeded) {
-        //     this.restoreDatabase();
-        // }
+        if (!this.loginService.login.succeeded) {
+            this.restoreDatabase();
+        }
 
         if (this.loginService.login.succeeded) {
 //          console.log('canActivate() true');

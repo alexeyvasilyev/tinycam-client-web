@@ -66,8 +66,8 @@ export class HeaderComponent {
 
     doLogout() {
         console.log('Logout');
-        // localStorage.removeItem('login');
-        // this.router.navigate(['/login']);
+        localStorage.removeItem('login');
+        this.router.navigate(['/login']);
     }
 
 }

@@ -25,8 +25,8 @@ import { fadeInAnimation } from '../animations/';
   // animations: [animateFactory(150, 0, 'ease-in')],
   styles: [ `
     .event-image {
-      width: 500px;
-      min-height: 280px;
+      width: 400px;
+      min-height: 224px;
       background: #616161;
     }
     .middle {
@@ -51,12 +51,12 @@ import { fadeInAnimation } from '../animations/';
     }
     .event-image-container {
       position: relative;
-      width: 500px;
+      width: 400px;
       transition: .5s ease;
     }
     .event-video {
       background: #616161;
-      width: 500px;
+      width: 400px;
     }
     .preloadProgress {
       background: #616161;
@@ -225,9 +225,9 @@ export class EventComponent implements OnInit {
       this.timerSubscription = setTimeout(() => {
         //this.loadedPercent = 500;
           let t = (Date.now() - this.timerSubscriptionStartedTime) / 1000;
-          this.loadedPercent = Math.min(t * 50, 500);
+          this.loadedPercent = Math.min(t * 40, 400);
           // console.log('Time: ' + t);
-          if (this.timerSubscriptionStartedTime > 0 && this.loadedPercent < 500)
+          if (this.timerSubscriptionStartedTime > 0 && this.loadedPercent < 400)
               this.startProgressBarTimer();
       }, 100);
     }
