@@ -5,7 +5,7 @@ import { LoginService } from '../services';
   styles: [ ``
   ],
   template: `
-    <header [selected]="0" [isAdmin]="this.loginService.login.isAdmin()"></header>
+    <header [selected]="1" [isAdmin]="this.loginService.login.isAdmin()"></header>
     <event-cam-list></event-cam-list>
   `
 })

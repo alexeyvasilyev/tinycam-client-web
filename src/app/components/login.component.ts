@@ -27,8 +27,8 @@ import { LoginService } from '../services';
   `],
   template: `
     <div class="login-screen">
-      <div class="app-text-center"><img src="assets/img/applogo.png"/></div>
-      <h3 class="app-text-center mat-display-1">tinyCam Login</h3>
+      <div class="app-text-center"><a href="https://tinycammonitor.com"><img src="assets/img/applogo.png"/></a></div>
+      <div class="app-text-center mat-display-1">tinyCam Monitor Login</div>
       <mat-card>
         <mat-card-content>
           <form (ngSubmit)="doLogin()" #loginForm="ngForm" class="login-form">
@@ -61,16 +61,17 @@ import { LoginService } from '../services';
 
             <div class="app-text-center">
               <button type="submit" [disabled]="!loginForm.form.valid" mat-raised-button color="accent" class="login-button">LOGIN</button>
-              <mat-card *ngIf="error" class="app-card-warning" style="padding: 30px;">
-                <mat-card-content>Failed to login. Want to <a href="password_reset.html">reset</a> password?</mat-card-content>
+              <mat-card *ngIf="error != null" class="app-card-warning" style="padding: 30px;">
+                <mat-card-content>Failed to login.<br/>{{error}}</mat-card-content>
               </mat-card>
             </div>
           </form>
         </mat-card-content>
       </mat-card>
-      <!-- <div style="padding-top: 40px; padding-bottom: 10px">
-        <a href="./">tinyCam Cloud</a> is 24/7 video recording and motion detection service for your H.264 IP camera.<br/>
-      </div> -->
+      <div style="padding-top: 40px; padding-bottom: 10px" class="mat-small app-text-center">
+        Want to have constant 24/7 recording? Check  <a href="https://cloud.tinycammonitor.com/">tinyCam Cloud</a> service.<br/>
+        <a href="https://tinysolutionsllc.com/">Tiny Solutions LLC., 2010–2020</a>
+      </div>
     </div>
   `,
 })
@@ -78,7 +79,7 @@ import { LoginService } from '../services';
 export class LoginComponent implements OnInit {
 
     login = this.loginService.login;
-    error = false;
+    error: string = null;
     password: string = '';
     server: string = '';
 
@@ -126,17 +127,18 @@ export class LoginComponent implements OnInit {
 
     doLogin() {
         console.log('Trying to login...');
-        this.error = false;
+        this.error = null;
         this.loginService.login.username = this.loginService.login.username.trim();
         this.loginService.server.server_addr = this.server;
-
+      
         // Send HTTP request
         this.loginService.getLogin(this.loginService.server, this.login.username, this.password)
             .then(login => this.processLogin(login))
-            .catch(this.handleError);
+            .catch(this.handleError.bind(this));
     }
 
     private handleError(error: any): Promise<any> {
+        this.error = error;
         console.error('Failed to login.', error);
         return Promise.reject(error.message || error);
     }

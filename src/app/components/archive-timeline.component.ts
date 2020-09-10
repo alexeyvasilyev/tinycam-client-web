@@ -96,7 +96,7 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
       </div>
     </div>
 
-    <div width="100%" style="background-color: #212121; cursor: pointer;">
+    <div width="100%" style="background-color: #212121; cursor: pointer;" #mainComponent>
       <div class="app-video-container">
         <video class="video" preload="auto" #videoComponent playsinline autoplay
           (error)="handleVideoError()" (playing)="handleVideoPlaying()"
@@ -200,8 +200,8 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
           <i class="fas fa-download"></i>
         </a> -->
       </div>
-
     </div>
+
     <div style="padding:10px;">
       <p>Keys <b>+</b>/<b>-</b> to increase/decrease timeline scale.<br/>
       Keys <b>left</b>/<b>right</b> to select previous/next events.<br/>
@@ -211,8 +211,6 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
     <div style="padding:10px;">
       NOTE: Video recordings will appear on timeline with 10-15 minutes delay.
     </div>
-
-
   `
 })
 
@@ -252,6 +250,7 @@ export class ArchiveTimelineComponent implements OnInit {
     @ViewChild('component', { static: true }) componentEl: ElementRef;
     @ViewChild('canvasTimeline', { static: true }) canvasTimelineEl: ElementRef;
     @ViewChild('videoComponent', { static: true }) videoEl: ElementRef;
+    @ViewChild('mainComponent', { static: true }) mainEl: ElementRef;
 
     ngOnInit() {
         // console.log('ngOnInit()');
@@ -293,8 +292,8 @@ export class ArchiveTimelineComponent implements OnInit {
             this.eventsLoaded[i] = false;
         }
 
-        this.updateTimeline();
-        this.resizeCanvas();
+        // this.updateTimeline();
+        // this.resizeCanvas();
 
         const ro = new ResizeObserver((entries, observer) => {
             this.resizeCanvas();
@@ -303,21 +302,36 @@ export class ArchiveTimelineComponent implements OnInit {
 
         // this.loadLastArchives();
         this.loadLastEvents();
+
+        document.onfullscreenchange = function(event) {
+            console.log("FULL SCREEN CHANGE: " + document.fullscreenElement);
+            let height;
+            if (document.fullscreenElement) {
+                height = this.mainEl.nativeElement.offsetHeight - this.canvasTimelineEl.nativeElement.offsetHeight;
+            } else {
+                height = 500;
+            }
+            this.videoEl.nativeElement.style.height = height + 'px';
+        }.bind(this);
     }
 
     ngOnChanges(changes: SimpleChanges) {
-      // console.log('ngOnChanges()');
-      // Stop previous camera playback
-      let video = this.videoEl.nativeElement;
-      if (video) {
-        video.poster = "";
-        video.pause();
-        this.videoUrl = '/';
-        video.load();
-      }
-      this.ngOnInit();
+        // console.log('ngOnChanges()');
+        // Stop previous camera playback
+        let video = this.videoEl.nativeElement;
+        if (video) {
+          video.poster = "";
+          video.pause();
+          this.videoUrl = '/';
+          video.load();
+        }
+        this.ngOnInit();
+        // this.loadLastArchives();
+    }
 
-//        this.loadLastArchives();
+    ngOnDestroy() {
+        this.stopUpdateTimer();
+        document.onfullscreenchange = null;
     }
 
     handleKeyboardEvents(event: KeyboardEvent) {
@@ -338,10 +352,10 @@ export class ArchiveTimelineComponent implements OnInit {
 
     private mouseScrolling = false;
     handleMouseUpEvent(event: MouseEvent) {
-      if (this.mouseScrolling)
-          this.mouseScrolling = false;
-      else
-          this.timeline.onSingleTapUp(event);
+        if (this.mouseScrolling)
+            this.mouseScrolling = false;
+        else
+            this.timeline.onSingleTapUp(event);
     }
 
     handleMouseMoveEvent(event: MouseEvent) {
@@ -451,7 +465,15 @@ export class ArchiveTimelineComponent implements OnInit {
     }
 
     startFullScreen() {
-        Utils.startFullScreen(this.videoEl.nativeElement);
+      Utils.startFullScreen(this.mainEl.nativeElement);
+//      let height = window.innerHeight - this.canvasTimelineEl.nativeElement.height;
+      let height = this.mainEl.nativeElement.offsetHeight - this.canvasTimelineEl.nativeElement.offsetHeight;
+      // console.log(`innerHeight: ${window.innerHeight}`);
+      // console.log(`h1: ${this.mainEl.nativeElement.offsetHeight}`);
+      // console.log(`h2: ${this.canvasTimelineEl.nativeElement.offsetHeight}`);
+      // console.log(`Height: ${height}`);
+
+      this.videoEl.nativeElement.style.height = height + 'px';
     }
 
     private updateTimeline() {

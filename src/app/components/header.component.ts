@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'header',
@@ -23,10 +22,18 @@ import { MatButtonModule } from '@angular/material/button';
       <button
         mat-raised-button
         class="header-button"
+        routerLink="/live"
+        routerLinkActive="active"
+        color="accent"
+        [disabled]="selected == 0"><i class="fas fa-th-large fa-lg"></i> &nbsp; Live</button>
+
+      <button
+        mat-raised-button
+        class="header-button"
         routerLink="/events"
         routerLinkActive="active"
         color="accent"
-        [disabled]="selected == 0"><i class="fas fa-child fa-lg"></i> &nbsp; Events</button>
+        [disabled]="selected == 1"><i class="fas fa-child fa-lg"></i> &nbsp; Events</button>
 
       <button
         mat-raised-button
@@ -34,7 +41,7 @@ import { MatButtonModule } from '@angular/material/button';
         routerLink="/timeline"
         routerLinkActive="active"
         color="accent"
-        [disabled]="selected == 1"><i class="fas fa-barcode fa-lg"></i> &nbsp; Timeline</button>
+        [disabled]="selected == 2"><i class="fas fa-barcode fa-lg"></i> &nbsp; Timeline</button>
 
       <span *ngIf="isAdmin">
         <button
@@ -43,7 +50,7 @@ import { MatButtonModule } from '@angular/material/button';
           routerLink="/admin"
           routerLinkActive="active"
           color="accent"
-          [disabled]="selected == 2">
+          [disabled]="selected == 3">
             <i class="fas fa-user fa-lg"></i> &nbsp; Admin</button>
       </span>
 
