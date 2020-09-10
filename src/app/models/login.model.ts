@@ -1,12 +1,18 @@
 export class Login {
     username: string;
     token: string;
+    access: string;
     succeeded: boolean;
 
     constructor(_username: string, _token: string) {
         this.username = _username;
         this.token = _token;
+        this.access = '';
         this.succeeded = false;
+    }
+
+    isAdmin(): boolean {
+        return 'admin' === this.access;
     }
 
     clear() {

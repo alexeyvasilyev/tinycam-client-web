@@ -19,9 +19,10 @@
           "options": {
             "allowedCommonJsDependencies": [
               "rxjs",
-              "rxjs-compat"
+              "rxjs-compat",
+              "angular2-moment"
             ],
-            "outputPath": "dist/tinycam-client-web",
+            "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",

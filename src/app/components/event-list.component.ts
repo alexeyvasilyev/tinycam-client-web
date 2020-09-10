@@ -1,8 +1,7 @@
 import { Component, OnInit, Input, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { EventRecord, CameraSettings, } from '../models';
-// import { FormControl } from '@angular/forms';
 import { EventListService, LoginService } from '../services';
-import { MatDatepicker, MatDatepickerInputEvent } from '@angular/material/datepicker';
+import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { Platform } from '@angular/cdk/platform';
 
 // <video> tag is shown only for Chrome/Firefox/Safari browsers. Not shown for IE.

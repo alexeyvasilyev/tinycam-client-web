@@ -1,18 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { EventCamListComponent } from './event-cam-list.component';
+import { LoginService } from '../services';
 
 @Component({
   styles: [ ``
   ],
   template: `
-    <header [selected]="0"></header>
+    <header [selected]="0" [isAdmin]="this.loginService.login.isAdmin()"></header>
     <event-cam-list></event-cam-list>
   `
 })
 
 export class EventsComponent implements OnInit {
 
-    constructor () {
+    constructor (
+        public loginService: LoginService) {
     }
 
     ngOnInit() {

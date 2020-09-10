@@ -30,9 +30,6 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
             </mat-card>
           </div>
           <archive-timeline [selectedCamId]="camId" [cameras]="cameras" [multipleTimeline]="multipleTimeline"></archive-timeline>
-          <div style="text-align:right;padding:10px;">
-            <a routerLink="/oldtimeline" routerLinkActive="active" class="">Switch to old timeline</a>
-          </div>
         </div>
       </div>
 

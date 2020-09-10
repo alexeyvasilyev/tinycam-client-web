@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
-import { EventRecord } from '../models';
 import { LoginService } from '../services';
 
 @Component({
   template: `
-    <header [selected]="1"></header>
+    <header [selected]="1" [isAdmin]="this.loginService.login.isAdmin()"></header>
     <timeline-cam-list></timeline-cam-list>
   `
 })
@@ -12,7 +11,7 @@ import { LoginService } from '../services';
 export class TimelineComponent {
 
     constructor (
-        private loginService: LoginService) {
+        public loginService: LoginService) {
     }
 
 }

@@ -17,6 +17,7 @@ export class AuthGuard implements CanActivate {
             console.log('Restoring login...');
             this.loginService.login.username = login.user;
             this.loginService.login.token = login.token;
+            this.loginService.login.access = login.access;
             this.loginService.login.succeeded = true; //???
         }
         var server = JSON.parse(localStorage.getItem('server'));

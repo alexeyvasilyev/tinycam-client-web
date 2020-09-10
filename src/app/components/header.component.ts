@@ -36,14 +36,16 @@ import { MatButtonModule } from '@angular/material/button';
         color="accent"
         [disabled]="selected == 1"><i class="fas fa-barcode fa-lg"></i> &nbsp; Timeline</button>
 
-      <button
-        mat-raised-button
-        class="header-button"
-        routerLink="/admin"
-        routerLinkActive="active"
-        color="accent"
-        [disabled]="selected == 2">
-          <i class="fas fa-user fa-lg"></i> &nbsp; Admin</button>
+      <span *ngIf="isAdmin">
+        <button
+          mat-raised-button
+          class="header-button"
+          routerLink="/admin"
+          routerLinkActive="active"
+          color="accent"
+          [disabled]="selected == 2">
+            <i class="fas fa-user fa-lg"></i> &nbsp; Admin</button>
+      </span>
 
       <button
         mat-raised-button
@@ -59,6 +61,7 @@ import { MatButtonModule } from '@angular/material/button';
 export class HeaderComponent {
 
     @Input() public selected: number;
+    @Input() public isAdmin: boolean;
 
     constructor(
         private router: Router) {

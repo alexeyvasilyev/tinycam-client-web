@@ -103,16 +103,23 @@ export class LoginComponent implements OnInit {
         // this.loginService.server = server;
         this.loginService.login.succeeded = true;
         this.loginService.login.token = newLogin.token;
+        this.loginService.login.access = newLogin.access;
         this.loginService.server.server_addr = this.server;
 
         // Save credentials to database
         localStorage.setItem(
           'login',
-          JSON.stringify({ user: this.loginService.login.username, token: this.loginService.login.token }))
+          JSON.stringify({
+            user: this.loginService.login.username,
+            token: this.loginService.login.token,
+            access: this.loginService.login.access
+          }))
         // Save server to database
         localStorage.setItem(
           'server',
-          JSON.stringify({ server: this.loginService.server.server_addr }));
+          JSON.stringify({
+            server: this.loginService.server.server_addr
+          }));
 
         this.router.navigate(['/events']);
     }
