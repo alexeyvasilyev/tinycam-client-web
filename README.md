@@ -1,4 +1,4 @@
-# tinyCam app web client written on Angular2
+# tinyCam app web client written in Angular2
 https://tinycammonitor.com
 
 ## See also:
