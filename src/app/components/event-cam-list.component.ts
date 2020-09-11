@@ -105,9 +105,10 @@ export class EventCamListComponent extends CamListSelectionComponent implements 
     constructor(
         // private activatedRoute: ActivatedRoute,
         private dialog: MatDialog,
+        protected router: Router,
         protected loginService: LoginService,
         protected camListService: CamListService) {
-            super(loginService, camListService);
+            super(router, loginService, camListService);
     }
 
     ngOnInit() {

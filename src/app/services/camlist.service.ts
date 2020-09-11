@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Login, Server, ServerResponse, CameraSettings } from '../models';
 import 'rxjs/add/operator/toPromise';
 
@@ -19,9 +19,9 @@ export class CamListService {
             .catch(this.handleError);
     }
 
-    private handleError(error: any): Promise<any> {
-        console.error('An error occurred in /api/v1/get_cam_list', error);
-        return Promise.reject(error.message || error);
+    private handleError(error: HttpErrorResponse): Promise<any> {
+        // console.error('An error occurred in /api/v1/get_cam_list', error);
+        return Promise.reject(error);
     }
 
 }

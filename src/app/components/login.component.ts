@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Login } from '../models';
 import { LoginService } from '../services';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'login',
@@ -137,9 +138,9 @@ export class LoginComponent implements OnInit {
             .catch(this.handleError.bind(this));
     }
 
-    private handleError(error: any): Promise<any> {
-        this.error = error;
-        console.error('Failed to login.', error);
+    private handleError(error: HttpErrorResponse): Promise<any> {
+        this.error = error.message;
+        console.error('Failed to login.', error.message);
         return Promise.reject(error.message || error);
     }
 

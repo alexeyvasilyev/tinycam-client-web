@@ -20,7 +20,7 @@ import { Platform } from '@angular/cdk/platform';
   <div>
     <div class="app-text-center" style="padding-bottom: 20px">
       <mat-form-field style="padding-top: 20px">
-        <input matInput [min]="minus6days" [max]="today" [matDatepicker]="picker" placeholder="Choose a date" (dateChange)="onDateChanged($event)">
+        <input matInput [max]="today" [matDatepicker]="picker" placeholder="Choose a date" (dateChange)="onDateChanged($event)">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker [dateClass]="dateClass" #picker></mat-datepicker>
       </mat-form-field>
@@ -41,6 +41,7 @@ import { Platform } from '@angular/cdk/platform';
                     [number]="i"
                     [title]="getEventTitle(event)"
                     [titleHint]="getEventTitleHint(event)"
+                    [titleHintColor]="getEventTitleHintColor(event)"
                     [imageUrl]="getEventImage(event)"
                     [videoUrl]="getEventVideo(event)"
                     [hasVideo]="event.has_video"
@@ -78,7 +79,7 @@ export class EventListComponent implements OnInit {
 
             today: Date = new Date(); // today
     private minus7days: Date = new Date(this.today.getTime() - 604800000 /*7 days*/);
-            minus6days: Date = new Date(this.today.getTime() - 518400000 /*6 days*/);
+            // minus6days: Date = new Date(this.today.getTime() - 518400000 /*6 days*/);
 
     dateClass = (d: Date) => {
         const date = d.getTime();
@@ -172,8 +173,21 @@ export class EventListComponent implements OnInit {
     }
 
     getEventTitleHint(event: EventRecord): string {
-        return event.motion;
-    //     return (this.camId == -1 && this.cameras.length > 1) ? this.camerasMap.get(event.cid).name : null;
+        // Capitalize first letter
+        return event.motion.charAt(0).toUpperCase() + event.motion.slice(1);
+    }
+
+    getEventTitleHintColor(event: EventRecord): string {
+      console.log('aaa');
+        switch (event.motion) {
+          case 'audio':   return '#ae5a41';
+          case 'person':  return '#74559e';
+          case 'vehicle': return '#1b85b8';
+          case 'face':    return '#827717';
+          case 'pet':     return '#784646';
+          case 'motion':
+          default:        return '#5a5255'
+        }
     }
 
     getEventImage(event: EventRecord): string {

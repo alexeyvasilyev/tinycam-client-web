@@ -83,7 +83,7 @@ import { fadeInAnimation } from '../animations/';
         <div class="app-row">
           <div class="app-column" style="width:80%">
             <span style="color:#424242;font-weight:bold;">{{number + 1}}. {{title}}</span>
-            <span *ngIf="titleHint != null" class="app-text-dark-secondary" style="padding-left:5px;">[{{titleHint}}]</span>
+            <span *ngIf="titleHint != null" class="app-chip" style="margin-left:10px;background-color:{{titleHintColor}}">{{titleHint}}</span>
             <div class="app-text-dark-secondary" style="padding-bottom: 10px">
               <div *ngIf="isThisHour(); else notThisHour" >
                 {{getLocalDateTime() | amTimeAgo}}
@@ -171,6 +171,7 @@ export class EventComponent implements OnInit {
     @Input() number: number;
     @Input() title: string;
     @Input() titleHint: string;
+    @Input() titleHintColor: string;
     @Input() date: number;
     @Input() imageUrl: string;
     @Input() videoUrl: string;

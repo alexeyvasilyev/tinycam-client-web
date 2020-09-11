@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CameraSettings } from '../models';
 import { CamListService, LoginService } from '../services';
+import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
     template: ``
@@ -15,6 +17,7 @@ export class CamListSelectionComponent implements OnInit {
     responseCode: number = -1;
 
     constructor(
+        protected router: Router,
         protected loginService: LoginService,
         protected camListService: CamListService) {
     }
@@ -33,12 +36,15 @@ export class CamListSelectionComponent implements OnInit {
         // console.log('Selected: "' + target.value + '", camId: ' + camIdSelected);
     }
 
-    processCamListError(errorMessage: string) {
-        console.error('Error in getCamList()', errorMessage);
+    processCamListError(error: HttpErrorResponse) {
+        console.error('Error in getCamList()', error.message);
+        // Token expired
+        if (error.status == 401)
+            this.router.navigate(['/login']);
 //        if (!this.isConnected) {
 //            this.errorMessage = "Check Internet connection";
 //        } else {
-            this.errorMessage = errorMessage;
+            this.errorMessage = error.message;
 //        }
         this.responseCode = -1;
     }

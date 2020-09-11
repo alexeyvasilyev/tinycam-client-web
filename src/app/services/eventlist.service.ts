@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { EventRecord, Login, Server, ServerResponse } from '../models'
 import 'rxjs/add/operator/toPromise';
 
@@ -28,9 +28,9 @@ export class EventListService {
             .catch(this.handleError);
     }
 
-    private handleError(error: any): Promise<any> {
-        console.error('An error occurred', error);
-        return Promise.reject(error.message || error);
+    private handleError(error: HttpErrorResponse): Promise<any> {
+        // console.error('An error occurred', error);
+        return Promise.reject(error);
     }
 
 }
