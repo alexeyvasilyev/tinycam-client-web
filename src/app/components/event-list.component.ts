@@ -169,17 +169,24 @@ export class EventListComponent implements OnInit {
     }
 
     getEventTitle(event: EventRecord): string {
-        return 'Motion - ' + (event.duration / 1000).toFixed() + ' sec';
+        if (event.motion === undefined) {
+            return 'Recording - ' + (event.duration / 1000).toFixed() + ' sec';
+        } else {
+            return 'Motion - ' + (event.duration / 1000).toFixed() + ' sec';
+        }
     }
 
     getEventTitleHint(event: EventRecord): string {
+        if (event.motion === undefined)
+            return null;
         // Capitalize first letter
         return event.motion.charAt(0).toUpperCase() + event.motion.slice(1);
     }
 
     getEventTitleHintColor(event: EventRecord): string {
-      console.log('aaa');
-        switch (event.motion) {
+      if (event.motion === undefined)
+          return null;
+      switch (event.motion) {
           case 'audio':   return '#ae5a41';
           case 'person':  return '#74559e';
           case 'vehicle': return '#1b85b8';

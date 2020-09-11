@@ -46,7 +46,6 @@ import { HttpErrorResponse } from '@angular/common/http';
             <mat-form-field class="login-full-width" style="padding-top:10px;">
               <input
                 matInput
-                required
                 type="password"
                 placeholder="Password"
                 [(ngModel)]="password" name="Password">
