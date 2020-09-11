@@ -254,12 +254,12 @@ export class ArchiveTimelineComponent implements OnInit {
 
     ngOnInit() {
         // console.log('ngOnInit()');
-        var names = [];
+        let names = [];
         for (let camera of this.cameras) {
             names.push(CameraSettings.getName(camera));
         }
         // console.log('archive-timeline init');
-        var options = {
+        const options = {
             timelines: (this.multipleTimeline ? this.cameras.length : 1),
             timelineNames: (this.multipleTimeline ? names : []),
             colorTimeBackground: "#c62828",
@@ -285,7 +285,7 @@ export class ArchiveTimelineComponent implements OnInit {
         // this.noOldArchivesAvailable = new Array(options.timelines);
         this.noOldEventsAvailable = new Array(options.timelines);
         this.eventsLoaded = new Array(options.timelines);
-        for (var i = 0; i < options.timelines; i++) {
+        for (let i = 0; i < options.timelines; i++) {
             this.events[i] = [];
             // this.noOldArchivesAvailable[i] = false;
             this.noOldEventsAvailable[i] = false;
@@ -318,7 +318,7 @@ export class ArchiveTimelineComponent implements OnInit {
     ngOnChanges(changes: SimpleChanges) {
         // console.log('ngOnChanges()');
         // Stop previous camera playback
-        let video = this.videoEl.nativeElement;
+        const video = this.videoEl.nativeElement;
         if (video) {
           video.poster = "";
           video.pause();
@@ -335,7 +335,7 @@ export class ArchiveTimelineComponent implements OnInit {
     }
 
     handleKeyboardEvents(event: KeyboardEvent) {
-        let keyCode = event.which || event.keyCode;
+        const keyCode = event.which || event.keyCode;
         // console.log("Key: " + keyCode);
         switch(keyCode) {
             case 32: this.handlePlayPauseClicked(); event.preventDefault(); break;
@@ -350,7 +350,7 @@ export class ArchiveTimelineComponent implements OnInit {
         }
     }
 
-    private mouseScrolling = false;
+    private mouseScrolling: boolean = false;
     handleMouseUpEvent(event: MouseEvent) {
         if (this.mouseScrolling)
             this.mouseScrolling = false;
@@ -366,7 +366,7 @@ export class ArchiveTimelineComponent implements OnInit {
         }
     }
 
-    private firstTouch = 0;
+    private firstTouch: number = 0;
     handleTouchStartEvent(event: TouchEvent) {
         if (event.targetTouches.length == 1) {
             this.firstTouch = event.targetTouches[0].pageX;
@@ -375,7 +375,7 @@ export class ArchiveTimelineComponent implements OnInit {
 
     handleTouchMoveEvent(event: TouchEvent) {
         if (event.targetTouches.length == 1) {
-            var touchDelta = event.targetTouches[0].pageX - this.firstTouch;
+            const touchDelta = event.targetTouches[0].pageX - this.firstTouch;
             this.timeline.onScroll(touchDelta);
             this.firstTouch = event.targetTouches[0].pageX;
         }
@@ -466,23 +466,17 @@ export class ArchiveTimelineComponent implements OnInit {
 
     startFullScreen() {
       Utils.startFullScreen(this.mainEl.nativeElement);
-//      let height = window.innerHeight - this.canvasTimelineEl.nativeElement.height;
-      let height = this.mainEl.nativeElement.offsetHeight - this.canvasTimelineEl.nativeElement.offsetHeight;
-      // console.log(`innerHeight: ${window.innerHeight}`);
-      // console.log(`h1: ${this.mainEl.nativeElement.offsetHeight}`);
-      // console.log(`h2: ${this.canvasTimelineEl.nativeElement.offsetHeight}`);
-      // console.log(`Height: ${height}`);
-
+      const height = this.mainEl.nativeElement.offsetHeight - this.canvasTimelineEl.nativeElement.offsetHeight;
       this.videoEl.nativeElement.style.height = height + 'px';
     }
 
     private updateTimeline() {
         console.log('updateTimeline()');
-        let totalTimelines = this.timeline.getTotalTimelines();
+        const totalTimelines = this.timeline.getTotalTimelines();
         for (let i = 0; i < totalTimelines; i++) {
-            let recordsVideoEvents = this.getVideoEventRecords(i);
-            let recordsAudioEvents = this.getAudioEventRecords(i);
-            let recordsArchives = this.getBackgroundRecords(i);
+            const recordsVideoEvents = this.getVideoEventRecords(i);
+            const recordsAudioEvents = this.getAudioEventRecords(i);
+            const recordsArchives = this.getBackgroundRecords(i);
 
             this.timeline.setMajor1Records(i, recordsVideoEvents);
             this.timeline.setMajor2Records(i, recordsAudioEvents);
@@ -494,7 +488,7 @@ export class ArchiveTimelineComponent implements OnInit {
 
     private fitToContainerWidth(canvas) {
         canvas.style.width = '100%';
-        let timelines = this.timeline.getTotalTimelines();
+        const timelines = this.timeline.getTotalTimelines();
         canvas.height = timelines * (timelines > 1 ? 40 : 50) + 25;
         canvas.width = canvas.offsetWidth;
     }
@@ -513,7 +507,7 @@ export class ArchiveTimelineComponent implements OnInit {
     private timeSelectedCallback(timelineIndex: number, timestampMsec: number, record) {
         console.log("timeSelectedCallback(timelineIndex=" + timelineIndex + ", timestampMsec=" + timestampMsec + ")");
         if (record) {
-            let playerPosition = Math.floor(Math.max(timestampMsec - record.timestampMsec, 0) / 1000);
+            const playerPosition = Math.floor(Math.max(timestampMsec - record.timestampMsec, 0) / 1000);
             this.playRecord(record, playerPosition);
             this.videoError = false;
         } else {
@@ -541,21 +535,21 @@ export class ArchiveTimelineComponent implements OnInit {
 
     gotoRecord() {
       console.log('gotoRecord()');
-      let i = this.timeline.getCurrentTimeline();
-      let records = this.timeline.getBackgroundRecords(i);
+      const i = this.timeline.getCurrentTimeline();
+      const records = this.timeline.getBackgroundRecords(i);
       if (records.length > 0) {
-          let record = this.timeline.getRecord(this.timeline.getCurrent(), records);
-          let timestamp = this.timeline.getCurrent();
+          const record = this.timeline.getRecord(this.timeline.getCurrent(), records);
+          const timestamp = this.timeline.getCurrent();
           this.timeSelectedCallback(i, timestamp, record);
           this.timeline.draw();
       }
     }
 
     gotoNextEvent(animation: boolean) {
-        let i = this.timeline.getCurrentTimeline();
-        var record = this.timeline.getNextMajorRecord(i);
+        const i = this.timeline.getCurrentTimeline();
+        const record = this.timeline.getNextMajorRecord(i);
         if (record != null) {
-            let timestamp = this.getTimestampFromRecord(record);
+            const timestamp = this.getTimestampFromRecord(record);
             this.timeSelectedCallback(i, timestamp, record);
             if (animation)
                 this.timeline.setCurrentWithAnimation(record.timestampMsec);
@@ -568,12 +562,12 @@ export class ArchiveTimelineComponent implements OnInit {
 
     gotoLastEvent() {
         console.log('gotoLastEvent()');
-        let i = this.timeline.getCurrentTimeline();
+        const i = this.timeline.getCurrentTimeline();
         let records = this.timeline.getMajor1Records(i);
         // At least one event exists
         if (records.length > 0) {
-            let record = records[0];
-            let timestamp = this.getTimestampFromRecord(record);
+            const record = records[0];
+            const timestamp = this.getTimestampFromRecord(record);
             this.timeSelectedCallback(i, timestamp, record);
             this.timeline.setCurrentWithAnimation(record.timestampMsec);
             this.timeline.draw();
@@ -581,9 +575,9 @@ export class ArchiveTimelineComponent implements OnInit {
             // No events found. Show last video recording.
             records = this.timeline.getBackgroundRecords(i);
             if (records.length > 0) {
-                let record = records[0];
+                const record = records[0];
                 // 30 sec before video finished.
-                let timestamp = record.timestampMsec + Math.max(record.durationMsec - 30000, 0);
+                const timestamp = record.timestampMsec + Math.max(record.durationMsec - 30000, 0);
                 this.timeSelectedCallback(i, timestamp, record);
                 this.timeline.setCurrentWithAnimation(record.timestampMsec);
                 this.timeline.draw();
@@ -592,10 +586,10 @@ export class ArchiveTimelineComponent implements OnInit {
     }
 
     gotoPrevEvent(animation: boolean) {
-        let i = this.timeline.getCurrentTimeline();
-        var record = this.timeline.getPrevMajorRecord(i);
+        const i = this.timeline.getCurrentTimeline();
+        const record = this.timeline.getPrevMajorRecord(i);
         if (record != null) {
-            var timestamp = this.getTimestampFromRecord(record);
+            const timestamp = this.getTimestampFromRecord(record);
             this.timeSelectedCallback(i, timestamp, record);
             if (animation)
                 this.timeline.setCurrentWithAnimation(record.timestampMsec);
@@ -608,7 +602,7 @@ export class ArchiveTimelineComponent implements OnInit {
 
     private stopPlay() {
         console.log('Stop play');
-        let video = this.videoEl.nativeElement;
+        const video = this.videoEl.nativeElement;
         if (video) {
             video.pause();
         }
@@ -616,25 +610,20 @@ export class ArchiveTimelineComponent implements OnInit {
 
     private playRecord(record, positionSec: number) {
         console.log('playRecord(positionSec=' + positionSec + ')');
-        let video = this.videoEl.nativeElement;
+        const video = this.videoEl.nativeElement;
         let needRefresh = true;
         if (video) {
-            let newUrl = this.getEventVideo(record.object);
-            // if (this.videoUrl) {
-            //     // Extracting real filename to check if new video loading needed, e.g.
-            //     // "name":"2019-02-11_17h57m51s_321995_cam.mp4"
-            //     // TODO: Delete time from date.
-            //     let lastCoreUrl = this.videoUrl.substring(this.videoUrl.lastIndexOf('%22name%22%3A%22'), this.videoUrl.lastIndexOf('%22%2C%22cam_id%22'));
-            //     let newCoreUrl = newUrl.substring(newUrl.lastIndexOf('%22name%22%3A%22'), newUrl.lastIndexOf('%22%2C%22cam_id%22'));
-            //     // let lastCoreUrl = this.videoUrl.substring(0, this.videoUrl.lastIndexOf('#t='));
-            //     // let newCoreUrl = newUrl.substring(0, newUrl.lastIndexOf('#t='));
-            //     if (lastCoreUrl.localeCompare(newCoreUrl) == 0) {
-            //         video.currentTime = positionSec;
-            //         // video.play();
-            //         needRefresh = false;
-            //     }
-            // }
-            // if (needRefresh) {
+            const newUrl = this.getEventVideo(record.object);
+            if (this.videoUrl) {
+                // Extracting real filename to check if new video loading needed, e.g.
+                const lastCoreUrl = this.videoUrl.slice(0, this.videoUrl.lastIndexOf('#t='));
+                if (lastCoreUrl.localeCompare(newUrl) == 0) {
+                    video.currentTime = positionSec;
+                    // video.play();
+                    needRefresh = false;
+                }
+            }
+            if (needRefresh) {
                 // Clear preview image
                 video.poster = "";
                 video.pause();
@@ -646,12 +635,12 @@ export class ArchiveTimelineComponent implements OnInit {
                 video.load();
                 // video.currentTime = positionSec;
                 video.play();
-            // }
+            }
         }
     }
 
     isAllEventsLoaded(): boolean {
-        let timelines = this.timeline.getTotalTimelines();
+        const timelines = this.timeline.getTotalTimelines();
         for (let i = 0; i < timelines; ++i) {
             if (!this.eventsLoaded[i])
                 return false;
@@ -662,7 +651,7 @@ export class ArchiveTimelineComponent implements OnInit {
     private loadLastEvents() {
         console.log('loadLastEvents()');
         // Clear events
-        let timelines = this.timeline.getTotalTimelines();
+        const timelines = this.timeline.getTotalTimelines();
         this.events = new Array(timelines);
         for (let i = 0; i < timelines; i++) {
           this.eventsLoaded[i] = false;
@@ -692,7 +681,7 @@ export class ArchiveTimelineComponent implements OnInit {
                 if (timelineIndex > -1)
                     this.noOldEventsAvailable[timelineIndex] = true;
             } else {
-                var newEvents = [];
+                let newEvents = [];
                 for (let event of events) {
                     if (event.duration > this.MIN_DURATION_EVENT_MSEC) {
                         // Make event started before 3 seconds
@@ -743,7 +732,7 @@ export class ArchiveTimelineComponent implements OnInit {
         // this.archivesLoaded = false;
 //        let timelines = this.timeline.getTotalTimelines();
         // this.archives = new Array(timelines);
-        // for (var i = 0; i < timelines; i++) {
+        // for (let i = 0; i < timelines; i++) {
         //    this.archives[i] = [];
         // }
         // let archivesToLoad = this.getEventsToLoad() * timelines;
@@ -804,7 +793,7 @@ export class ArchiveTimelineComponent implements OnInit {
     // }
 
     private getEventsToLoad(): number {
-        let interval = this.timeline.getInterval();
+        const interval = this.timeline.getInterval();
         if (interval > INTERVAL_DAY_7 - 1) {
             return 200;
         } if (interval > INTERVAL_DAY_1 - 1) {
@@ -842,9 +831,9 @@ export class ArchiveTimelineComponent implements OnInit {
         console.log("requestMoreVideoEvents(timelineIndex=" + timelineIndex + ")");
         if (!this.requestingMoreVideoEvents && !this.noOldEventsAvailable[timelineIndex]) {
             this.requestingMoreVideoEvents = true;
-            let event = this.events[timelineIndex][this.events[timelineIndex].length - 1];
-            let timelines = this.timeline.getTotalTimelines();
-            let eventsToLoad = this.getEventsToLoad() * 2;
+            const event = this.events[timelineIndex][this.events[timelineIndex].length - 1];
+            const timelines = this.timeline.getTotalTimelines();
+            const eventsToLoad = this.getEventsToLoad() * 2;
             this.eventListService.getEventList(
                 this.loginService.server,
                 this.loginService.login,
@@ -863,7 +852,7 @@ export class ArchiveTimelineComponent implements OnInit {
     }
 
     private getVideoEventRecords(timelineIndex: number): object[] {
-        var records = [];
+        let records = [];
         for (let event of this.events[timelineIndex]) {
             // if (event.has_video) {
                 let l = new Date(event.time).getTime();
@@ -874,7 +863,7 @@ export class ArchiveTimelineComponent implements OnInit {
     }
 
     private getAudioEventRecords(timelineIndex: number): object[] {
-        var records = [];
+        let records = [];
         // for (let event of this.events[timelineIndex]) {
         //     if (event.has_audio) {
         //         let l = new Date(event.date).getTime();
@@ -885,7 +874,7 @@ export class ArchiveTimelineComponent implements OnInit {
     }
 
     private getBackgroundRecords(timelineIndex: number): object[] {
-        // var records = [];
+        // let records = [];
         // for (let archive of this.archives[timelineIndex]) {
         //     let l = new Date(archive.date).getTime();
         //     records.push(new TimeRecord(l, archive.duration, archive));
@@ -893,25 +882,6 @@ export class ArchiveTimelineComponent implements OnInit {
         // return records;
         return this.getVideoEventRecords(timelineIndex);
     }
-
-    // private getArchiveImage(archive: ArchiveRecord): string {
-    //     return JsonUtils.getArchiveFilename(
-    //         this.loginService.server,
-    //         this.loginService.login,
-    //         archive.image,
-    //         archive.id,
-    //         archive.date);
-    // }
-
-    // private getEventImage(event: EventRecord): string {
-    //     return JsonUtils.getArchiveFilename(
-    //         this.loginService.server,
-    //         this.loginService.login,
-    //         event.image,
-    //         event.id,
-    //         event.date);
-    //     return "";
-    // }
 
     getEventImage(event: EventRecord): string {
         return `${this.loginService.server.server_addr}${event.image}?token=${this.loginService.login.token}`;
@@ -970,8 +940,6 @@ export class ArchiveTimelineComponent implements OnInit {
         console.log("stopUpdateTimer()");
         if (this.timerSubscription)
             clearTimeout(this.timerSubscription);
-        // if (this.timerSubscription)
-        //     this.timerSubscription.unsubscribe();
         this.timerSubscription = null;
     }
 

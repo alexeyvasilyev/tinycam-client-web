@@ -133,7 +133,7 @@ export class EventListComponent implements OnInit {
 
     onScroll() {
         console.log('Loading more ' + this.EVENTS_TO_LOAD + ' events...');
-        let event = this.events[this.events.length - 1];
+        const event = this.events[this.events.length - 1];
         this.eventListService.getEventList(
             this.loginService.server,
             this.loginService.login,
