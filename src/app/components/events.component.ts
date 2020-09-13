@@ -6,7 +6,9 @@ import { LoginService } from '../services';
   ],
   template: `
     <header [selected]="1" [isAdmin]="this.loginService.login.isAdmin()"></header>
-    <event-cam-list></event-cam-list>
+    <div class="app-container">
+      <event-cam-list></event-cam-list>
+    </div>
   `
 })
 

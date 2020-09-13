@@ -11,25 +11,27 @@ import { LoginService } from '../services';
     `],
     template: `
       <header [selected]="3" [isAdmin]=true></header>
-      <h2 class="mat-h2" style="padding-top:20px">Admin information</h2>
-      <mat-card>
-        <mat-card-content>
-          <div>Username: <span style="font-weight: bold; padding-right: 5px;">{{this.loginService.login.username}}</span></div>
-        </mat-card-content>
-      </mat-card>
-      <mat-card style="margin-top: 20px;">
-        <mat-card-content>
-          <div style="margin-top: 20px">
-            <div><a class="my-button" mat-raised-button href="{{getAppLogsUrl()}}">App logs</a>
-            <a class="my-button" mat-raised-button href="{{getAccessLogsUrl()}}">Web server logs</a>
-            <a class="my-button" mat-raised-button href="{{getWatchdogLogsUrl()}}">Watchdog logs</a>
-            <a class="my-button" mat-raised-button href="{{getEventLogsUrl()}}">Event logs</a>
-            <a class="my-button" mat-raised-button href="{{getCrashLogsUrl()}}">Crash logs</a></div>
-            <div><a class="my-button" mat-button href="{{clearAppLogs()}}">Clear app logs</a>
-            <a class="my-button" mat-button href="{{clearAllLogs()}}">Clear all logs</a></div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+      <div class="app-container">
+        <h2 class="mat-h2" style="padding-top:20px">Admin information</h2>
+        <mat-card>
+          <mat-card-content>
+            <div>Username: <span style="font-weight: bold; padding-right: 5px;">{{this.loginService.login.username}}</span></div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card style="margin-top: 20px;">
+          <mat-card-content>
+            <div style="margin-top: 20px">
+              <div><a class="my-button" mat-raised-button href="{{getAppLogsUrl()}}">App logs</a>
+              <a class="my-button" mat-raised-button href="{{getAccessLogsUrl()}}">Web server logs</a>
+              <a class="my-button" mat-raised-button href="{{getWatchdogLogsUrl()}}">Watchdog logs</a>
+              <a class="my-button" mat-raised-button href="{{getEventLogsUrl()}}">Event logs</a>
+              <a class="my-button" mat-raised-button href="{{getCrashLogsUrl()}}">Crash logs</a></div>
+              <div><a class="my-button" mat-button href="{{clearAppLogs()}}">Clear app logs</a>
+              <a class="my-button" mat-button href="{{clearAllLogs()}}">Clear all logs</a></div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
     `
 })
 

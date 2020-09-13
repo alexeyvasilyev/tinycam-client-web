@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { AdminComponent, EventsComponent, LiveComponent, LoginComponent, PageNotFoundComponent, TimelineComponent } from './components';
+import { AdminComponent, EventsComponent, LiveCamComponent, LoginComponent, PageNotFoundComponent, TimelineComponent } from './components';
 import { AuthGuard } from './guards';
 
 const routes: Routes = [
   { path: '',        redirectTo: 'events', pathMatch: 'full' },
   { path: 'login',   component: LoginComponent },
-  { path: 'live',    component: LiveComponent,     canActivate: [AuthGuard] },
+  { path: 'live',    component: LiveCamComponent,  canActivate: [AuthGuard] },
   { path: 'events',  component: EventsComponent,   canActivate: [AuthGuard] },
   { path: 'timeline',component: TimelineComponent, canActivate: [AuthGuard] },
   { path: 'admin',   component: AdminComponent,    canActivate: [AuthGuard] },

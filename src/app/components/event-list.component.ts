@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { EventRecord, CameraSettings, } from '../models';
-import { EventListService, LoginService } from '../services';
+import { EventType, EventListService, LoginService } from '../services';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { Platform } from '@angular/cdk/platform';
 
@@ -127,7 +127,8 @@ export class EventListComponent implements OnInit {
             this.loginService.login,
             this.camId,
             null,
-            this.EVENTS_TO_LOAD)
+            this.EVENTS_TO_LOAD,
+            EventType.Local)
                 .then(events => { this.processEventList(events); });
     }
 
@@ -139,7 +140,8 @@ export class EventListComponent implements OnInit {
             this.loginService.login,
             this.camId,
             event.time,
-            this.EVENTS_TO_LOAD)
+            this.EVENTS_TO_LOAD,
+            EventType.Local)
                 .then(events => { this.processEventList(events); });
     }
 
@@ -198,11 +200,17 @@ export class EventListComponent implements OnInit {
     }
 
     getEventImage(event: EventRecord): string {
-        return `${this.loginService.server.server_addr}${event.image}?token=${this.loginService.login.token}`;
+        if (event.image.startsWith("http"))
+            return event.image;
+        else
+            return `${this.loginService.server.server_addr}${event.image}?token=${this.loginService.login.token}`;
     }
 
     getEventVideo(event: EventRecord): string {
-        return `${this.loginService.server.server_addr}${event.video}?token=${this.loginService.login.token}`;
+        if (event.image.startsWith("http"))
+            return `${event.video}`;
+        else
+            return `${this.loginService.server.server_addr}${event.video}?token=${this.loginService.login.token}`;
     }
 
     onDateChanged(event: MatDatepickerInputEvent<Date>) {
@@ -226,7 +234,8 @@ export class EventListComponent implements OnInit {
                 this.loginService.login,
                 this.camId,
                 selectedDate.getTime(),
-                this.EVENTS_TO_LOAD)
+                this.EVENTS_TO_LOAD,
+                EventType.Local)
                     .then(events => { this.processEventList(events); });
         }
     }

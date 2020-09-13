@@ -3,24 +3,21 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { EventRecord, Login, Server, ServerResponse } from '../models'
 import 'rxjs/add/operator/toPromise';
 
+export const enum EventType {
+    Local = "local",
+    Cloud = "cloud"
+};
+
 @Injectable()
 export class EventListService {
 
     constructor(private http: HttpClient) {
     }
 
-    // getEventListByDate(server: Server, login: Login, cameraId: number, date: Date, limit: number): Promise<EventRecord[]> {
-    //     return this.getEventList(server, login, cameraId,  date, limit);
-    // }
+    getEventList(server: Server, login: Login, cameraId: number, endtime: number, limit: number, type: EventType): Promise<EventRecord[]> {
+        // console.log('getEventList(camId=' + camId + ', eventId=' + eventId + ', endtime=' + endtime + ', limit=' + limit + ')');
 
-    // getEventListById(server: Server, login: Login, cameraId: number, limit: number): Promise<EventRecord[]> {
-    //     return this.getEventList(server, login, cameraId, null, limit);
-    // }
-
-    getEventList(server: Server, login: Login, cameraId: number, date: number, limit: number): Promise<EventRecord[]> {
-        // console.log('getEventList(camId=' + camId + ', eventId=' + eventId + ', date=' + date + ', limit=' + limit + ')');
-
-        const url = `${server.server_addr}/api/v1/get_cam_event_list?token=${login.token}&cameraId=${cameraId}&endtime=${date}&count=${limit}`;
+        const url = `${server.server_addr}/api/v1/get_cam_event_list?token=${login.token}&cameraId=${cameraId}&endtime=${endtime}&count=${limit}&type=${type}`;
         return this.http
             .get<ServerResponse>(url)
             .toPromise()

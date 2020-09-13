@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
 import { CameraSettings, EventRecord } from '../models'
-import { EventListService, LoginService } from '../services';
+import { EventType, EventListService, LoginService } from '../services';
 import Utils from '../utils';
 import ResizeObserver from 'resize-observer-polyfill';
 
@@ -208,9 +208,6 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
       <span *ngIf="multipleTimeline">Keys <b>q</b>/<b>a</b> to change timelines.<br/></span>
       <b>Space bar</b> - start/stop playback.<br/>
     </div>
-    <div style="padding:10px;">
-      NOTE: Video recordings will appear on timeline with 10-15 minutes delay.
-    </div>
   `
 })
 
@@ -304,8 +301,7 @@ export class ArchiveTimelineComponent implements OnInit {
         this.loadLastEvents();
 
         document.onfullscreenchange = function(event) {
-            console.log("FULL SCREEN CHANGE: " + document.fullscreenElement);
-            let height;
+            let height: number;
             if (document.fullscreenElement) {
                 height = this.mainEl.nativeElement.offsetHeight - this.canvasTimelineEl.nativeElement.offsetHeight;
             } else {
@@ -663,7 +659,8 @@ export class ArchiveTimelineComponent implements OnInit {
                this.loginService.login,
                timelines > 1 ? this.cameras[i].id : this.selectedCamId,
                null,
-               this.getEventsToLoad())
+               this.getEventsToLoad(),
+               EventType.Local)
                    .then(events => {
                        this.requestingMoreVideoEvents = false;
                        this.processEventList(i, events, true);
@@ -842,7 +839,8 @@ export class ArchiveTimelineComponent implements OnInit {
                 // this.cameras[timelineIndex].id,//this.selectedCamId,
                 event.time,
                 //this.EVENTS_TO_LOAD)//
-                eventsToLoad)
+                eventsToLoad,
+                EventType.Local)
                     .then(events => {
                        // console.log("this.requestingMoreVideoEvents = false");
                         this.requestingMoreVideoEvents = false;
@@ -884,11 +882,17 @@ export class ArchiveTimelineComponent implements OnInit {
     }
 
     getEventImage(event: EventRecord): string {
-        return `${this.loginService.server.server_addr}${event.image}?token=${this.loginService.login.token}`;
+        if (event.image.startsWith("http"))
+            return event.image;
+        else
+            return `${this.loginService.server.server_addr}${event.image}?token=${this.loginService.login.token}`;
     }
 
     getEventVideo(event: EventRecord): string {
-        return `${this.loginService.server.server_addr}${event.video}?token=${this.loginService.login.token}`;
+        if (event.image.startsWith("http"))
+            return `${event.video}`;
+        else
+            return `${this.loginService.server.server_addr}${event.video}?token=${this.loginService.login.token}`;
     }
 
     // private getArchiveVideo(archive: ArchiveRecord): string {

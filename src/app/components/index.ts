@@ -7,6 +7,7 @@ export * from './event.component';
 export * from './events.component';
 export * from './header.component';
 export * from './live.component';
+export * from './live-cam.component';
 export * from './login.component';
 export * from './pagenotfound.component';
 export * from './timeline-cam-list.component';
