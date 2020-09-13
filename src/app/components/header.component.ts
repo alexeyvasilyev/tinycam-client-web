@@ -5,8 +5,7 @@ import { Router } from '@angular/router';
   selector: 'header',
   styles: [ `
     .header {
-      padding: 10px;
-      margin: 20px 0;
+      padding: 30px;
       width: 100%;
     }
     .header-button {

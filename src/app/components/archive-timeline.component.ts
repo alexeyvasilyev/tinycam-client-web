@@ -207,6 +207,14 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
       Keys <b>left</b>/<b>right</b> to select previous/next events.<br/>
       <span *ngIf="multipleTimeline">Keys <b>q</b>/<b>a</b> to change timelines.<br/></span>
       <b>Space bar</b> - start/stop playback.<br/>
+      <div style="margin-top:20px;">
+        <span style="margin-right:25px;"><span style="background-color: #1de9b6; padding:3px; margin-right:8px;"></span>motion</span>
+        <span style="margin-right:25px;"><span style="background-color: #ae5a41; padding:3px; margin-right:8px;"></span>audio</span>
+        <span style="margin-right:25px;"><span style="background-color: #74559e; padding:3px; margin-right:8px;"></span>person</span>
+        <span style="margin-right:25px;"><span style="background-color: #1b85b8; padding:3px; margin-right:8px;"></span>vehicle</span>
+        <span style="margin-right:25px;"><span style="background-color: #827717; padding:3px; margin-right:8px;"></span>face</span>
+        <span style="margin-right:25px;"><span style="background-color: #784646; padding:3px; margin-right:8px;"></span>pet</span>
+      </div>
     </div>
   `
 })
