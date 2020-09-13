@@ -4,12 +4,14 @@ import { EventType, EventListService, LoginService } from '../services';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { Platform } from '@angular/cdk/platform';
 import Utils from "../utils";
+import { fadeInAnimation } from '../animations/';
 
 // <video> tag is shown only for Chrome/Firefox/Safari browsers. Not shown for IE.
 // For Chrome browser only first 5 events are shown as <video>,
 // the rest one are <image> (preventing too many active sockets issue).
 @Component({
   selector: 'event-list',
+  animations: [fadeInAnimation],
   styles: [ `
     .recordings-date-class {
       background: #EEEEEE;
@@ -49,11 +51,19 @@ import Utils from "../utils";
                     [hasAudio]="event.has_audio"
                     [date]="event.time"></event>
             </div>
+
+            <div *ngIf="isFabShown()" style="position: fixed;right: 50px; bottom: 50px;">
+                <div  [@fadeInAnimation] >
+                    <button mat-mini-fab color="accent" (click)="goTop()">
+                        <span><i class="fas fa-angle-up"></i></span>
+                    </button>
+                </div>
+            </div>
         </div>
       </div>
       <ng-template #no_events_content>
         <mat-card class="app-text-center" style="padding-bottom: 20px">
-          <p class="app-text-dark">No motion events found.</p> If you just added a camera, <b>please wait for 15 minutes</b> to get recordings available.
+          <p class="app-text-dark">No motion events found.</p>
         </mat-card>
       </ng-template>
     </div>
@@ -67,6 +77,7 @@ export class EventListComponent implements OnInit {
     events: EventRecord[] = [];
     eventsLoaded = false;
     autoplayOnHover = false;
+    showFab = false;
     // camerasMap: Map<number, CameraRecord> = new Map();
 
     constructor(
@@ -88,6 +99,9 @@ export class EventListComponent implements OnInit {
         return (date <= this.today.getTime() && date >= minus7daysMsec) ? 'recordings-date-class' : undefined;
     }
 
+    isFabShown() {
+        return document.documentElement.scrollTop > document.documentElement.clientHeight;
+    }
     ngOnInit() {
         // console.log('ngOnInit())');
         // this.loadLastEvents();
@@ -103,6 +117,15 @@ export class EventListComponent implements OnInit {
         // }
     }
 
+    // ngAfterViewInit() {
+    //     window.addEventListener("scroll", this.onScroll2);
+    // }
+
+    // async ngOnDestroy() {
+    //     // console.log("ngOnDestroy()");
+    //     window.removeEventListener("scroll", this.onScroll2);
+    // }
+
     ngOnChanges(changes: SimpleChanges) {
         // console.log('EventListComponent::ngOnChanges()');
         // for (let propName in changes) {
@@ -111,6 +134,19 @@ export class EventListComponent implements OnInit {
         // }
         this.loadLastEvents();
     }
+
+    goTop() {
+        console.log('goTop()');
+        window.scrollTo(0, 0);
+    }
+
+    // private onScroll2() {
+//        console.log('onScroll2()');
+//        document.body.scrollTop + document.documentElement.scrollTop) / (document.documentElement.scrollHeight - document.documentElement.clientHeight
+    //     console.log(`${document.documentElement.clientHeight}`);
+    //     this.showFab = (document.documentElement.scrollTop > document.documentElement.clientHeight);
+    //     console.log('onScroll2(): fab: ' + this.showFab);
+    // }
 
     private loadLastEvents() {
         // Clear events

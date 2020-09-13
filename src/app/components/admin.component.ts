@@ -31,6 +31,7 @@ import { LoginService } from '../services';
             </div>
           </mat-card-content>
         </mat-card>
+        <div class="mat-small app-text-right" style="padding:10px">tinyCam web client is <a href="https://github.com/alexeyvasilyev/tinycam-client-web">distributed</a> under Apache License 2.0</div>
       </div>
     `
 })
