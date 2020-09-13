@@ -3,6 +3,7 @@ import { EventRecord, CameraSettings, } from '../models';
 import { EventType, EventListService, LoginService } from '../services';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { Platform } from '@angular/cdk/platform';
+import Utils from "../utils";
 
 // <video> tag is shown only for Chrome/Firefox/Safari browsers. Not shown for IE.
 // For Chrome browser only first 5 events are shown as <video>,
@@ -186,17 +187,7 @@ export class EventListComponent implements OnInit {
     }
 
     getEventTitleHintColor(event: EventRecord): string {
-      if (event.motion === undefined)
-          return null;
-      switch (event.motion) {
-          case 'audio':   return '#ae5a41';
-          case 'person':  return '#74559e';
-          case 'vehicle': return '#1b85b8';
-          case 'face':    return '#827717';
-          case 'pet':     return '#784646';
-          case 'motion':
-          default:        return '#5a5255'
-        }
+        return Utils.getEventColor(event);
     }
 
     getEventImage(event: EventRecord): string {

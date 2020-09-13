@@ -850,11 +850,12 @@ export class ArchiveTimelineComponent implements OnInit {
     }
 
     private getVideoEventRecords(timelineIndex: number): object[] {
+        console.log(`getVideoEventRecords($timelineIndex)`);
         let records = [];
         for (let event of this.events[timelineIndex]) {
             // if (event.has_video) {
-                let l = new Date(event.time).getTime();
-                records.push(new TimeRecord(l, event.duration, event));
+            const l = new Date(event.time).getTime();
+            records.push(new TimeRecord(l, event.duration, event));
             // }
         }
         return records;
@@ -862,12 +863,13 @@ export class ArchiveTimelineComponent implements OnInit {
 
     private getAudioEventRecords(timelineIndex: number): object[] {
         let records = [];
-        // for (let event of this.events[timelineIndex]) {
-        //     if (event.has_audio) {
-        //         let l = new Date(event.date).getTime();
-        //         records.push(new TimeRecord(l, event.duration, event));
-        //     }
-        // }
+        for (let event of this.events[timelineIndex]) {
+            if (event.motion !== 'motion') {
+                const l = new Date(event.time).getTime();
+                const color = Utils.getEventColor(event);
+                records.push(new TimeRecord(l, event.duration, event, color));
+            }
+        }
         return records;
     }
 
@@ -894,27 +896,6 @@ export class ArchiveTimelineComponent implements OnInit {
         else
             return `${this.loginService.server.server_addr}${event.video}?token=${this.loginService.login.token}`;
     }
-
-    // private getArchiveVideo(archive: ArchiveRecord): string {
-    //     let videoUrl = JsonUtils.getArchiveFilename(
-    //         this.loginService.server,
-    //         this.loginService.login,
-    //         archive.video,
-    //         archive.id,
-    //         archive.date);
-    //     return videoUrl;
-    // }
-
-    // private getEventVideo(event: EventRecord): string {
-    //     let videoUrl = JsonUtils.getArchiveFilename(
-    //         this.loginService.server,
-    //         this.loginService.login,
-    //         event.video,
-    //         event.id,
-    //         event.date);
-    //     // videoUrl += '#t=' + ((event.video_offset - 3000) / 1000).toFixed();
-    //     return videoUrl;
-    // }
 
     private startUpdateTimer(): void {
         console.log("startUpdateTimer()");

@@ -1,4 +1,20 @@
+import { EventRecord } from './models'
+
 export default class Utils {
+
+    static getEventColor(event: EventRecord): string {
+      if (event.motion === undefined)
+          return null;
+      switch (event.motion) {
+          case 'audio':   return '#ae5a41';
+          case 'person':  return '#74559e';
+          case 'vehicle': return '#1b85b8';
+          case 'face':    return '#827717';
+          case 'pet':     return '#784646';
+          case 'motion':
+          default:        return '#5a5255'
+        }
+    }
 
     static isPrivateIpAddress(ip: string): boolean {
         if (ip == null)
