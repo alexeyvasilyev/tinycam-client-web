@@ -17,7 +17,7 @@ const INTERVAL_DAY_1   =  24 * 60 * 60 * 1000;
 const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
 
 @Component({
-  selector: 'archive-timeline',
+  selector: 'timeline',
   animations: [fadeInAnimation],
   styles: [ `
     .middle {

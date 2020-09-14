@@ -29,7 +29,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
               </mat-form-field>
             </mat-card>
           </div>
-          <archive-timeline [selectedCamId]="camId" [cameras]="cameras" [multipleTimeline]="multipleTimeline"></archive-timeline>
+          <timeline [selectedCamId]="camId" [cameras]="cameras" [multipleTimeline]="multipleTimeline"></timeline>
         </div>
       </div>
 
