@@ -1,41 +1,35 @@
 import { Component, Input, ElementRef, ViewChild } from '@angular/core';
 import { LoginService } from '../services';
+import { fadeInAnimation } from '../animations/';
 
 @Component({
     selector: 'live',
+    animations: [fadeInAnimation],
     // animations: [animateFactory(150, 0, 'ease-in')],
     styles: [ `
-        .cell {
+        .live-view-loading {
             background-repeat: no-repeat;
             background-position: center;
             background-size: contain;
             background-image: url("assets/img/loading.png");
-            background-color: #212121;
+            height:100%;
+        }
+        .live-view {
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            height:100%;
         }
     `],
     template: `
       <!-- <img #image alt="" (load)="loadImage(0)" (error)="loadImageError(0)" src="{{getLiveImage()}}"/> -->
-      <div #cell class="cell" style="height:100%">
-        <img #image alt="" style="height:100%"/>
+      <div [@fadeInAnimation] class="live-view-loading">
+        <div #cell class="live-view"></div>
       </div>
     `
 })
 
 export class LiveComponent {
-    // .cell:hover .cover {
-    //     display: block;
-    //   }
-    //   .cell {
-    //     background-repeat: no-repeat;
-    //     background-position: center;
-    //     background-size: contain;
-    //     background-image: url("assets/img/loading.png");
-    //     background-color: #212121;
-    //   }
-    //   .full-height {
-    //     height: 80vh;
-    //     background: yellow;
-    //   }
 
     @Input() camId: number; 
     @ViewChild('image', { static: true }) imageEl: ElementRef;
@@ -44,19 +38,6 @@ export class LiveComponent {
     constructor(
         public loginService: LoginService) {
           console.log('LiveComponent()');
-    }
-
-      private fitToContainerWidthHeight(element) {
-          console.log('fitToContainerWidthHeight(): ' + element.offsetHeight);
-//         element.style.height = '1000px';
-        // element.style.width = '100%';
-    //    document.documentElement.scrollTop > document.documentElement.clientHeight
-    //    element.height = document.documentElement.clientHeight;
-    //    element.width = element.offsetWidth;
-      }
-    ngOnInit() {
-        this.fitToContainerWidthHeight(this.cellEl.nativeElement);
-        // this.cellEl.nativeElement.offsetWidth = '100px';
     }
 
     ngAfterViewInit() {

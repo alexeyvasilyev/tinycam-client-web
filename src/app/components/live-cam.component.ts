@@ -1,6 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { LoginService, WindowRefService } from '../services';
-import ResizeObserver from 'resize-observer-polyfill';
 
 @Component({
     // animations: [animateFactory(150, 0, 'ease-in')],
@@ -45,7 +44,7 @@ export class LiveCamComponent {
 //     }
 
     ngAfterViewInit() {
-        document.body.style.overflow = 'hidden';
+        // document.body.style.overflow = 'hidden';
     // this.fitToContainerWidthHeight(this.livesEl.nativeElement);
     }
 
