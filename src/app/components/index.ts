@@ -5,6 +5,7 @@ export * from './event.component';
 export * from './page-events.component';
 export * from './header.component';
 export * from './live.component';
+export * from './live-cam-list.component';
 export * from './login.component';
 export * from './page-admin.component';
 export * from './page-live.component';

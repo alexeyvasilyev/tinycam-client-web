@@ -102,6 +102,7 @@ export class EventListComponent implements OnInit {
     isFabShown() {
         return document.documentElement.scrollTop > document.documentElement.clientHeight;
     }
+
     ngOnInit() {
         // console.log('ngOnInit())');
         // this.loadLastEvents();

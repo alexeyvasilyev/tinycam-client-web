@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { LoginService } from '../services';
 
 @Component({
@@ -12,13 +12,10 @@ import { LoginService } from '../services';
   `
 })
 
-export class PageEventsComponent implements OnInit {
+export class PageEventsComponent {
 
     constructor (
         public loginService: LoginService) {
-    }
-
-    ngOnInit() {
     }
 
 }

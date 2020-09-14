@@ -1,4 +1,4 @@
-import { Component, Input, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, ElementRef, SimpleChanges, ViewChild } from '@angular/core';
 import { LoginService } from '../services';
 import { fadeInAnimation } from '../animations/';
 
@@ -40,6 +40,11 @@ export class LiveComponent {
     }
 
     ngAfterViewInit() {
+        this.loadImage(0);
+        console.log(`camId: ${this.camId}`);
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
         this.loadImage(0);
     }
 
