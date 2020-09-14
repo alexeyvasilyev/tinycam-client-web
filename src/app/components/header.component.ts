@@ -24,7 +24,7 @@ import { Router } from '@angular/router';
         routerLink="/live"
         routerLinkActive="active"
         color="accent"
-        [disabled]="selected == 0"><i class="fas fa-th-large fa-lg"></i> &nbsp; Live</button>
+        [disabled]="selected == 0"><i class="fas fa-square fa-lg"></i> &nbsp; Live</button>
 
       <button
         mat-raised-button

@@ -104,7 +104,7 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
           (error)="handleVideoError()" (playing)="handleVideoPlaying()"
           (pause)="handleVideoStoppedPaused()" (ended)="handleVideoEnded()"
           (loadstart)="handleVideoLoadStart()" (loadeddata)="handleVideoLoadedData()"
-          (click)="handleVideoClicked()" (dblclick)="startFullScreen()" src="{{videoUrl}}">
+          (click)="handleVideoClicked()" (dblclick)="toggleFullScreen()" src="{{videoUrl}}">
           Your browser does not support the video tag.
         </video>
         <div style="padding:5px;"
@@ -167,9 +167,9 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
         </span>
       </button>
 
-      <button class="button" (click)="startFullScreen();" style="margin-left:30px;">
+      <button class="button" (click)="toggleFullScreen();" style="margin-left:30px;">
         <span>
-          <i class="fas fa-expand"></i>
+          <i class="fas fa-expand-alt"></i>
         </span>
       </button>
 
@@ -470,8 +470,8 @@ export class TimelineComponent implements OnInit {
         }
     }
 
-    startFullScreen() {
-      Utils.startFullScreen(this.mainEl.nativeElement);
+    toggleFullScreen() {
+      Utils.toggleFullScreen(this.mainEl.nativeElement);
       const height = this.mainEl.nativeElement.offsetHeight - this.canvasTimelineEl.nativeElement.offsetHeight;
       this.videoEl.nativeElement.style.height = height + 'px';
     }

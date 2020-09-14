@@ -86,27 +86,18 @@ export default class Utils {
       }
     }
 
-    // static cancelFullScreen() {
-    //   if (document.exitFullscreen) {
-    //     document.exitFullscreen();
-    //   } else if (document.mozCancelFullScreen) {
-    //     document.mozCancelFullScreen();
-    //   } else if (document.webkitCancelFullScreen) {
-    //     document.webkitCancelFullScreen();
-    //   } else if (document.msExitFullscreen) {
-    //     document.msExitFullscreen();
-    //   }
-    // }
+    static cancelFullScreen() {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
 
-    // static toggleFullScreen(element) {
-    //   var isInFullScreen = (document.fullscreenElement && document.fullscreenElement !== null) ||
-    //         (document.webkitFullscreenElement && document.webkitFullscreenElement !== null) ||
-    //         (document.mozFullScreenElement && document.mozFullScreenElement !== null) ||
-    //         (document.msFullscreenElement && document.msFullscreenElement !== null);
-    //   if (!isInFullScreen) {
-    //     Utils.startFullScreen(element);
-    //   } else {
-    //     Utils.cancelFullScreen();
-    //   }
-    // }
+    static toggleFullScreen(element) {
+      const isInFullScreen = (document.fullscreenElement && document.fullscreenElement !== null);
+      if (!isInFullScreen) {
+        Utils.startFullScreen(element);
+      } else {
+        Utils.cancelFullScreen();
+      }
+    }
 }
