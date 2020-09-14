@@ -1,10 +1,12 @@
 import { Component, Input, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { fadeInAnimation } from '../animations/';
 
 declare const videojs: any;
 
 @Component({
   selector: 'video-dialog',
+  animations: [fadeInAnimation],
   template: `
     <table style="border-spacing:3px;border-collapse:separate;width:100%;">
       <tr>
@@ -18,7 +20,7 @@ declare const videojs: any;
       </tr>
     </table>
 
-    <video width="800px" id='mp4video' class="video-js vjs-default-skin vjs-big-play-centered"
+    <video [@fadeInAnimation] width="800px" id='mp4video' class="video-js vjs-default-skin vjs-big-play-centered"
        controls (error)="handleVideoError()" (playing)="handleVideoPlaying()" poster="{{imageUrl}}">
     </video>
 

@@ -36,7 +36,7 @@ import { LoginService } from '../services';
     `
 })
 
-export class AdminComponent {
+export class PageAdminComponent {
 
   constructor(
     public loginService: LoginService) {

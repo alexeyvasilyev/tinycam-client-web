@@ -1,30 +1,24 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { LoginService, WindowRefService } from '../services';
 
 @Component({
     // animations: [animateFactory(150, 0, 'ease-in')],
     styles: [ `
-    img {
-        display: none;
-      }
-      .cell:hover .cover {
-        display: block;
-      }
     `],
     template: `
-    <div #component>
+    <div>
         <header [selected]="0" [isAdmin]="this.loginService.login.isAdmin()"></header>
-        <div #lives style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight">
+        <div style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight">
             <live [camId]="182399567"></live>
         </div>
     </div>
     `
 })
 
-export class LiveCamComponent {
+export class PageLiveComponent {
 
-    @ViewChild('component', { static: true }) componentEl: ElementRef;
-    @ViewChild('lives', { static: true }) livesEl: ElementRef;
+    // @ViewChild('component', { static: true }) componentEl: ElementRef;
+    // @ViewChild('lives', { static: true }) livesEl: ElementRef;
 
     myInnerHeight = this.windowRef.nativeWindow.innerHeight;
 

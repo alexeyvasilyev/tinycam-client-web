@@ -12,7 +12,7 @@ import { LoginService } from '../services';
   `
 })
 
-export class EventsComponent implements OnInit {
+export class PageEventsComponent implements OnInit {
 
     constructor (
         public loginService: LoginService) {

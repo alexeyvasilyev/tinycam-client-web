@@ -24,20 +24,20 @@ import {
   WindowRefService
 } from './services';
 import {
-  AdminComponent,
-  ArchiveTimelineComponent,
   CamListSelectionComponent,
   EventCamListComponent,
-  EventsComponent,
   EventListComponent,
   EventComponent,
   HeaderComponent,
   LiveComponent,
-  LiveCamComponent,
   LoginComponent,
+  PageAdminComponent,
+  PageLiveComponent,
+  PageTimelineComponent,
+  PageEventsComponent,
   PageNotFoundComponent,
-  TimelineCamListComponent,
   TimelineComponent,
+  TimelineCamListComponent,
   VideoDialogComponent,
 } from './components';
 import { AuthGuard } from './guards';
@@ -48,21 +48,21 @@ import { MomentModule } from 'angular2-moment';
 
 @NgModule({
   declarations: [
-    AdminComponent,
     AppComponent,
-    ArchiveTimelineComponent,
     CamListSelectionComponent,
     EventCamListComponent,
-    EventsComponent,
     EventListComponent,
     EventComponent,
     HeaderComponent,
     LiveComponent,
-    LiveCamComponent,
     LoginComponent,
+    PageAdminComponent,
+    PageLiveComponent,
+    PageEventsComponent,
+    PageTimelineComponent,
     PageNotFoundComponent,
-    TimelineCamListComponent,
     TimelineComponent,
+    TimelineCamListComponent,
     VideoDialogComponent,
   ],
   imports: [

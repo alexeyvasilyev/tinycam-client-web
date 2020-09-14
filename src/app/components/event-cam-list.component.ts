@@ -126,13 +126,13 @@ export class EventCamListComponent extends CamListSelectionComponent implements 
         // });
     }
 
-    // private getCameraSettingsByCamId(cameraId: number): CameraSettings {
-    //     for (let camera of this.cameras) {
-    //         if (camera.id == cameraId)
-    //             return camera;
-    //     }
-    //     return null;
-    // }
+    private getCameraSettingsByCamId(cameraId: number): CameraSettings {
+        for (let camera of this.cameras) {
+            if (camera.id == cameraId)
+                return camera;
+        }
+        return null;
+    }
 
     onSelected(cameraId: number): void {
         super.onSelected(cameraId);

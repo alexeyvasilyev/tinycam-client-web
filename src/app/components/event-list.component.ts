@@ -106,25 +106,7 @@ export class EventListComponent implements OnInit {
         // console.log('ngOnInit())');
         // this.loadLastEvents();
         this.autoplayOnHover = this.platform.FIREFOX;
-
-        // // Mapping cam id to cam name
-        // // 15593704483417 - "Cam 1"
-        // // 15123704434122 - "Cam 2"
-        // for (let camera of this.cameras) {
-        //     let cameraRecord = new CameraRecord();
-        //     cameraRecord.name = camera.name;
-        //     this.camerasMap.set(camera.id, cameraRecord);
-        // }
     }
-
-    // ngAfterViewInit() {
-    //     window.addEventListener("scroll", this.onScroll2);
-    // }
-
-    // async ngOnDestroy() {
-    //     // console.log("ngOnDestroy()");
-    //     window.removeEventListener("scroll", this.onScroll2);
-    // }
 
     ngOnChanges(changes: SimpleChanges) {
         // console.log('EventListComponent::ngOnChanges()');
@@ -137,16 +119,12 @@ export class EventListComponent implements OnInit {
 
     goTop() {
         console.log('goTop()');
-        window.scrollTo(0, 0);
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        });
     }
-
-    // private onScroll2() {
-//        console.log('onScroll2()');
-//        document.body.scrollTop + document.documentElement.scrollTop) / (document.documentElement.scrollHeight - document.documentElement.clientHeight
-    //     console.log(`${document.documentElement.clientHeight}`);
-    //     this.showFab = (document.documentElement.scrollTop > document.documentElement.clientHeight);
-    //     console.log('onScroll2(): fab: ' + this.showFab);
-    // }
 
     private loadLastEvents() {
         // Clear events
