@@ -490,11 +490,11 @@ export class ArchiveTimelineComponent implements OnInit {
         this.timeline.draw();
     }
 
-    private fitToContainerWidth(canvas) {
-        canvas.style.width = '100%';
+    private fitToContainerWidth(element) {
+        element.style.width = '100%';
         const timelines = this.timeline.getTotalTimelines();
-        canvas.height = timelines * (timelines > 1 ? 40 : 50) + 25;
-        canvas.width = canvas.offsetWidth;
+        element.height = timelines * (timelines > 1 ? 40 : 50) + 25;
+        element.width = element.offsetWidth;
     }
 
     private resizeCanvas() {
