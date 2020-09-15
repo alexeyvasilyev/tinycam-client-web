@@ -21,6 +21,7 @@ import {
   CamListService,
   EventListService,
   LoginService,
+  LogoutService,
   WindowRefService
 } from './services';
 import {
@@ -95,6 +96,7 @@ import { MomentModule } from 'angular2-moment';
     CamListService,
     EventListService,
     LoginService,
+    LogoutService,
     WindowRefService,
   ],
   bootstrap: [AppComponent]

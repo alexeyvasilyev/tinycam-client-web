@@ -206,17 +206,21 @@ export class EventListComponent implements OnInit {
     }
 
     getEventImage(event: EventRecord): string {
-        if (event.image.startsWith("http"))
+        if (event.image.startsWith('http')) {
             return event.image;
-        else
-            return `${this.loginService.server.server_addr}${event.image}?token=${this.loginService.login.token}`;
+        } else {
+            const char = event.image.indexOf('?') == -1 ? '?' : '&';
+            return `${this.loginService.server.server_addr}${event.image}${char}token=${this.loginService.login.token}`;
+        }
     }
 
     getEventVideo(event: EventRecord): string {
-        if (event.image.startsWith("http"))
+        if (event.image.startsWith("http")) {
             return `${event.video}`;
-        else
-            return `${this.loginService.server.server_addr}${event.video}?token=${this.loginService.login.token}`;
+        } else {
+          const char = event.image.indexOf('?') == -1 ? '?' : '&';
+          return `${this.loginService.server.server_addr}${event.video}${char}token=${this.loginService.login.token}`;
+        }
     }
 
     onDateChanged(event: MatDatepickerInputEvent<Date>) {

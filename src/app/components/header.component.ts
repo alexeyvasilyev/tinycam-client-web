@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
+import { LoginService, LogoutService } from '../services';
 
 @Component({
   selector: 'header',
@@ -70,11 +71,14 @@ export class HeaderComponent {
     @Input() public isAdmin: boolean;
 
     constructor(
-        private router: Router) {
+        private router: Router,
+        private loginService: LoginService,
+        private logoutService: LogoutService) {
     }
 
     doLogout() {
         console.log('Logout');
+        this.logoutService.getLogout(this.loginService.server, this.loginService.login.token);
         localStorage.removeItem('login');
         this.router.navigate(['/login']);
     }

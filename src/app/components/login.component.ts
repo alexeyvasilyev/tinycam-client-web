@@ -68,7 +68,12 @@ import { HttpErrorResponse } from '@angular/common/http';
           </form>
         </mat-card-content>
       </mat-card>
-      <div style="padding-top: 40px; padding-bottom: 10px" class="mat-small app-text-center">
+
+      <div style="padding: 20px;" class="app-text-right">
+        Use <a href="/old/">Old</a> web UI
+      </div>
+
+      <div style="padding-top: 20px; padding-bottom: 10px" class="mat-small app-text-center">
         Want to have constant 24/7 recording? Check  <a href="https://cloud.tinycammonitor.com/">tinyCam Cloud</a> service.<br/>
         <a href="https://tinysolutionsllc.com/">Tiny Solutions LLC., 2010–2020</a>
       </div>
