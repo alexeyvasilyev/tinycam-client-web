@@ -6,10 +6,10 @@ import { AuthGuard } from './guards';
 const routes: Routes = [
   { path: '',        redirectTo: 'events', pathMatch: 'full' },
   { path: 'login',   component: LoginComponent },
-  { path: 'live',    component: PageLiveComponent,  canActivate: [AuthGuard] },
-  { path: 'events',  component: PageEventsComponent,canActivate: [AuthGuard] },
-  { path: 'timeline',component: PageTimelineComponent,  canActivate: [AuthGuard] },
-  { path: 'admin',   component: PageAdminComponent, canActivate: [AuthGuard] },
+  { path: 'live',    component: PageLiveComponent,     canActivate: [AuthGuard] },
+  { path: 'events',  component: PageEventsComponent,   canActivate: [AuthGuard] },
+  { path: 'timeline',component: PageTimelineComponent, canActivate: [AuthGuard] },
+  { path: 'admin',   component: PageAdminComponent,    canActivate: [AuthGuard] },
   { path: '**',      component: PageNotFoundComponent }
 // { path: '**',      component: LoginComponent },
 // { path: '', redirectTo: '/events', pathMatch: 'full' },
