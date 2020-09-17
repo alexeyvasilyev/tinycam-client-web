@@ -87,6 +87,15 @@ export class CamListSelectionComponent implements OnInit {
     }
 
     camerasLoaded() {
+        if (this.camId == -1 && this.cameras.length > 0) {
+            for (let camera of this.cameras) {
+                if (camera.enabled) {
+                    this.camId = camera.id;
+                    break;
+                }
+            }
+            this.camId = this.cameras[0].id;
+        }
     }
 
     getCameraName(cameraSettings: CameraSettings): string {

@@ -20,8 +20,10 @@ import { MatSelectModule } from '@angular/material/select';
 import {
   CamListService,
   EventListService,
+  GenericService,
   LoginService,
   LogoutService,
+  StatusService,
   WindowRefService
 } from './services';
 import {
@@ -95,10 +97,12 @@ import { MomentModule } from 'angular2-moment';
     AuthGuard,
     CamListService,
     EventListService,
+    GenericService,
     LoginService,
     LogoutService,
+    StatusService,
     WindowRefService,
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

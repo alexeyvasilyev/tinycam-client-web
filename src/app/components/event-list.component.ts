@@ -63,7 +63,7 @@ import { fadeInAnimation } from '../animations/';
       </div>
       <ng-template #no_events_content>
         <mat-card class="app-text-center" style="padding-bottom: 20px">
-          <p class="app-text-dark">No motion events found.</p>
+          <p class="app-text-dark">No events found.</p>
         </mat-card>
       </ng-template>
     </div>
