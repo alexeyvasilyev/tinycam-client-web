@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { LoginService, LogoutService } from '../services';
+import StorageUtils from '../utils-storage';
 
 @Component({
   selector: 'header',
@@ -79,7 +80,7 @@ export class HeaderComponent {
     doLogout() {
         console.log('Logout');
         this.logoutService.getLogout(this.loginService.server, this.loginService.login.token);
-        localStorage.removeItem('login');
+        StorageUtils.cleanStorage(this.loginService);
         this.router.navigate(['/login']);
     }
 

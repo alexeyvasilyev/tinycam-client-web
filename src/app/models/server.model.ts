@@ -1,3 +1,4 @@
 export class Server {
-    server_addr: string = '';
+    // e.g. 'http://192.168.0.1' or empty
+    url: string = '';
 }

@@ -9,7 +9,7 @@ export class LogoutService {
     }
 
     getLogout(server: Server, token: String): Promise<any> {
-        const url = `${server.server_addr}/api/v1/logout?token=${token}`;
+        const url = `${server.url}/api/v1/logout?token=${token}`;
         return this.http
             .get<ServerResponse>(url)
             .toPromise()

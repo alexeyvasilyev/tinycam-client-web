@@ -860,7 +860,7 @@ export class TimelineComponent implements OnInit {
     }
 
     private getVideoEventRecords(timelineIndex: number): object[] {
-        console.log(`getVideoEventRecords($timelineIndex)`);
+        console.log(`getVideoEventRecords(${timelineIndex})`);
         let records = [];
         for (let event of this.events[timelineIndex]) {
             // if (event.has_video) {
@@ -898,7 +898,7 @@ export class TimelineComponent implements OnInit {
             return event.image;
         } else {
             const char = event.image.indexOf('?') == -1 ? '?' : '&';
-            return `${this.loginService.server.server_addr}${event.image}${char}token=${this.loginService.login.token}`;
+            return `${this.loginService.server.url}${event.image}${char}token=${this.loginService.login.token}`;
         }
     }
 
@@ -907,7 +907,7 @@ export class TimelineComponent implements OnInit {
             return `${event.video}`;
         } else {
           const char = event.image.indexOf('?') == -1 ? '?' : '&';
-          return `${this.loginService.server.server_addr}${event.video}${char}token=${this.loginService.login.token}`;
+          return `${this.loginService.server.url}${event.video}${char}token=${this.loginService.login.token}`;
         }
     }
 

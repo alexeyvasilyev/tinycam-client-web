@@ -43,31 +43,31 @@ export class PageAdminComponent {
   }
 
   getAppLogsUrl(): string {
-      return `${this.loginService.server.server_addr}/axis-cgi/admin/applog.cgi?token=${this.loginService.login.token}`;
+      return `${this.loginService.server.url}/axis-cgi/admin/applog.cgi?token=${this.loginService.login.token}`;
   }
 
   getAccessLogsUrl(): string {
-    return `${this.loginService.server.server_addr}/axis-cgi/admin/accesslog.cgi?token=${this.loginService.login.token}`;
+    return `${this.loginService.server.url}/axis-cgi/admin/accesslog.cgi?token=${this.loginService.login.token}`;
   }
 
   getEventLogsUrl(): string {
-    return `${this.loginService.server.server_addr}/axis-cgi/admin/eventlog.cgi?token=${this.loginService.login.token}`;
+    return `${this.loginService.server.url}/axis-cgi/admin/eventlog.cgi?token=${this.loginService.login.token}`;
   }
 
   getWatchdogLogsUrl(): string {
-    return `${this.loginService.server.server_addr}/axis-cgi/admin/watchdoglog.cgi?token=${this.loginService.login.token}`;
+    return `${this.loginService.server.url}/axis-cgi/admin/watchdoglog.cgi?token=${this.loginService.login.token}`;
   }
 
   getCrashLogsUrl(): string {
-    return `${this.loginService.server.server_addr}/axis-cgi/admin/crashlog.cgi?token=${this.loginService.login.token}`;
+    return `${this.loginService.server.url}/axis-cgi/admin/crashlog.cgi?token=${this.loginService.login.token}`;
   }
 
   clearAppLogs(): string {
-    return `${this.loginService.server.server_addr}/axis-cgi/admin/clearapplog.cgi?token=${this.loginService.login.token}`;
+    return `${this.loginService.server.url}/axis-cgi/admin/clearapplog.cgi?token=${this.loginService.login.token}`;
   }
 
   clearAllLogs(): string {
-    return `${this.loginService.server.server_addr}/axis-cgi/admin/clearalllog.cgi?token=${this.loginService.login.token}`;
+    return `${this.loginService.server.url}/axis-cgi/admin/clearalllog.cgi?token=${this.loginService.login.token}`;
   }
 
 }

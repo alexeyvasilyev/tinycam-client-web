@@ -32,7 +32,6 @@ import { fadeInAnimation } from '../animations/';
 export class LiveComponent {
 
     @Input() camId: number; 
-    // @ViewChild('image', { static: true }) imageEl: ElementRef;
     @ViewChild('cell', { static: true }) cellEl: ElementRef;
 
     constructor(
@@ -53,7 +52,7 @@ export class LiveComponent {
     }
   
     showHideToolbar() {
-        console.log('showHideToolbar(): ' + document.documentElement.scrollTop);
+        // console.log('showHideToolbar(): ' + document.documentElement.scrollTop);
         if (document.documentElement.scrollTop > 0)
             // Scroll to top
             window.scrollTo({
@@ -88,13 +87,13 @@ export class LiveComponent {
         this.loadImageImpl(cellId, true);
     }
   
-    private randomInteger(min: number, max: number): number {
-        const rand = min - 0.5 + Math.random() * (max - min + 1)
-        return Math.round(rand);
-    }
+    // private randomInteger(min: number, max: number): number {
+    //     const rand = min - 0.5 + Math.random() * (max - min + 1)
+    //     return Math.round(rand);
+    // }
 
     getLiveImage(): string {
-        return `${this.loginService.server.server_addr}/axis-cgi/mjpg/video.cgi?cameraId=${this.camId}&token=${this.loginService.login.token}`;
+        return `${this.loginService.server.url}/axis-cgi/mjpg/video.cgi?cameraId=${this.camId}&token=${this.loginService.login.token}`;
     }
 
 }

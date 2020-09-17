@@ -17,7 +17,7 @@ export class EventListService {
     getEventList(server: Server, login: Login, cameraId: number, endtime: number, limit: number, type: EventType): Promise<EventRecord[]> {
         // console.log('getEventList(camId=' + camId + ', eventId=' + eventId + ', endtime=' + endtime + ', limit=' + limit + ')');
 
-        const url = `${server.server_addr}/api/v1/get_cam_event_list?token=${login.token}&cameraId=${cameraId}&endtime=${endtime}&count=${limit}&type=${type}`;
+        const url = `${server.url}/api/v1/get_cam_event_list?token=${login.token}&cameraId=${cameraId}&endtime=${endtime}&count=${limit}&type=${type}`;
         return this.http
             .get<ServerResponse>(url)
             .toPromise()

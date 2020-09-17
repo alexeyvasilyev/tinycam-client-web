@@ -3,6 +3,7 @@ import { CameraSettings } from '../models';
 import { CamListService, LoginService } from '../services';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import StorageUtils from '../utils-storage';
 
 @Component({
     template: ``
@@ -11,8 +12,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class CamListSelectionComponent implements OnInit {
 
     cameras: CameraSettings[] = null;
-    // warnings: CameraSettings[] = null;
-    camId = -1; // all cameras
+    camId = StorageUtils.getLastCameraSelected(); // all cameras
     errorMessage: string = null;
     responseCode: number = -1;
 
@@ -30,9 +30,10 @@ export class CamListSelectionComponent implements OnInit {
             // .catch(this.processCamListError);
     }
 
-    onSelected(cameraId: number): void {
-        this.camId = cameraId;
-        console.log('Selected: ' + cameraId);
+    onSelected(camId: number): void {
+        console.log('Selected camera: ' + camId);
+        // this.camId = camId;
+        StorageUtils.setLastCameraSelected(camId);
         // console.log('Selected: "' + target.value + '", camId: ' + camIdSelected);
     }
 

@@ -210,7 +210,7 @@ export class EventListComponent implements OnInit {
             return event.image;
         } else {
             const char = event.image.indexOf('?') == -1 ? '?' : '&';
-            return `${this.loginService.server.server_addr}${event.image}${char}token=${this.loginService.login.token}`;
+            return `${this.loginService.server.url}${event.image}${char}token=${this.loginService.login.token}`;
         }
     }
 
@@ -219,7 +219,7 @@ export class EventListComponent implements OnInit {
             return `${event.video}`;
         } else {
           const char = event.image.indexOf('?') == -1 ? '?' : '&';
-          return `${this.loginService.server.server_addr}${event.video}${char}token=${this.loginService.login.token}`;
+          return `${this.loginService.server.url}${event.video}${char}token=${this.loginService.login.token}`;
         }
     }
 

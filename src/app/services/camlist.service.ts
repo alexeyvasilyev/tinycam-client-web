@@ -11,7 +11,7 @@ export class CamListService {
 
     getCamList(server: Server, login: Login): Promise<CameraSettings[]> {
         console.log('getCamList()');
-        const url = `${server.server_addr}/api/v1/get_cam_list?token=${login.token}`;
+        const url = `${server.url}/api/v1/get_cam_list?token=${login.token}`;
         return this.http
             .get<ServerResponse>(url)
             .toPromise()

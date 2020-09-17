@@ -57,33 +57,33 @@ import Utils from '../utils';
 
           <div class="container">
             <div class="right">
-                <button class="live-button" style="margin-right:20px;">
+              <button class="live-button" style="margin-right:20px;">
                 <i class="far fa-dot-circle"></i>
-                </button>
-                <button class="live-button">1</button>
-                <button class="live-button">2</button>
-                <button class="live-button">3</button>
-                <button class="live-button">4</button>
-                <button mat-icon-button>
+              </button>
+              <button class="live-button">1</button>
+              <button class="live-button">2</button>
+              <button class="live-button">3</button>
+              <button class="live-button">4</button>
+              <button mat-icon-button>
                 <i class="fas fa-ellipsis-v fa-lg" style="color:#111111;"></i>
-                </button>
-                <button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;">
+              </button>
+              <button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;">
                 <i class="fas fa-expand-alt"></i>
-                </button>
+              </button>
             </div>
 
             <div class="left">
-                <div *ngIf="cameras.length > 1">
+              <div *ngIf="cameras.length > 1">
                 <div style="margin:0px 15px;">
-                    <mat-form-field color="accent">
-                    <mat-select [(value)]="selectedCamId" (selectionChange)="onSelected($event.value)">
-                        <mat-option *ngFor="let camera of cameras" [value]="camera.id">
+                  <mat-form-field color="accent">
+                    <mat-select [(value)]="camId" (selectionChange)="onSelected($event.value)">
+                      <mat-option *ngFor="let camera of cameras" [value]="camera.id">
                         {{getCameraName(camera)}}
-                        </mat-option>
+                      </mat-option>
                     </mat-select>
-                    </mat-form-field>
+                  </mat-form-field>
                 </div>
-                </div>
+              </div>
             </div>
           </div>
 
@@ -114,31 +114,8 @@ export class LiveCamListComponent extends CamListSelectionComponent {
             super(router, loginService, camListService);
     }
 
-    camerasLoaded() {
-        if (this.cameras && this.cameras.length > 0) {
-            this.camId = this.cameras[0].id;
-            this.selectedCamId = this.getSelectedCamId();
-            this.onSelected(this.selectedCamId);
-        }
-    }
-
     toggleFullScreen() {
-        console.log('A');
         Utils.toggleFullScreen(this.liveEl.nativeElement);
-        // const height = this.mainEl.nativeElement.offsetHeight - this.canvasTimelineEl.nativeElement.offsetHeight;
-        // this.videoEl.nativeElement.style.height = height + 'px';
-    }
-
-    getSelectedCamId(): number {
-      console.log('getSelectedCamId()');
-        // Find first enabled camera
-        for (let camera of this.cameras) {
-            if (camera.enabled)
-                return camera.id;
-        }
-        // No enabled cameras found.
-        // Return the first item in the list.
-        return this.cameras[0].id;
     }
 
 }

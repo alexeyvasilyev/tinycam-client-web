@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Login } from '../models';
 import { LoginService } from '../services';
 import { HttpErrorResponse } from '@angular/common/http';
+import StorageUtils from '../utils-storage';
 
 @Component({
   selector: 'login',
@@ -51,13 +52,15 @@ import { HttpErrorResponse } from '@angular/common/http';
                 [(ngModel)]="password" name="Password">
             </mat-form-field>
 
-            <mat-form-field class="login-full-width" style="padding-top:10px;">
-              <input
-                matInput
-                type="text"
-                placeholder="Server, e.g. http://192.168.0.3:8083"
-                [(ngModel)]="server" name="Server">
-            </mat-form-field>
+            <div *ngIf="showServer">
+              <mat-form-field class="login-full-width" style="padding-top:10px;">
+                <input
+                  matInput
+                  type="text"
+                  placeholder="Remote server, e.g. http://192.168.0.3:8083"
+                  [(ngModel)]="server" name="Server">
+              </mat-form-field>
+            </div>
 
             <div class="app-text-center">
               <button type="submit" [disabled]="!loginForm.form.valid" mat-raised-button color="accent" class="login-button">LOGIN</button>
@@ -87,46 +90,38 @@ export class LoginComponent implements OnInit {
     error: string = null;
     password: string = '';
     server: string = '';
-
-    // loginFormControl = new FormControl('', [
-    //     Validators.required,
-    //     Validators.email,
-    //   ]);
-
-    // matcher = new MyErrorStateMatcher();
+    showServer: boolean = false;
 
     constructor(
         private router: Router,
+        private activatedRoute: ActivatedRoute,
         private loginService: LoginService) {
     }
 
     ngOnInit() {
-      this.server = this.loginService.server.server_addr;
+      console.log('A');
+      StorageUtils.loadStorage(this.loginService);
+      this.server = this.loginService.server.url;
+      // Check if '/login?remote=yes'
+      this.activatedRoute.queryParams.subscribe((params: Params) => {
+        let status = params['remote'];
+        if (status) {
+          this.showServer = status === 'yes' ? true : false;
+        }
+      });
+      // Show server if saved server length not empty
+      if (this.loginService.server.url.length > 0)
+        this.showServer = true;
     }
 
     processLogin(newLogin: Login) {
-        console.log('processLogin() token: ' + newLogin.token);
-        // this.loginService.server = server;
+        console.log('New login token acquired: ' + newLogin.token);
         this.loginService.login.succeeded = true;
         this.loginService.login.token = newLogin.token;
         this.loginService.login.access = newLogin.access;
-        this.loginService.server.server_addr = this.server;
+        this.loginService.server.url = this.server;
 
-        // Save credentials to database
-        localStorage.setItem(
-          'login',
-          JSON.stringify({
-            user: this.loginService.login.username,
-            token: this.loginService.login.token,
-            access: this.loginService.login.access
-          }))
-        // Save server to database
-        localStorage.setItem(
-          'server',
-          JSON.stringify({
-            server: this.loginService.server.server_addr
-          }));
-
+        StorageUtils.saveStorage(this.loginService);
         this.router.navigate(['/events']);
     }
 
@@ -134,7 +129,7 @@ export class LoginComponent implements OnInit {
         console.log('Trying to login...');
         this.error = null;
         this.loginService.login.username = this.loginService.login.username.trim();
-        this.loginService.server.server_addr = this.server;
+        this.loginService.server.url = this.server;
       
         // Send HTTP request
         this.loginService.getLogin(this.loginService.server, this.login.username, this.password)

@@ -21,10 +21,10 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
           <div *ngIf="cameras.length > 1 && !multipleTimeline" style="margin-bottom:20px;">
             <mat-card>
               <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                <mat-select [(value)]="selectedCamId" (selectionChange)="onSelected($event.value)" placeholder="Camera timeline">
+                <mat-select [(value)]="camId" (selectionChange)="onSelected($event.value)" placeholder="Camera timeline">
                   <mat-option *ngFor="let camera of cameras" [value]="camera.id">
                     {{getCameraName(camera)}}
-                  </mat-option>
+                  </mat-option> 
                 </mat-select>
               </mat-form-field>
             </mat-card>
@@ -40,28 +40,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
 })
 
 export class TimelineCamListComponent extends CamListSelectionComponent {
-    @Input() multipleTimeline: boolean;
 
-    selectedCamId: number = -1;
-
-    camerasLoaded() {
-        if (this.cameras && this.cameras.length > 0) {
-            this.camId = this.cameras[0].id;
-            this.selectedCamId = this.getSelectedCamId();
-            this.onSelected(this.selectedCamId);
-        }
-    }
-
-    getSelectedCamId(): number {
-      console.log('getSelectedCamId()');
-        // Find first enabled camera
-        for (let camera of this.cameras) {
-            if (camera.enabled)
-                return camera.id;
-        }
-        // No enabled cameras found.
-        // Return the first item in the list.
-        return this.cameras[0].id;
-    }
+  @Input() multipleTimeline: boolean;
 
 }

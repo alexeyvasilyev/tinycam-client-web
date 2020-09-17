@@ -12,7 +12,7 @@ export class LoginService {
     }
 
     getLogin(server: Server, username: String, password: String): Promise<Login> {
-        const url = `${server.server_addr}/api/v1/login?user=${username}&pwd=${password}`;
+        const url = `${server.url}/api/v1/login?user=${username}&pwd=${password}`;
         return this.http
             .get<ServerResponse>(url)
             .toPromise()

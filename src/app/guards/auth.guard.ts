@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router, CanActivate } from '@angular/router';
 import { LoginService, WindowRefService } from '../services';
+import StorageUtils from '../utils-storage';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -11,22 +12,6 @@ export class AuthGuard implements CanActivate {
         private loginService: LoginService) {
     }
 
-    private restoreDatabase() {
-        var login = JSON.parse(localStorage.getItem('login'));
-        if (login != null && login.user != null && login.token != null) {
-            console.log('Restoring login...');
-            this.loginService.login.username = login.user;
-            this.loginService.login.token = login.token;
-            this.loginService.login.access = login.access;
-            this.loginService.login.succeeded = true; //???
-        }
-        var server = JSON.parse(localStorage.getItem('server'));
-        if (server != null && server.server != null) {
-            console.log('Restoring server...');
-            this.loginService.server.server_addr = server.server;
-        }
-    }
-
     makeRedirection(url: string) {
         console.log('Redirecting to ' + url);
         this.windowRef.nativeWindow.location.href = url;
@@ -34,7 +19,7 @@ export class AuthGuard implements CanActivate {
 
     canActivate() {
         if (!this.loginService.login.succeeded) {
-            this.restoreDatabase();
+            StorageUtils.loadStorage(this.loginService);
         }
 
         if (this.loginService.login.succeeded) {
