@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { EventRecord, Login, Server, ServerResponse } from '../models'
 import 'rxjs/add/operator/toPromise';
+import 'rxjs/add/operator/timeout'
 
 export const enum EventType {
     Local = "local",
@@ -20,6 +21,7 @@ export class EventListService {
         const url = `${server.url}/api/v1/get_cam_event_list?token=${login.token}&cameraId=${cameraId}&endtime=${endtime}&count=${limit}&type=${type}`;
         return this.http
             .get<ServerResponse>(url)
+            .timeout(10000)
             .toPromise()
             .then((res:ServerResponse) => res.data as EventRecord[])
             .catch(this.handleError);

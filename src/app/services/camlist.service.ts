@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Login, Server, ServerResponse, CameraSettings } from '../models';
 import 'rxjs/add/operator/toPromise';
+import 'rxjs/add/operator/timeout'
 
 @Injectable()
 export class CamListService {
@@ -14,6 +15,7 @@ export class CamListService {
         const url = `${server.url}/api/v1/get_cam_list?token=${login.token}`;
         return this.http
             .get<ServerResponse>(url)
+            .timeout(10000)
             .toPromise()
             .then((res:ServerResponse) => res.data as CameraSettings[])
             .catch(this.handleError);

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Server, ServerResponse } from '../models'
+import 'rxjs/add/operator/timeout'
 
 @Injectable()
 export class LogoutService {
@@ -12,6 +13,7 @@ export class LogoutService {
         const url = `${server.url}/api/v1/logout?token=${token}`;
         return this.http
             .get<ServerResponse>(url)
+            .timeout(10000)
             .toPromise()
             .then()
             .catch(this.handleError);

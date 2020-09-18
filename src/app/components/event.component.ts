@@ -164,7 +164,9 @@ export class EventComponent implements OnInit {
     loadedPercent = 0;
     private initTime = 0;
 
-    constructor(private windowRef: WindowRefService, public dialog: MatDialog) {
+    constructor(
+        private windowRef: WindowRefService,
+        public dialog: MatDialog) {
     }
 
     @Input() status: number;

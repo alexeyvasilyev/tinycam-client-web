@@ -99,7 +99,6 @@ export class LoginComponent implements OnInit {
     }
 
     ngOnInit() {
-      console.log('A');
       StorageUtils.loadStorage(this.loginService);
       this.server = this.loginService.server.url;
       // Check if '/login?remote=yes'

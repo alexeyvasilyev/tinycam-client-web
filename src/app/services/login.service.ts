@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Login, Server, ServerResponse } from '../models'
+import 'rxjs/add/operator/timeout'
 
 @Injectable()
 export class LoginService {
@@ -15,6 +16,7 @@ export class LoginService {
         const url = `${server.url}/api/v1/login?user=${username}&pwd=${password}`;
         return this.http
             .get<ServerResponse>(url)
+            .timeout(10000)
             .toPromise()
             .then((res:ServerResponse) => res.data as Login)
             .catch(this.handleError);

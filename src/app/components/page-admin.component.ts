@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { GenericService, LoginService, StatusService } from '../services';
+import { Status, StatusStreamProfile } from '../models'
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
     // animations: [animateFactory(150, 0, 'ease-in')],
     styles: [ `
       .my-button {
-        margin: 5px 10px;
+        margin: 5px 6px;
         text-transform: uppercase;
       }
     `],
@@ -23,9 +25,9 @@ import { GenericService, LoginService, StatusService } from '../services';
         <mat-card style="margin-top: 20px;">
           <mat-card-content>
             <div>
-              <div>Background mode: {{backgroundModeStatus}}</div>
-              <button mat-raised-button color="primary" class="my-button" (click)="sendHttpGetRequest('/param.cgi?action=update&root.BackgroundMode=on')" disabled>Start</button>
-              <button mat-raised-button color="primary" class="my-button" (click)="sendHttpGetRequest('/param.cgi?action=update&root.BackgroundMode=off')">Stop</button>
+              <div>Background mode: {{backgroundMode === undefined ? '-' : (backgroundMode ? 'Started' : 'Stopped')}}</div>
+              <button mat-raised-button color="primary" class="my-button" (click)="sendHttpGetRequest('/param.cgi?action=update&root.BackgroundMode=on')" [(disabled)]="backgroundMode === undefined || backgroundMode">Start</button>
+              <button mat-raised-button color="primary" class="my-button" (click)="sendHttpGetRequest('/param.cgi?action=update&root.BackgroundMode=off')" [(disabled)]="backgroundMode === undefined || !backgroundMode">Stop</button>
               <div style="margin-top: 10px;">
                 <div>Recorded: <span id="recorded">-</span>, Free: <span id="available">-</span></div>
                 <div>Motion: <span id="motion">-</span></div>
@@ -34,26 +36,26 @@ import { GenericService, LoginService, StatusService } from '../services';
             <div>
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                  <mat-select [(value)]="streamProfile" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.StreamProfile='+$event.value)" placeholder="Stream profile">
-                    <mat-option value="main">MAIN</mat-option>
-                    <mat-option value="sub">SUB</mat-option>
-                    <mat-option value="auto">AUTO</mat-option>
+                  <mat-select [(value)]="streamProfile" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.StreamProfile=' + ($event.value==0 ? 'main' : ($event.value==1 ? 'sub' : 'auto')))" placeholder="Stream profile">
+                    <mat-option [value]="0">MAIN</mat-option>
+                    <mat-option [value]="1">SUB</mat-option>
+                    <mat-option [value]="2">AUTO</mat-option>
                   </mat-select>
                 </mat-form-field>
               </div>
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                  <mat-select [(value)]="powerSafeMode" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.PowerSafeMode='+$event.value)" placeholder="Power safe mode">
-                    <mat-option value="off">OFF</mat-option>
-                    <mat-option value="on">ON</mat-option>
+                  <mat-select [(value)]="powerSafeMode" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.PowerSafeMode=' + ($event.value ? 'on' : 'off'))" placeholder="Power safe mode">
+                  <mat-option [value]="true">ON</mat-option>
+                  <mat-option [value]="false">OFF</mat-option>
                   </mat-select>
                 </mat-form-field>
               </div>
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                  <mat-select [(value)]="notifications" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.Notifications='+$event.value)" placeholder="Notifications">
-                    <mat-option value="off">OFF</mat-option>
-                    <mat-option value="on">ON</mat-option>
+                  <mat-select [(value)]="notifications" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.Notifications=' + ($event.value ? 'on' : 'off'))" placeholder="Notifications">
+                  <mat-option [value]="true">ON</mat-option>
+                  <mat-option [value]="false">OFF</mat-option>
                   </mat-select>
                 </mat-form-field>
               </div>
@@ -93,10 +95,11 @@ import { GenericService, LoginService, StatusService } from '../services';
 
 export class PageAdminComponent implements OnInit {
 
-    streamProfile = 'main';
-    powerSafeMode = 'off';
-    notifications = 'on';
-    backgroundModeStatus: string = 'n/a'
+    streamProfile: StatusStreamProfile;
+    powerSafeMode: boolean;
+    notifications: boolean;
+    backgroundMode: boolean = undefined;
+    private timerSubscription;
 
     constructor(
         public loginService: LoginService,
@@ -105,13 +108,25 @@ export class PageAdminComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.statusService
-            .getStatusGlobal(this.loginService.server, this.loginService.login)
-            .then(status => { this.processStatus(status); });
+        this.startUpdateTimer(100);
     }
 
-    processStatus(status: any) {
-        //status.notification;
+    ngOnDestroy() {
+        this.stopUpdateTimer();
+    }
+
+    processStatus(status: Status) {
+        this.backgroundMode = status.backgroundMode;
+        this.streamProfile = status.streamProfile;
+        this.powerSafeMode = status.powerSafeMode;
+        this.notifications = status.notifications;
+        if (this.timerSubscription)
+            this.startUpdateTimer(3000);
+    }
+
+    processStatusError(error: HttpErrorResponse) {
+        if (this.timerSubscription)
+            this.startUpdateTimer(10000);
     }
 
     sendHttpGetRequest(request: string) {
@@ -145,5 +160,25 @@ export class PageAdminComponent implements OnInit {
     clearAllLogs(): string {
       return `${this.loginService.server.url}/axis-cgi/admin/clearalllog.cgi?token=${this.loginService.login.token}`;
     }
+
+    private startUpdateTimer(timeout: number) {
+        console.log(`startUpdateTimer(timeout=${timeout})`);
+        if (this.timerSubscription)
+            clearTimeout(this.timerSubscription);
+        this.timerSubscription = setTimeout(()=> {
+            this.statusService
+                .getStatusGlobal(this.loginService.server, this.loginService.login)
+                .then(
+                  status  => { this.processStatus(status); },
+                  error => { this.processStatusError(error); });
+        }, timeout);
+  }
+
+  private stopUpdateTimer() {
+      console.log("stopUpdateTimer()");
+      if (this.timerSubscription)
+          clearTimeout(this.timerSubscription);
+      this.timerSubscription = null;
+  }
 
 }

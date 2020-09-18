@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Login, Server } from '../models'
+import 'rxjs/add/operator/timeout'
 
 @Injectable()
 export class GenericService {
@@ -12,6 +13,7 @@ export class GenericService {
         const url = `${server.url}${request}&token=${login.token}`;
         return this.http
             .get<any>(url)
+            .timeout(10000)
             .toPromise()
             .then()
             .catch(this.handleError);

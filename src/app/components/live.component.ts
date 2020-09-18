@@ -1,6 +1,7 @@
 import { Component, Input, ElementRef, SimpleChanges, ViewChild } from '@angular/core';
 import { LoginService } from '../services';
 import { fadeInAnimation } from '../animations/';
+import { WindowRefService } from '../services';
 
 @Component({
     selector: 'live',
@@ -22,7 +23,7 @@ import { fadeInAnimation } from '../animations/';
       }
     `],
     template: `
-      <!-- <img #image alt="" (load)="loadImage(0)" (error)="loadImageError(0)" src="{{getLiveImage()}}"/> -->
+      <!-- <img #image alt="" (load)="loadImage()" (error)="loadImageError()" src="{{getLiveImage()}}"/> -->
       <div [@fadeInAnimation] class="live-view-loading" style="cursor: pointer;" (click)="showHideToolbar()">
         <div #cell class="live-view"></div>
       </div>
@@ -35,22 +36,40 @@ export class LiveComponent {
     @ViewChild('cell', { static: true }) cellEl: ElementRef;
 
     constructor(
-        public loginService: LoginService) {
+        public loginService: LoginService,
+        private windowRef: WindowRefService) {
     }
 
     ngAfterViewInit() {
-        this.loadImage(0);
-        console.log(`camId: ${this.camId}`);
+        // console.log('ngAfterViewInit()');
+        this.loadImage();
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        this.loadImage(0);
+        // console.log('ngOnChanges()');
+        this.unloadImage();
+        this.loadImage();
     }
 
-    loadImage(cellId: number) {
-        this.loadImageImpl(cellId, false);
+    loadImage() {
+        // console.log('loadImage()');
+        // console.log(`${this.loginService.server.url}/axis-cgi/mjpg/video.cgi?cameraId=${this.camId}&token=${this.loginService.login.token}`);
+        this.cellEl.nativeElement.style.backgroundImage = "url('" + this.getLiveImage() + "')";
     }
-  
+
+    unloadImage() {
+        // console.log('unloadImage()');
+        // HACK: Preventing Chrome keeping/leaking connection for MJPEG stream.
+        // http://stackoverflow.com/questions/16137381/html5-video-element-request-stay-pending-forever-on-chrome
+        // Sideeffect: makes Mozilla unwanted refreshes.
+        this.windowRef.nativeWindow.stop();
+    }
+
+    ngOnDestroy() {
+        // console.log('ngOnDestroy()');
+        this.unloadImage();
+    }
+
     showHideToolbar() {
         // console.log('showHideToolbar(): ' + document.documentElement.scrollTop);
         if (document.documentElement.scrollTop > 0)
@@ -69,29 +88,12 @@ export class LiveComponent {
             });
     }
 
-    private loadImageImpl(cellId: number, forceReload: boolean) {
-        console.log('loadImageImpl(cellId=' + cellId + ')');
-        // this.imageEl.nativeElement.src = this.getLiveImage();
-        //console.log('loadImage(cellId=' + cellId + ')');
-        // const image = document.getElementById("image" + cellId);
-        // const cell  = document.getElementById("cell"  + cellId);
-        // const url = (forceReload ? image.src + '&' + this.randomInteger(0, 10000) : image.src);
-        // cell.style.backgroundImage = "url('" + url + "')";
-        //setTimeout(loadImage, 5000, cellId);
-        this.cellEl.nativeElement.style.backgroundImage = "url('" + this.getLiveImage() + "')";
-    }
-
-    loadImageError(cellId: number) {
-        console.log('loadImageError(cellId=' + cellId + ')');
-        this.cellEl.nativeElement.style.backgroundImage = "url('assets/img/loading.png')";
-        this.loadImageImpl(cellId, true);
-    }
-  
-    // private randomInteger(min: number, max: number): number {
-    //     const rand = min - 0.5 + Math.random() * (max - min + 1)
-    //     return Math.round(rand);
+    // loadImageError() {
+    //     console.log('loadImageError()');
+    //     this.cellEl.nativeElement.style.backgroundImage = "url('assets/img/loading.png')";
+    //     this.loadImage();
     // }
-
+  
     getLiveImage(): string {
         return `${this.loginService.server.url}/axis-cgi/mjpg/video.cgi?cameraId=${this.camId}&token=${this.loginService.login.token}`;
     }
