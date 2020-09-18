@@ -10,6 +10,14 @@ export class Status {
     streamProfile: StatusStreamProfile;
     powerSafeMode: boolean;
     notifications: boolean;
+    cpuFrequencyMhz: number;
     cpuUsagePercents: number;
+    liveConnections: number;
+    networkInBps: number;
+    networkOutBps: number;
+    processes: string[];
+    threadsRunnableUsed: number;
+    threadsUsed: number;
+    uptime: string;
 
 }

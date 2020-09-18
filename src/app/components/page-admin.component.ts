@@ -9,6 +9,14 @@ import { HttpErrorResponse } from '@angular/common/http';
       .my-button {
         margin: 5px 6px;
         text-transform: uppercase;
+        font-weight: normal;
+      }
+      mat-card {
+        padding: 20px 40px;
+        margin-top: 20px;
+      }
+      .my-caption {
+        color: grey;
       }
     `],
     template: `
@@ -18,25 +26,25 @@ import { HttpErrorResponse } from '@angular/common/http';
 
         <mat-card>
           <mat-card-content>
-            <div>Username: <span style="font-weight: bold; padding-right: 5px;">{{this.loginService.login.username}}</span></div>
+            <div class="mat-h3">Username: <b>{{this.loginService.login.username}}</b></div>
           </mat-card-content>
         </mat-card>
 
-        <mat-card style="margin-top: 20px;">
-          <mat-card-content>
-            <div>
-              <div>Background mode: {{backgroundMode === undefined ? '-' : (backgroundMode ? 'Started' : 'Stopped')}}</div>
-              <button mat-raised-button color="primary" class="my-button" (click)="sendHttpGetRequest('/param.cgi?action=update&root.BackgroundMode=on')" [(disabled)]="backgroundMode === undefined || backgroundMode">Start</button>
-              <button mat-raised-button color="primary" class="my-button" (click)="sendHttpGetRequest('/param.cgi?action=update&root.BackgroundMode=off')" [(disabled)]="backgroundMode === undefined || !backgroundMode">Stop</button>
-              <div style="margin-top: 10px;">
+        <mat-card>
+          <mat-card-content style="display:table; width:100%;">
+            <div style="float:left;width:55%;">
+              <div class="mat-h3">Background mode: <b>{{status.backgroundMode === undefined ? '-' : (status.backgroundMode ? 'Started' : 'Stopped')}}</b></div>
+              <button mat-raised-button color="primary" class="my-button" (click)="setBackgroundMode(true)" [(disabled)]="status.backgroundMode === undefined || status.backgroundMode">Start</button>
+              <button mat-raised-button color="primary" class="my-button" (click)="setBackgroundMode(false)" [(disabled)]="status.backgroundMode === undefined || !status.backgroundMode">Stop</button>
+              <div style="margin-top: 30px;" class="my-caption">
                 <div>Recorded: <span id="recorded">-</span>, Free: <span id="available">-</span></div>
                 <div>Motion: <span id="motion">-</span></div>
               </div>
             </div>
-            <div>
+            <div style="float:right;width:40%">
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                  <mat-select [(value)]="streamProfile" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.StreamProfile=' + ($event.value==0 ? 'main' : ($event.value==1 ? 'sub' : 'auto')))" placeholder="Stream profile">
+                  <mat-select [(value)]="status.streamProfile" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.StreamProfile=' + ($event.value==0 ? 'main' : ($event.value==1 ? 'sub' : 'auto')))" placeholder="Stream profile">
                     <mat-option [value]="0">MAIN</mat-option>
                     <mat-option [value]="1">SUB</mat-option>
                     <mat-option [value]="2">AUTO</mat-option>
@@ -45,7 +53,7 @@ import { HttpErrorResponse } from '@angular/common/http';
               </div>
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                  <mat-select [(value)]="powerSafeMode" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.PowerSafeMode=' + ($event.value ? 'on' : 'off'))" placeholder="Power safe mode">
+                  <mat-select [(value)]="status.powerSafeMode" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.PowerSafeMode=' + ($event.value ? 'on' : 'off'))" placeholder="Power safe mode">
                   <mat-option [value]="true">ON</mat-option>
                   <mat-option [value]="false">OFF</mat-option>
                   </mat-select>
@@ -53,7 +61,7 @@ import { HttpErrorResponse } from '@angular/common/http';
               </div>
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                  <mat-select [(value)]="notifications" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.Notifications=' + ($event.value ? 'on' : 'off'))" placeholder="Notifications">
+                  <mat-select [(value)]="status.notifications" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.Notifications=' + ($event.value ? 'on' : 'off'))" placeholder="Notifications">
                   <mat-option [value]="true">ON</mat-option>
                   <mat-option [value]="false">OFF</mat-option>
                   </mat-select>
@@ -74,31 +82,46 @@ import { HttpErrorResponse } from '@angular/common/http';
           </mat-card-content>
         </mat-card>
 
-        <mat-card style="margin-top: 20px;">
+        <mat-card>
           <mat-card-content>
-            <div style="margin-top: 20px">
+            <div class="my-caption">
+              <div *ngIf="status.threadsRunnableUsed !== undefined">Threads: {{status.threadsRunnableUsed}}/{{status.threadsUsed}}</div>
+              <div>Processes: {{status.processes}}</div>
+              <div>Live view connections: {{status.liveConnections}}</div>
+              <div>Network In: {{getKB(status.networkInBps)}} KB/s, Out: {{getKB(status.networkOutBps)}} KB/s</div>
+              <div>Web server uptime: {{status.uptime}}</div>
+              <div>CPU usage: {{status.cpuUsagePercents}}%</div>
+              <div>CPU frequency: {{status.cpuFrequencyMhz}}MHz</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-content>
+            <div>
               <div><a class="my-button" mat-raised-button href="{{getAppLogsUrl()}}">App logs</a>
               <a class="my-button" mat-raised-button href="{{getAccessLogsUrl()}}">Web server logs</a>
               <a class="my-button" mat-raised-button href="{{getWatchdogLogsUrl()}}">Watchdog logs</a>
               <a class="my-button" mat-raised-button href="{{getEventLogsUrl()}}">Event logs</a>
               <a class="my-button" mat-raised-button href="{{getCrashLogsUrl()}}">Crash logs</a></div>
-              <div><a class="my-button" mat-button href="{{clearAppLogs()}}">Clear app logs</a>
-              <a class="my-button" mat-button href="{{clearAllLogs()}}">Clear all logs</a></div>
+              <div style="margin-top: 20px"><a class="my-button" mat-raised-button color="primary" href="{{clearAppLogs()}}">Clear app logs</a>
+              <a class="my-button" mat-raised-button color="primary" href="{{clearAllLogs()}}">Clear all logs</a></div>
             </div>
           </mat-card-content>
         </mat-card>
 
-        <div class="mat-small app-text-right" style="padding:10px">tinyCam web client is <a href="https://github.com/alexeyvasilyev/tinycam-client-web">open sourced</a> under Apache License 2.0</div>
+        <div class="mat-small app-text-right" style="padding:10px">tinyCam Monitor web client is <a href="https://github.com/alexeyvasilyev/tinycam-client-web">open sourced</a> under Apache License 2.0</div>
       </div>
     `
 })
 
 export class PageAdminComponent implements OnInit {
 
-    streamProfile: StatusStreamProfile;
-    powerSafeMode: boolean;
-    notifications: boolean;
-    backgroundMode: boolean = undefined;
+    // streamProfile: StatusStreamProfile;
+    // powerSafeMode: boolean;
+    // notifications: boolean;
+    // backgroundMode: boolean = undefined;
+    status: Status = new Status();
     private timerSubscription;
 
     constructor(
@@ -107,6 +130,9 @@ export class PageAdminComponent implements OnInit {
         private statusService: StatusService) {
     }
 
+    getKB(bytes: number): number {
+      return Math.round(bytes / 1024);
+    }
     ngOnInit() {
         this.startUpdateTimer(100);
     }
@@ -115,11 +141,18 @@ export class PageAdminComponent implements OnInit {
         this.stopUpdateTimer();
     }
 
+    setBackgroundMode(start: boolean) {
+        const value = start ? 'on' : 'off';
+        this.sendHttpGetRequest(`/param.cgi?action=update&root.BackgroundMode=${value}`);
+        this.status.backgroundMode = start;
+    }
+
     processStatus(status: Status) {
-        this.backgroundMode = status.backgroundMode;
-        this.streamProfile = status.streamProfile;
-        this.powerSafeMode = status.powerSafeMode;
-        this.notifications = status.notifications;
+        this.status = status;
+        // this.backgroundMode = status.backgroundMode;
+        // this.streamProfile = status.streamProfile;
+        // this.powerSafeMode = status.powerSafeMode;
+        // this.notifications = status.notifications;
         if (this.timerSubscription)
             this.startUpdateTimer(3000);
     }
