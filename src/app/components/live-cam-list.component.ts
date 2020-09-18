@@ -64,9 +64,17 @@ import Utils from '../utils';
               <button class="live-button">2</button>
               <button class="live-button">3</button>
               <button class="live-button">4</button>
-              <button mat-icon-button>
-                <i class="fas fa-ellipsis-v fa-lg" style="color:#111111;"></i>
-              </button>
+
+              <button mat-icon-button [matMenuTriggerFor]="menu"><i class="fas fa-ellipsis-v fa-lg" style="color:#111111;"></i></button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item>
+                  <span>Create motion event</span>
+                </button>
+                <button mat-menu-item>
+                  <span>Help</span>
+                </button>
+              </mat-menu>
+
               <button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;">
                 <i class="fas fa-expand-alt"></i>
               </button>

@@ -13,6 +13,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 // import { MatRadioModule } from '@angular/material/radio';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 // import { MatSliderModule } from '@angular/material/slider';
@@ -85,6 +86,7 @@ import { MomentModule } from 'angular2-moment';
     // MatIconModule,
     MatInputModule,
     MatCheckboxModule,
+    MatMenuModule,
     MatNativeDateModule,
     // MatRadioModule,
     MatSelectModule,
