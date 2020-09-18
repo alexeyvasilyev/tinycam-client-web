@@ -40,7 +40,7 @@ export class CamListSelectionComponent implements OnInit {
     processCamListError(error: HttpErrorResponse) {
         console.error('Error in getCamList()', error.message);
         // Token expired
-        if (error.status == 401)
+        if (error.status == 401 || error.status == 403)
             this.router.navigate(['/login']);
 //        if (!this.isConnected) {
 //            this.errorMessage = "Check Internet connection";
