@@ -110,7 +110,7 @@ import { fadeInAnimation } from '../animations/';
 
     <!-- <a href="{{videoUrl}}" (mouseleave)="videoPlaying=false; videoLoading=false" class="img"> -->
     <!-- <a href="{{videoUrl}}" (mouseleave)="videoPlaying=false; videoLoading=false" class="img" [@animate]="'fadeIn'"> -->
-    <div (click)="openDialog($event)" class="img" (mouseleave)="videoPlaying=false; videoLoading=false; loadedPercent=0;">
+    <div (click)="openDialog()" class="img" (mouseleave)="videoPlaying=false; videoLoading=false; loadedPercent=0;">
 
       <div *ngIf="autoplayOnHover" >
         <div class="event-image-container" [hidden]="videoPlaying" (mouseleave)="stopProgressBar()">
@@ -293,11 +293,11 @@ export class EventComponent implements OnInit {
         return this.initTime - new Date(this.date).getTime() < 86400000; // 2 days in msec
     }
 
-    openDialog(event) {
+    openDialog() {
         console.log("openDialog()");
         // this.stopPlayer(event);
         this.videoPlaying = false;
-        let dialog = this.dialog.open(VideoDialogComponent);//, this.config);
+        const dialog = this.dialog.open(VideoDialogComponent);//, this.config);
         dialog.componentInstance.title =
             (this.title == null ? "" : this.title) +
             " (" + this.getLocalDateTimeFormatted() + ")";//'Duration - ' + (this.duration / 1000).toFixed() + ' sec';

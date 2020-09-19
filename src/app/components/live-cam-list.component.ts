@@ -1,17 +1,20 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { CamListSelectionComponent } from './cam-list-selection.component';
-import { CamListService, LoginService, WindowRefService } from '../services';
+import { CamListService, GenericService, LoginService, WindowRefService } from '../services';
 import { Router } from '@angular/router';
 import Utils from '../utils';
 
 @Component({
   selector: 'live-cam-list',
+  host: {
+    '(document:keydown)': 'handleKeyDown($event)',
+    '(document:keyup)': 'handleKeyUp($event)'
+  },
   styles: [ `
-
     .full-width {
       width: 100%;
     }
-
     .live-button {
         background-color: #212121;
         border: none;
@@ -27,20 +30,17 @@ import Utils from '../utils';
         background-color: #424242;
         box-shadow: 0 0 2px rgba(0,0,0,.12), 0 2px 2px rgba(0,0,0,.2);
     }
-    
     .container {
         margin: 0px 10px;
         height: auto;
         overflow: hidden;
      }
-         
      .right {
          width: auto;
          float: right;
          height: 100%;
          text-align: center;
      }
-     
      .left {
          float: none; /* not needed, just for clarification */
          width: auto;
@@ -60,17 +60,17 @@ import Utils from '../utils';
               <button class="live-button" style="margin-right:20px;">
                 <i class="far fa-dot-circle"></i>
               </button>
-              <button class="live-button">1</button>
-              <button class="live-button">2</button>
-              <button class="live-button">3</button>
-              <button class="live-button">4</button>
+              <button class="live-button" (click)="gotoPreset(1)">1</button>
+              <button class="live-button" (click)="gotoPreset(2)">2</button>
+              <button class="live-button" (click)="gotoPreset(3)">3</button>
+              <button class="live-button" (click)="gotoPreset(4)">4</button>
 
               <button mat-icon-button [matMenuTriggerFor]="menu"><i class="fas fa-ellipsis-v fa-lg" style="color:#111111;"></i></button>
               <mat-menu #menu="matMenu">
-                <button mat-menu-item>
+                <button mat-menu-item (click)="sendCameraMotionEvent()">
                   <span>Create motion event</span>
                 </button>
-                <button mat-menu-item>
+                <button mat-menu-item (click)="openInfoDialog()">
                   <span>Help</span>
                 </button>
               </mat-menu>
@@ -96,7 +96,7 @@ import Utils from '../utils';
           </div>
 
           <div style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight" #live>
-            <live [camId]="camId" (dblclick)="toggleFullScreen()"></live>
+            <live [camId]="camId" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
           </div>
         </div>
       </div>
@@ -110,20 +110,200 @@ import Utils from '../utils';
 
 export class LiveCamListComponent extends CamListSelectionComponent {
 
-    selectedCamId: number = -1;
     myInnerHeight = this.windowRef.nativeWindow.innerHeight;
     @ViewChild('live') liveEl: ElementRef;
 
+    PTZ_REQUEST = '/axis-cgi/com/ptz.cgi';
+    PARAM_CONT_MOVE   = "continuouspantiltmove";
+    PARAM_CONT_ZOOM   = "continuouszoommove";
+    PARAM_CONT_FOCUS  = "continuousfocusmove";
+    PARAM_CONT_IRIS   = "continuousirismove";
+    PARAM_GOTO_PRESET = "gotoserverpresetno";
+
     constructor(
+        public dialog: MatDialog,
         protected router: Router,
         protected loginService: LoginService,
+        private genericService: GenericService,
         protected camListService: CamListService,
         private windowRef: WindowRefService) {
             super(router, loginService, camListService);
+    }
+
+    openInfoDialog() {
+        this.dialog.open(InfoDialog);
     }
 
     toggleFullScreen() {
         Utils.toggleFullScreen(this.liveEl.nativeElement);
     }
 
+    sendCameraMotionEvent() {
+        this.sendHttpGetRequest(`/axis-cgi/motion/createmotion.cgi?cameraId=${this.camId}`);
+    }
+
+    sendHttpGetRequest(request: string) {
+        this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
+    }
+
+    moveUp() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,100`);
+    }
+
+    moveDown() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,-100`);
+    }
+
+    moveLeft() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=-100,0`);
+    }
+    moveRight() {
+      this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=100,0`);
+    }
+
+    moveStop() {
+      this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,0`);
+    }
+
+    zoomIn() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_ZOOM}=100`);
+    }
+
+    zoomOut() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_ZOOM}=-100`);
+    }
+
+    zoomStop() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_ZOOM}=0`);
+    }
+  
+    focusNear() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_FOCUS}=100`);
+    }
+
+    focusFar() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_FOCUS}=-100`);
+    }
+
+    focusStop() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_FOCUS}=0`);
+    }
+
+    irisOpen() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_IRIS}=100`);
+    }
+
+    irisClose() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_IRIS}=-100`);
+    }
+
+    irisStop() {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_IRIS}=0`);
+    }
+
+    gotoPreset(preset: number) {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_GOTO_PRESET}=${preset}`);
+    }
+
+    handleKeyDown(event: KeyboardEvent) {
+        if (event.repeat) return;
+        console.log("Key down: " + event.key);
+        switch(event.key) {
+            case "ArrowUp": this.scrollTop(); event.preventDefault(); break;
+            case "ArrowDown": this.scrollBottom(); event.preventDefault(); break;
+            case "ArrowLeft": event.preventDefault(); 
+            case "a": this.moveLeft(); break;
+            // case "ArrowLeft": this.moveLeft(); break;
+            case "ArrowRight": event.preventDefault(); 
+            case "d": this.moveRight(); break;
+            // case "ArrowRight": this.moveRight(); break;
+            case "w": this.moveUp(); break;
+            case "s": this.moveDown(); break;
+            // case "ArrowDown": this.moveDown();     break;
+            // case "ArrowUp": this.moveUp();     break;
+            // case "ArrowDown": this.scrollBottom(); break;
+            // case "ArrowUp": this.scrollTop();      break;
+            case "1": this.gotoPreset(1); break;
+            case "2": this.gotoPreset(2); break;
+            case "3": this.gotoPreset(3); break;
+            case "4": this.gotoPreset(4); break;
+            case "5": this.gotoPreset(5); break;
+            case "6": this.gotoPreset(6); break;
+            case "7": this.gotoPreset(7); break;
+            case "8": this.gotoPreset(8); break;
+            case "9": this.gotoPreset(9); break;
+            case "=": this.zoomIn(); break;
+            case "-": this.zoomOut(); break;
+            case "f": this.focusFar(); break;
+            case "n": this.focusNear(); break;
+            case "o": this.irisOpen(); break;
+            case "c": this.irisClose(); break;
+            case " ": this.showHideToolbar(); event.preventDefault(); break;
+        };
+    }
+
+    handleKeyUp(event: KeyboardEvent) {
+        // console.log("Key up: " + event.key);
+        switch(event.key) {
+            case "ArrowLeft":
+            case "ArrowRight":
+            case "a":
+            case "s":
+            case "d":
+            case "w": this.moveStop(); break;
+            // case "ArrowLeft":
+            // case "ArrowRight": this.moveStop(); break;
+            case "=":
+            case "-": this.zoomStop(); break;
+            case "f":
+            case "n": this.focusStop(); break;
+            case "o":
+            case "c": this.irisStop(); break;
+        }
+    }
+
+    scrollTop() {
+        // Scroll to top
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    scrollBottom() {
+        // Scroll to bottom
+        window.scrollTo({
+            top: 10000,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    showHideToolbar() {
+      console.log('showHideToolbar(): ' + document.documentElement.scrollTop);
+      if (document.documentElement.scrollTop > 0)
+          this.scrollTop();
+      else
+          this.scrollBottom();
+    }
+
 }
+
+@Component({
+  template: `
+  <h2 mat-dialog-title>PTZ camera keyboard control</h2>
+  <mat-dialog-content class="mat-typography">
+    <div>Keys <b>W/A/S/D/Left/Right</b> - pan-tilt</div>
+    <div>Keys <b>+/-</b> - optical zoom in/out</div>
+    <div>Keys <b>F/N</b> - focus far/near</div>
+    <div>Keys <b>O/C</b> - iris open/close</div>
+    <div>Keys <b>1..9</b> - presets</div>
+    <div><b>Space bar</b> - full/normal screen</div>
+  </mat-dialog-content>
+  <!-- <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Close</button>
+  </mat-dialog-actions> -->
+  `
+})
+export class InfoDialog {}

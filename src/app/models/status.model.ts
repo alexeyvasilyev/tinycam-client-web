@@ -19,5 +19,11 @@ export class Status {
     threadsRunnableUsed: number;
     threadsUsed: number;
     uptime: string;
+    rootAvailable: boolean;
+    memoryUsed: number;
+    memoryAvailable: number;
+    spaceUsed: number;
+    spaceAvailable: number;
+    motionCameras: string[];
 
 }

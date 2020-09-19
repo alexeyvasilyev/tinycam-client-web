@@ -10,7 +10,8 @@ export class GenericService {
     }
 
     getRequest(server: Server, login: Login, request: String): Promise<any> {
-        const url = `${server.url}${request}&token=${login.token}`;
+        const char = request.indexOf('?') == -1 ? '?' : '&';
+        const url = `${server.url}${request}${char}token=${login.token}`;
         return this.http
             .get<any>(url)
             .timeout(10000)

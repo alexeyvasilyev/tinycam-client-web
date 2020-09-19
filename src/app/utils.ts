@@ -2,6 +2,11 @@ import { EventRecord } from './models'
 
 export default class Utils {
 
+    static humanReadableByteCount(bytes: number): string {
+      var i = Math.floor( Math.log(bytes) / Math.log(1024) );
+      return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+  }
+
     static getEventColor(event: EventRecord): string {
       if (event.motion === undefined)
           return null;

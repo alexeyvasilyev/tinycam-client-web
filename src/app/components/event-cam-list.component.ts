@@ -18,7 +18,6 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
     <div>
       <mat-card *ngIf="errorMessage != null" class="app-text-center app-card-warning" style="margin-bottom: 30px">
         {{this.errorMessage}}
-        <div *ngIf="responseCode == 107">Want to <a href=\"/password_reset.html\">reset</a> password?</div>
       </mat-card>
       <div *ngIf="cameras; else loading_content">
 

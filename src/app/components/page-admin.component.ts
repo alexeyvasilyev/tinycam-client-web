@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { GenericService, LoginService, StatusService } from '../services';
-import { Status, StatusStreamProfile } from '../models'
+import { Status } from '../models'
 import { HttpErrorResponse } from '@angular/common/http';
+import { fadeInAnimation } from '../animations/';
+import Utils from '../utils'
 
 @Component({
     // animations: [animateFactory(150, 0, 'ease-in')],
+    animations: [fadeInAnimation],
     styles: [ `
       .my-button {
         margin: 5px 6px;
@@ -15,8 +18,8 @@ import { HttpErrorResponse } from '@angular/common/http';
         padding: 20px 40px;
         margin-top: 20px;
       }
-      .my-caption {
-        color: grey;
+      .warning {
+        color: red;
       }
     `],
     template: `
@@ -36,9 +39,9 @@ import { HttpErrorResponse } from '@angular/common/http';
               <div class="mat-h3">Background mode: <b>{{status.backgroundMode === undefined ? '-' : (status.backgroundMode ? 'Started' : 'Stopped')}}</b></div>
               <button mat-raised-button color="primary" class="my-button" (click)="setBackgroundMode(true)" [(disabled)]="status.backgroundMode === undefined || status.backgroundMode">Start</button>
               <button mat-raised-button color="primary" class="my-button" (click)="setBackgroundMode(false)" [(disabled)]="status.backgroundMode === undefined || !status.backgroundMode">Stop</button>
-              <div style="margin-top: 30px;" class="my-caption">
-                <div>Recorded: <span id="recorded">-</span>, Free: <span id="available">-</span></div>
-                <div>Motion: <span id="motion">-</span></div>
+              <div style="margin-top: 30px;" class="app-text-dark-hint">
+                <div>Recorded: {{humanReadableByteCount(status.spaceUsed)}}, Free: {{humanReadableByteCount(status.spaceAvailable)}}</div>
+                <div>Motion: <span class="app-text-warning"><b>{{status.motionCameras}}</b></span></div>
               </div>
             </div>
             <div style="float:right;width:40%">
@@ -54,41 +57,44 @@ import { HttpErrorResponse } from '@angular/common/http';
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
                   <mat-select [(value)]="status.powerSafeMode" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.PowerSafeMode=' + ($event.value ? 'on' : 'off'))" placeholder="Power safe mode">
-                  <mat-option [value]="true">ON</mat-option>
-                  <mat-option [value]="false">OFF</mat-option>
+                    <mat-option [value]="true">ON</mat-option>
+                    <mat-option [value]="false">OFF</mat-option>
                   </mat-select>
                 </mat-form-field>
               </div>
+              <div [@fadeInAnimation] *ngIf="status.powerSafeMode !== undefined && status.powerSafeMode" class="app-text-warning" style="padding-bottom:10px">Power safe mode is ON. Only keyframes are decoded (jerky live view).</div>
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
                   <mat-select [(value)]="status.notifications" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.Notifications=' + ($event.value ? 'on' : 'off'))" placeholder="Notifications">
-                  <mat-option [value]="true">ON</mat-option>
-                  <mat-option [value]="false">OFF</mat-option>
+                    <mat-option [value]="true">ON</mat-option>
+                    <mat-option [value]="false">OFF</mat-option>
                   </mat-select>
                 </mat-form-field>
               </div>
-              <div id="notificationsWarning" style="display: none;" class="mui--text-danger">Notifications are OFF. The following features disabled:<br/>
+              <div [@fadeInAnimation] *ngIf="status.notifications !== undefined && !status.notifications" class="app-text-warning">Notifications are OFF. The following features disabled:<br/>
  - Sound on motion<br/>
  - Vibration on motion<br/>
  - System notification on motion<br/>
  - Email on motion<br/>
+ - Telegram on motion<br/>
  - Zoom and track on motion (live view)<br/>
  - Wake up on motion (background mode)<br/>
  - Webhook on motion<br/>
  - Record to local storage on motion<br/>
  - Record to cloud on motion<br/>
- - Record to FTP on motion</div>
+ - Record to FTP on motion<br/>
+ - Record to Telegram on motion</div>
             </div>
           </mat-card-content>
         </mat-card>
 
         <mat-card>
           <mat-card-content>
-            <div class="my-caption">
-              <div *ngIf="status.threadsRunnableUsed !== undefined">Threads: {{status.threadsRunnableUsed}}/{{status.threadsUsed}}</div>
+            <div class="app-text-dark-hint">
+              <div [@fadeInAnimation] *ngIf="status.threadsRunnableUsed !== undefined">Threads: {{status.threadsRunnableUsed}}/{{status.threadsUsed}}</div>
               <div>Processes: {{status.processes}}</div>
               <div>Live view connections: {{status.liveConnections}}</div>
-              <div>Network In: {{getKB(status.networkInBps)}} KB/s, Out: {{getKB(status.networkOutBps)}} KB/s</div>
+              <div>Network In: {{humanReadableKBs(status.networkInBps)}}, Out: {{humanReadableKBs(status.networkOutBps)}}</div>
               <div>Web server uptime: {{status.uptime}}</div>
               <div>CPU usage: {{status.cpuUsagePercents}}%</div>
               <div>CPU frequency: {{status.cpuFrequencyMhz}}MHz</div>
@@ -110,7 +116,15 @@ import { HttpErrorResponse } from '@angular/common/http';
           </mat-card-content>
         </mat-card>
 
-        <div class="mat-small app-text-right" style="padding:10px">tinyCam Monitor web client is <a href="https://github.com/alexeyvasilyev/tinycam-client-web">open sourced</a> under Apache License 2.0</div>
+        <mat-card>
+          <mat-card-content>
+            <div>
+              <div><a class="my-button" mat-raised-button color="warn" href="{{getRestartWebServerUrl()}}">{{status.rootAvailable ? 'Reboot device' : 'Restart web server'}}</a></div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <div class="mat-small app-text-right" style="padding:10px;">tinyCam Monitor web client is <a href="https://github.com/alexeyvasilyev/tinycam-client-web">open sourced</a> under Apache License 2.0</div>
       </div>
     `
 })
@@ -130,9 +144,14 @@ export class PageAdminComponent implements OnInit {
         private statusService: StatusService) {
     }
 
-    getKB(bytes: number): number {
-      return Math.round(bytes / 1024);
+    humanReadableByteCount(bytes: number): string {
+        return bytes !== undefined ? Utils.humanReadableByteCount(bytes) : '-';
     }
+
+    humanReadableKBs(bytesPerSec: number): string {
+        return bytesPerSec !== undefined ? Math.round(bytesPerSec / 1024) + ' KB/s' : '-';
+    }
+
     ngOnInit() {
         this.startUpdateTimer(100);
     }
@@ -192,6 +211,10 @@ export class PageAdminComponent implements OnInit {
 
     clearAllLogs(): string {
       return `${this.loginService.server.url}/axis-cgi/admin/clearalllog.cgi?token=${this.loginService.login.token}`;
+    }
+
+    getRestartWebServerUrl(): string {
+      return `${this.loginService.server.url}/axis-cgi/admin/restart.cgi?token=${this.loginService.login.token}`;
     }
 
     private startUpdateTimer(timeout: number) {

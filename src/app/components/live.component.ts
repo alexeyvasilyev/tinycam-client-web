@@ -24,7 +24,7 @@ import { WindowRefService } from '../services';
     `],
     template: `
       <!-- <img #image alt="" (load)="loadImage()" (error)="loadImageError()" src="{{getLiveImage()}}"/> -->
-      <div [@fadeInAnimation] class="live-view-loading" style="cursor: pointer;" (click)="showHideToolbar()">
+      <div [@fadeInAnimation] class="live-view-loading" style="cursor: pointer;">
         <div #cell class="live-view"></div>
       </div>
     `
@@ -68,24 +68,6 @@ export class LiveComponent {
     ngOnDestroy() {
         // console.log('ngOnDestroy()');
         this.unloadImage();
-    }
-
-    showHideToolbar() {
-        // console.log('showHideToolbar(): ' + document.documentElement.scrollTop);
-        if (document.documentElement.scrollTop > 0)
-            // Scroll to top
-            window.scrollTo({
-                top: 0,
-                left: 0,
-                behavior: 'smooth'
-            });
-        else
-            // Scroll to bottom
-            window.scrollTo({
-                top: 10000,
-                left: 0,
-                behavior: 'smooth'
-            });
     }
 
     // loadImageError() {
