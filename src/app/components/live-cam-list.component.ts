@@ -39,17 +39,17 @@ import Utils from '../utils';
         height: auto;
         overflow: hidden;
      }
-     .right {
+    .right {
          width: auto;
          float: right;
          height: 100%;
          text-align: center;
-     }
-     .left {
-         float: none; /* not needed, just for clarification */
-         width: auto;
-         overflow: hidden;
-     }
+    }
+    .left {
+        float: none; /* not needed, just for clarification */
+        width: auto;
+        overflow: hidden;
+    }
   `],
   template: `
     <div>
@@ -62,7 +62,7 @@ import Utils from '../utils';
           <div class="container">
             <div class="right">
               <span *ngIf="status.motion !== undefined" style="padding: 10px; margin-right:20px">
-                <span *ngIf="status.motion; else no_motion_content"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
+                <span *ngIf="status.motion; else no_motion_content" matTooltip="Motion detected"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
               </span>
               <button class="live-button" style="margin-right:20px;">
                 <i class="far fa-dot-circle"></i>
@@ -110,7 +110,7 @@ import Utils from '../utils';
 
       <ng-template #no_cams_content><mat-card>No cameras added. Please add cameras via <a routerLink="/account">Account</a> tab or via <a href="https://tinycammonitor.com/">tinyCam Monitor</a> Android app.</mat-card></ng-template>
       <ng-template #loading_content><mat-card>Loading cameras list...</mat-card></ng-template>
-      <ng-template #no_motion_content><span><i class="fas fa-male fa-lg"></i></span></ng-template>
+      <ng-template #no_motion_content><span matTooltip="No motion detected"><i class="fas fa-male fa-lg"></i></span></ng-template>
     </div>
 
   `

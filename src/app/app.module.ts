@@ -15,6 +15,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 // import { MatRadioModule } from '@angular/material/radio';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 // import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -94,6 +95,7 @@ import { MomentModule } from 'angular2-moment';
     MatSelectModule,
     // MatSliderModule,
     MatSnackBarModule,
+    MatTooltipModule,
     MomentModule,
     FormsModule
   ],
