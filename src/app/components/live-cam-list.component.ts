@@ -46,10 +46,10 @@ import Utils from '../utils';
          text-align: center;
     }
     .left {
-        float: none; /* not needed, just for clarification */
+        float: left;
         width: auto;
         overflow: hidden;
-    }
+      }
   `],
   template: `
     <div>
@@ -60,6 +60,19 @@ import Utils from '../utils';
         <div *ngIf="cameras.length > 0; else no_cams_content">
 
           <div class="container">
+            <div class="left">
+              <div *ngIf="cameras.length > 1">
+                <div style="margin:0px 15px;">
+                  <mat-form-field color="accent">
+                    <mat-select [(value)]="camId" (selectionChange)="onSelected($event.value)" placeholder="Camera view">
+                      <mat-option *ngFor="let camera of cameras" [value]="camera.id">
+                        {{getCameraName(camera)}}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
             <div class="right">
               <span *ngIf="status.motion !== undefined" style="padding: 10px; margin-right:20px">
                 <span *ngIf="status.motion; else no_motion_content" matTooltip="Motion detected"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
@@ -87,19 +100,6 @@ import Utils from '../utils';
               </button>
             </div>
 
-            <div class="left">
-              <div *ngIf="cameras.length > 1">
-                <div style="margin:0px 15px;">
-                  <mat-form-field color="accent">
-                    <mat-select [(value)]="camId" (selectionChange)="onSelected($event.value)">
-                      <mat-option *ngFor="let camera of cameras" [value]="camera.id">
-                        {{getCameraName(camera)}}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight" #live>
