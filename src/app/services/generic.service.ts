@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Login, Server } from '../models'
-import 'rxjs/add/operator/timeout'
 
 @Injectable()
 export class GenericService {

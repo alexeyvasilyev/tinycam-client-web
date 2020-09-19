@@ -8,6 +8,7 @@ declare const videojs: any;
   selector: 'video-dialog',
   animations: [fadeInAnimation],
   template: `
+  <mat-dialog-content class="mat-typography">
     <table style="border-spacing:3px;border-collapse:separate;width:100%;">
       <tr>
         <td width="90%">
@@ -23,7 +24,7 @@ declare const videojs: any;
     <video [@fadeInAnimation] width="800px" id='mp4video' class="video-js vjs-default-skin vjs-big-play-centered"
        controls (error)="handleVideoError()" (playing)="handleVideoPlaying()" poster="{{imageUrl}}">
     </video>
-
+  </mat-dialog-content>
   `
 })
 export class VideoDialogComponent implements AfterViewInit {

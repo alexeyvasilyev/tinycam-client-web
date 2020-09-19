@@ -2,7 +2,9 @@ import { Component, ViewChild, ElementRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { CamListSelectionComponent } from './cam-list-selection.component';
 import { CamListService, GenericService, LoginService, WindowRefService } from '../services';
+import { LiveInfoDialogComponent } from './live-info-dialog.component';
 import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import Utils from '../utils';
 
 @Component({
@@ -121,7 +123,8 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     PARAM_GOTO_PRESET = "gotoserverpresetno";
 
     constructor(
-        public dialog: MatDialog,
+        private dialog: MatDialog,
+        private snackBar: MatSnackBar,
         protected router: Router,
         protected loginService: LoginService,
         private genericService: GenericService,
@@ -131,7 +134,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     openInfoDialog() {
-        this.dialog.open(InfoDialog);
+        this.dialog.open(LiveInfoDialogComponent);
     }
 
     toggleFullScreen() {
@@ -139,11 +142,15 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     sendCameraMotionEvent() {
-        this.sendHttpGetRequest(`/axis-cgi/motion/createmotion.cgi?cameraId=${this.camId}`);
-    }
+        this.sendHttpGetRequest(`/axis-cgi/motion/createmotion.cgi?cameraId=${this.camId}`)
+        .then(
+          res  => { this.snackBar.open('Motion signal sent', null, {
+            duration: 4000,
+        }) });
+  }
 
-    sendHttpGetRequest(request: string) {
-        this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
+    sendHttpGetRequest(request: string): Promise<any> {
+        return this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
     }
 
     moveUp() {
@@ -207,7 +214,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 
     handleKeyDown(event: KeyboardEvent) {
         if (event.repeat) return;
-        console.log("Key down: " + event.key);
+        // console.log("Key down: " + event.key);
         switch(event.key) {
             case "ArrowUp": this.scrollTop(); event.preventDefault(); break;
             case "ArrowDown": this.scrollBottom(); event.preventDefault(); break;
@@ -219,10 +226,6 @@ export class LiveCamListComponent extends CamListSelectionComponent {
             // case "ArrowRight": this.moveRight(); break;
             case "w": this.moveUp(); break;
             case "s": this.moveDown(); break;
-            // case "ArrowDown": this.moveDown();     break;
-            // case "ArrowUp": this.moveUp();     break;
-            // case "ArrowDown": this.scrollBottom(); break;
-            // case "ArrowUp": this.scrollTop();      break;
             case "1": this.gotoPreset(1); break;
             case "2": this.gotoPreset(2); break;
             case "3": this.gotoPreset(3); break;
@@ -289,21 +292,3 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
 }
-
-@Component({
-  template: `
-  <h2 mat-dialog-title>PTZ camera keyboard control</h2>
-  <mat-dialog-content class="mat-typography">
-    <div>Keys <b>W/A/S/D/Left/Right</b> - pan-tilt</div>
-    <div>Keys <b>+/-</b> - optical zoom in/out</div>
-    <div>Keys <b>F/N</b> - focus far/near</div>
-    <div>Keys <b>O/C</b> - iris open/close</div>
-    <div>Keys <b>1..9</b> - presets</div>
-    <div><b>Space bar</b> - full/normal screen</div>
-  </mat-dialog-content>
-  <!-- <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Close</button>
-  </mat-dialog-actions> -->
-  `
-})
-export class InfoDialog {}

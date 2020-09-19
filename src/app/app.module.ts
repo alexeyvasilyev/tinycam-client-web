@@ -17,7 +17,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 // import { MatSliderModule } from '@angular/material/slider';
-// import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import {
   CamListService,
   EventListService,
@@ -35,6 +35,7 @@ import {
   HeaderComponent,
   LiveComponent,
   LiveCamListComponent,
+  LiveInfoDialogComponent,
   LoginComponent,
   PageAdminComponent,
   PageLiveComponent,
@@ -61,6 +62,7 @@ import { MomentModule } from 'angular2-moment';
     HeaderComponent,
     LiveComponent,
     LiveCamListComponent,
+    LiveInfoDialogComponent,
     LoginComponent,
     PageAdminComponent,
     PageLiveComponent,
@@ -91,7 +93,7 @@ import { MomentModule } from 'angular2-moment';
     // MatRadioModule,
     MatSelectModule,
     // MatSliderModule,
-    // MatSnackBarModule,
+    MatSnackBarModule,
     MomentModule,
     FormsModule
   ],
