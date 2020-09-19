@@ -30,6 +30,9 @@ export class CamListSelectionComponent implements OnInit {
             // .catch(this.processCamListError);
     }
 
+    ngOnDestroy() {
+    }
+
     onSelected(camId: number): void {
         console.log('Selected camera: ' + camId);
         // this.camId = camId;

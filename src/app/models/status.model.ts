@@ -6,6 +6,7 @@ export const enum StatusStreamProfile {
 
 export class Status {
 
+    // Global status
     backgroundMode: boolean;
     streamProfile: StatusStreamProfile;
     powerSafeMode: boolean;
@@ -25,5 +26,8 @@ export class Status {
     spaceUsed: number;
     spaceAvailable: number;
     motionCameras: string[];
+
+    // Camera status
+    motion: boolean;
 
 }

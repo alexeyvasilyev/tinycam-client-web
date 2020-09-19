@@ -221,11 +221,11 @@ export class PageAdminComponent implements OnInit {
         console.log(`startUpdateTimer(timeout=${timeout})`);
         if (this.timerSubscription)
             clearTimeout(this.timerSubscription);
-        this.timerSubscription = setTimeout(()=> {
+        this.timerSubscription = setTimeout(() => {
             this.statusService
                 .getStatusGlobal(this.loginService.server, this.loginService.login)
                 .then(
-                  status  => { this.processStatus(status); },
+                  status => { this.processStatus(status); },
                   error => { this.processStatusError(error); });
         }, timeout);
   }

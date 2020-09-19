@@ -1,10 +1,12 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { CamListSelectionComponent } from './cam-list-selection.component';
-import { CamListService, GenericService, LoginService, WindowRefService } from '../services';
+import { CamListService, GenericService, LoginService, StatusService, WindowRefService } from '../services';
+import { Status } from '../models'
 import { LiveInfoDialogComponent } from './live-info-dialog.component';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { HttpErrorResponse } from '@angular/common/http';
 import Utils from '../utils';
 
 @Component({
@@ -59,6 +61,9 @@ import Utils from '../utils';
 
           <div class="container">
             <div class="right">
+              <span *ngIf="status.motion !== undefined" style="padding: 10px; margin-right:20px">
+                <span *ngIf="status.motion; else no_motion_content"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
+              </span>
               <button class="live-button" style="margin-right:20px;">
                 <i class="far fa-dot-circle"></i>
               </button>
@@ -105,6 +110,7 @@ import Utils from '../utils';
 
       <ng-template #no_cams_content><mat-card>No cameras added. Please add cameras via <a routerLink="/account">Account</a> tab or via <a href="https://tinycammonitor.com/">tinyCam Monitor</a> Android app.</mat-card></ng-template>
       <ng-template #loading_content><mat-card>Loading cameras list...</mat-card></ng-template>
+      <ng-template #no_motion_content><span><i class="fas fa-male fa-lg"></i></span></ng-template>
     </div>
 
   `
@@ -114,6 +120,8 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 
     myInnerHeight = this.windowRef.nativeWindow.innerHeight;
     @ViewChild('live') liveEl: ElementRef;
+    private timerSubscription;
+    status: Status = new Status();
 
     PTZ_REQUEST = '/axis-cgi/com/ptz.cgi';
     PARAM_CONT_MOVE   = "continuouspantiltmove";
@@ -128,9 +136,20 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         protected router: Router,
         protected loginService: LoginService,
         private genericService: GenericService,
+        private statusService: StatusService,
         protected camListService: CamListService,
         private windowRef: WindowRefService) {
             super(router, loginService, camListService);
+    }
+
+    ngOnInit() {
+        super.ngOnInit();
+        this.startUpdateTimer(100);
+    }
+
+    ngOnDestroy() {
+        super.ngOnDestroy();
+        this.stopUpdateTimer();
     }
 
     openInfoDialog() {
@@ -146,7 +165,8 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         .then(
           res  => { this.snackBar.open('Motion signal sent', null, {
             duration: 4000,
-        }) });
+        })
+       });
   }
 
     sendHttpGetRequest(request: string): Promise<any> {
@@ -289,6 +309,41 @@ export class LiveCamListComponent extends CamListSelectionComponent {
           this.scrollTop();
       else
           this.scrollBottom();
+    }
+
+    processStatus(status: Status) {
+        this.status = status;
+        // this.backgroundMode = status.backgroundMode;
+        // this.streamProfile = status.streamProfile;
+        // this.powerSafeMode = status.powerSafeMode;
+        // this.notifications = status.notifications;
+        if (this.timerSubscription)
+            this.startUpdateTimer(3000);
+    }
+
+    processStatusError(error: HttpErrorResponse) {
+        if (this.timerSubscription)
+            this.startUpdateTimer(10000);
+    }
+
+    private startUpdateTimer(timeout: number) {
+        console.log(`startUpdateTimer(timeout=${timeout})`);
+        if (this.timerSubscription)
+            clearTimeout(this.timerSubscription);
+        this.timerSubscription = setTimeout(() => {
+            this.statusService
+                .getStatusCamera(this.loginService.server, this.loginService.login, this.camId)
+                .then(
+                  status => { this.processStatus(status); },
+                  error => { this.processStatusError(error); });
+        }, timeout);
+    }
+
+    private stopUpdateTimer() {
+        console.log("stopUpdateTimer()");
+        if (this.timerSubscription)
+            clearTimeout(this.timerSubscription);
+        this.timerSubscription = null;
     }
 
 }

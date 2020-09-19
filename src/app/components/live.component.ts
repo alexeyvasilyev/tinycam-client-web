@@ -1,5 +1,5 @@
 import { Component, Input, ElementRef, SimpleChanges, ViewChild } from '@angular/core';
-import { LoginService } from '../services';
+import { LoginService, StatusService } from '../services';
 import { fadeInAnimation } from '../animations/';
 import { WindowRefService } from '../services';
 
@@ -37,6 +37,7 @@ export class LiveComponent {
 
     constructor(
         public loginService: LoginService,
+        private statusService: StatusService,
         private windowRef: WindowRefService) {
     }
 
