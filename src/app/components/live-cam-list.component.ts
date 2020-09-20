@@ -177,6 +177,13 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         return `${this.loginService.server.url}/axis-cgi/audio/receive.wav?token=${this.loginService.login.token}`;
     }
 
+    camerasLoaded() {
+        super.camerasLoaded();
+        this.snackBar.openFromComponent(ScrollDownComponent, {
+            duration: 3000
+        });
+    }
+
     sendCameraMotionEvent() {
         this.sendHttpGetRequest(`/axis-cgi/motion/createmotion.cgi?cameraId=${this.cameraSelected.id}`)
         .then(
@@ -364,3 +371,10 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
 }
+
+@Component({
+  template: `
+  <span>Scroll down <i class="fas fa-arrow-down faa-falling animated"></i></span>
+`,
+})
+export class ScrollDownComponent {}

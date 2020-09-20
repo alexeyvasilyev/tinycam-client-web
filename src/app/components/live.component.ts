@@ -1,4 +1,4 @@
-import { Component, Input, ElementRef, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, ElementRef, SimpleChanges, ViewChild } from '@angular/core';
 import { LoginService, StatusService } from '../services';
 import { fadeInAnimation } from '../animations/';
 import { WindowRefService } from '../services';
@@ -30,7 +30,7 @@ import { WindowRefService } from '../services';
     `
 })
 
-export class LiveComponent {
+export class LiveComponent implements AfterViewInit {
 
     @Input() camId: number; 
     @ViewChild('cell', { static: true }) cellEl: ElementRef;
