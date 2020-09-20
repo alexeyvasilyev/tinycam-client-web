@@ -21,15 +21,15 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
           <div *ngIf="cameras.length > 1 && !multipleTimeline" style="margin-bottom:20px;">
             <mat-card>
               <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                <mat-select [(value)]="camId" (selectionChange)="onSelected($event.value)" placeholder="Camera timeline">
-                  <mat-option *ngFor="let camera of cameras" [value]="camera.id">
+                <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera timeline">
+                  <mat-option *ngFor="let camera of cameras" [value]="camera">
                     {{getCameraName(camera)}}
                   </mat-option> 
                 </mat-select>
               </mat-form-field>
             </mat-card>
           </div>
-          <timeline [selectedCamId]="camId" [cameras]="cameras" [multipleTimeline]="multipleTimeline"></timeline>
+          <timeline [selectedCamId]="cameraSelected.id" [cameras]="cameras" [multipleTimeline]="multipleTimeline"></timeline>
         </div>
       </div>
 

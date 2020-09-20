@@ -24,29 +24,29 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
         <div *ngIf="cameras.length > 0; else no_cams_content">
           <mat-card *ngIf="cameras.length > 1" style="margin-bottom:20px;">
             <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-              <mat-select [(value)]="camId" (selectionChange)="onSelected($event.value)" placeholder="Camera events">
+              <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera events">
                 <!-- <mat-option [value]="-1" >All cameras</mat-option> -->
-                <mat-option *ngFor="let camera of cameras" [value]="camera.id">
+                <mat-option *ngFor="let camera of cameras" [value]="camera">
                   {{getCameraName(camera)}}
                 </mat-option>
               </mat-select>
             </mat-form-field>
-            <span *ngIf="camId != -1">
+            <span *ngIf="cameraSelected !== null">
               <ng-container *ngTemplateOutlet="liveview_content">
               </ng-container>
             </span>
-            <span *ngIf="camId == -1">
+            <span *ngIf="cameraSelected === null">
               <ng-container *ngTemplateOutlet="liveview_content_multiple">
               </ng-container>
             </span>
           </mat-card>
 
-          <!-- <mat-card *ngIf="cameras.length == 1 && camId != -1" style="margin-bottom:20px;">
+          <!-- <mat-card *ngIf="cameras.length == 1 && cameraSelected.id != -1" style="margin-bottom:20px;">
             <ng-container *ngTemplateOutlet="liveview_content">
             </ng-container>
           </mat-card> -->
 
-          <event-list [camId]="camId" [cameras]="cameras"></event-list>
+          <event-list [camId]="cameraSelected.id" [cameras]="cameras"></event-list>
         </div>
       </div>
 

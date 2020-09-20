@@ -93,6 +93,7 @@ import Utils from '../utils'
             <div class="app-text-dark-hint">
               <div [@fadeInAnimation] *ngIf="status.threadsRunnableUsed !== undefined">Threads: {{status.threadsRunnableUsed}}/{{status.threadsUsed}}</div>
               <div>Processes: {{status.processes}}</div>
+              <div>Memory Used: {{humanReadableByteCount(status.memoryUsed)}}, Free: {{humanReadableByteCount(status.memoryAvailable)}} (<a href="{{getMemoryInfoUrl()}}">info</a>)</div>
               <div>Live view connections: {{status.liveConnections}}</div>
               <div>Network In: {{humanReadableKBs(status.networkInBps)}}, Out: {{humanReadableKBs(status.networkOutBps)}}</div>
               <div>Web server uptime: {{status.uptime}}</div>
@@ -183,6 +184,10 @@ export class PageAdminComponent implements OnInit {
 
     sendHttpGetRequest(request: string) {
         this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
+    }
+
+    getMemoryInfoUrl(): string {
+        return `${this.loginService.server.url}/axis-cgi/admin/memoryinfo.cgi?token=${this.loginService.login.token}`;
     }
 
     getAppLogsUrl(): string {

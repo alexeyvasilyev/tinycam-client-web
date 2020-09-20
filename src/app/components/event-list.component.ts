@@ -3,7 +3,6 @@ import { EventRecord, CameraSettings, } from '../models';
 import { EventType, EventListService, LoginService } from '../services';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { Platform } from '@angular/cdk/platform';
-import Utils from "../utils";
 import { fadeInAnimation } from '../animations/';
 
 // <video> tag is shown only for Chrome/Firefox/Safari browsers. Not shown for IE.
@@ -42,18 +41,12 @@ import { fadeInAnimation } from '../animations/';
             <div *ngFor="let event of events; let i = index" style="margin-bottom:20px;">
                 <event
                     [number]="i"
-                    [title]="getEventTitle(event)"
-                    [titleHint]="getEventTitleHint(event)"
-                    [titleHintColor]="getEventTitleHintColor(event)"
-                    [imageUrl]="getEventImage(event)"
-                    [videoUrl]="getEventVideo(event)"
-                    [hasVideo]="event.has_video"
-                    [hasAudio]="event.has_audio"
-                    [date]="event.time"></event>
+                    [event]="event"
+                    [actionCommands]="true"></event>
             </div>
 
             <div *ngIf="isFabShown()" style="position: fixed;right: 50px; bottom: 50px;">
-                <div  [@fadeInAnimation] >
+                <div [@fadeInAnimation]>
                     <button mat-mini-fab color="accent" (click)="goTop()">
                         <span><i class="fas fa-angle-up"></i></span>
                     </button>
@@ -186,42 +179,6 @@ export class EventListComponent implements OnInit {
         this.eventsLoaded = true;
     }
 
-    getEventTitle(event: EventRecord): string {
-        if (event.motion === undefined) {
-            return 'Recording - ' + (event.duration / 1000).toFixed() + ' sec';
-        } else {
-            return 'Motion - ' + (event.duration / 1000).toFixed() + ' sec';
-        }
-    }
-
-    getEventTitleHint(event: EventRecord): string {
-        if (event.motion === undefined)
-            return null;
-        // Capitalize first letter
-        return event.motion.charAt(0).toUpperCase() + event.motion.slice(1);
-    }
-
-    getEventTitleHintColor(event: EventRecord): string {
-        return Utils.getEventColor(event);
-    }
-
-    getEventImage(event: EventRecord): string {
-        if (event.image.startsWith('http')) {
-            return event.image;
-        } else {
-            const char = event.image.indexOf('?') == -1 ? '?' : '&';
-            return `${this.loginService.server.url}${event.image}${char}token=${this.loginService.login.token}`;
-        }
-    }
-
-    getEventVideo(event: EventRecord): string {
-        if (event.image.startsWith("http")) {
-            return `${event.video}`;
-        } else {
-          const char = event.image.indexOf('?') == -1 ? '?' : '&';
-          return `${this.loginService.server.url}${event.video}${char}token=${this.loginService.login.token}`;
-        }
-    }
 
     onDateChanged(event: MatDatepickerInputEvent<Date>) {
         console.log('Date selected "' + new Date(event.value).toISOString() + '"');
@@ -249,6 +206,5 @@ export class EventListComponent implements OnInit {
                     .then(events => { this.processEventList(events); });
         }
     }
-
 
 }

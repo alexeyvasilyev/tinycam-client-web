@@ -64,8 +64,8 @@ import Utils from '../utils';
               <div *ngIf="cameras.length > 1">
                 <div style="margin:0px 15px;">
                   <mat-form-field color="accent">
-                    <mat-select [(value)]="camId" (selectionChange)="onSelected($event.value)" placeholder="Camera view">
-                      <mat-option *ngFor="let camera of cameras" [value]="camera.id">
+                    <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera view">
+                      <mat-option *ngFor="let camera of cameras" [value]="camera">
                         {{getCameraName(camera)}}
                       </mat-option>
                     </mat-select>
@@ -73,7 +73,16 @@ import Utils from '../utils';
                 </div>
               </div>
             </div>
+
             <div class="right">
+
+              <span *ngIf="cameraSelected.enabled && cameraSelected.audioListening" style="padding: 10px; margin-right:20px">
+                <button><i class="fas fa-volume-off fa-lg"></i></button>
+                <!--<audio preload="none" controls autoplay style="vertical-align: middle;">
+                  <source src="{{getAudioUrl()}}" type="audio/wav">
+                </audio>-->
+              </span>
+
               <span *ngIf="status.motion !== undefined" style="padding: 10px; margin-right:20px">
                 <span *ngIf="status.motion; else no_motion_content" matTooltip="Motion detected"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
               </span>
@@ -103,7 +112,7 @@ import Utils from '../utils';
           </div>
 
           <div style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight" #live>
-            <live [camId]="camId" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
+            <live [camId]="cameraSelected.id" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
           </div>
         </div>
       </div>
@@ -160,14 +169,22 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         Utils.toggleFullScreen(this.liveEl.nativeElement);
     }
 
+    toggleAudio() {
+
+    }
+
+    getAudioUrl() {
+        return `${this.loginService.server.url}/axis-cgi/audio/receive.wav?token=${this.loginService.login.token}`;
+    }
+
     sendCameraMotionEvent() {
-        this.sendHttpGetRequest(`/axis-cgi/motion/createmotion.cgi?cameraId=${this.camId}`)
+        this.sendHttpGetRequest(`/axis-cgi/motion/createmotion.cgi?cameraId=${this.cameraSelected.id}`)
         .then(
-          res  => { this.snackBar.open('Motion signal sent', null, {
-            duration: 4000,
-        })
-       });
-  }
+            res => { this.snackBar.open('Motion signal sent', null, {
+                duration: 4000,
+            })
+        });
+    }
 
     sendHttpGetRequest(request: string): Promise<any> {
         return this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
@@ -332,7 +349,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
             clearTimeout(this.timerSubscription);
         this.timerSubscription = setTimeout(() => {
             this.statusService
-                .getStatusCamera(this.loginService.server, this.loginService.login, this.camId)
+                .getStatusCamera(this.loginService.server, this.loginService.login, this.cameraSelected.id)
                 .then(
                   status => { this.processStatus(status); },
                   error => { this.processStatusError(error); });

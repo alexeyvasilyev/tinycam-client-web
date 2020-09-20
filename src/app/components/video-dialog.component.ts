@@ -1,4 +1,4 @@
-import { Component, Input, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { fadeInAnimation } from '../animations/';
 
@@ -20,15 +20,16 @@ declare const videojs: any;
       </tr>
     </table>
 
-    <video [@fadeInAnimation] width="800px" id='mp4video' class="video-js vjs-default-skin vjs-big-play-centered"
+    <video [@fadeInAnimation] #component id='mp4video' class="video-js vjs-default-skin vjs-big-play-centered"
        controls (error)="handleVideoError()" (playing)="handleVideoPlaying()" poster="{{imageUrl}}">
     </video>
   `
 })
-export class VideoDialogComponent implements AfterViewInit {
+export class VideoDialogComponent implements OnInit, AfterViewInit {
     @Input() videoUrl: string;
     @Input() imageUrl: string;
     @Input() title: string;
+    @ViewChild('component', { static: true }) componentEl: ElementRef;
 
     player: any;
     videoError = false;
@@ -44,6 +45,15 @@ export class VideoDialogComponent implements AfterViewInit {
 
     handleVideoPlaying() {
         this.videoError = false;
+    }
+
+    ngOnInit() {
+        this.fitToContainerWidth(this.componentEl.nativeElement);
+    }
+
+    private fitToContainerWidth(element) {
+        // TODO: document.documentElement.clientWidth is refreshed only after refresh button pressed in browser.
+        element.width = document.documentElement.clientWidth * 0.7;
     }
 
     ngAfterViewInit() {

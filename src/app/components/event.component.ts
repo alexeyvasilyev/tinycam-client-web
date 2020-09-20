@@ -1,10 +1,11 @@
 import { Component, OnInit, Input } from '@angular/core';
-// import { trigger, animate, transition, style, state, keyframes } from '@angular/animations';
-import { WindowRefService } from '../services';
-// import { Observable } from 'rxjs/Rx';
+import { LoginService, GenericService } from '../services';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { VideoDialogComponent } from './video-dialog.component';
 import { fadeInAnimation } from '../animations/';
+import { EventRecord } from '../models';
+import Utils from "../utils";
 
 // <video> tag is shown only for Chrome/Firefox/Safari browsers. Not shown for IE.
 // For Chrome browser only first 5 events are shown as <video>,
@@ -51,7 +52,7 @@ import { fadeInAnimation } from '../animations/';
     }
     .event-image-container {
       position: relative;
-      width: 400px;
+      max-width: 400px;
       transition: .5s ease;
     }
     .event-video {
@@ -75,86 +76,97 @@ import { fadeInAnimation } from '../animations/';
     .img:hover {
       cursor: pointer;
     }
-  `],
+    .container {
+      padding: 4px 4px;
+      height: auto;
+      overflow: hidden;
+    }
+    .right {
+    }
+    .left {
+      float: left;
+      margin-right: 20px;
+    }
+`],
   template: `
   <div [@fadeInAnimation]>
-    <mat-card>
-      <mat-card-content>
-        <div class="app-row">
-          <div class="app-column" style="width:80%">
-            <span style="color:#424242;font-weight:bold;">{{number + 1}}. {{title}}</span>
-            <span *ngIf="titleHint != null" class="app-chip" style="margin-left:10px;background-color:{{titleHintColor}}">{{titleHint}}</span>
-            <div class="app-text-dark-secondary" style="padding-bottom: 10px">
-              <div *ngIf="isThisHour(); else notThisHour" >
-                {{getLocalDateTime() | amTimeAgo}}
-              </div>
-              <ng-template #notThisHour>
-                <div *ngIf="isLessThenTwoDays(); else moreThanTwoDays" >
-                  {{getLocalDateTime() | amCalendar}}
+    <mat-card *ngIf="!eventDeleted">
+      <mat-card-content [ngStyle]="{'background-color': eventPinned ? '#e3f0f7' : ''}">
+        <div class="container" >
+
+          <div (click)="openDialog()" class="left img" (mouseleave)="videoPlaying=false; videoLoading=false; loadedPercent=0;">
+
+            <div *ngIf="autoplayOnHover">
+              <div class="event-image-container" [hidden]="videoPlaying" (mouseleave)="stopProgressBar()">
+                <img class="event-image" alt="Video" src="{{getEventImageUrl()}}" (mouseover)="startPlayer($event)" />
+                <div class="middle circle" [ngStyle]="{'opacity': 0.5 - loadedPercent / 100}">
+                  <div class="middle">
+                    <i class="fas fa-play-circle fa-5x" style="color:white;"></i>
+                  </div>
                 </div>
-              </ng-template>
-              <ng-template #moreThanTwoDays>
-                {{getLocalDateTimeFormatted()}}
-              </ng-template>
+              </div>
+              <div class="preloadProgress" *ngIf="videoLoading" [ngStyle]="{'width': loadedPercent + 'px'}"></div>
+              <!-- <div class="marker-overlays">10</div> -->
+              <video *ngIf="videoPlaying || videoLoading" [hidden]="!videoPlaying"
+              class="event-video" autoplay preload="auto" (mouseleave)="stopPlayer($event)" poster="{{imageUrl}}" (canplaythrough)="videoLoaded($event)">
+                <source src="{{getEventVideoUrl()}}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            </div>
+
+            <div *ngIf="!autoplayOnHover">
+              <div class="event-image-container">
+                <img class="event-image" src="{{imageUrl}}"/>
+                <div class="middle circle" style="opacity: 0.5;">
+                  <div class="middle">
+                    <i class="fas fa-play-circle fa-5x" style="color:white;"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+
+          <div class="right">
+            <div>
+              <span style="color:#424242;font-weight:bold;">{{number + 1}}. {{getEventTitle()}}</span>
+              <span *ngIf="getEventTitleHint() != null" class="app-chip" style="margin-left:10px;background-color:{{getEventTitleHintColor()}}">{{getEventTitleHint()}}</span>
+              <div class="app-text-dark-secondary" style="padding-bottom: 10px">
+                <div *ngIf="isThisHour(); else notThisHour" >
+                  {{getLocalDateTime() | amTimeAgo}}
+                </div>
+                <div *ngIf="actionCommands" style="padding: 20px">
+                  <span *ngIf="eventPinned; else notEventPinned">
+                    <button mat-flat-button (click)="pinUnpinEvent(false)" matTooltip="Unpin event" style="margin-right:15px"><i class="fas fa-thumbtack fa-lg"></i></button>
+                  </span>
+                  <ng-template #notEventPinned>
+                    <button mat-raised-button (click)="pinUnpinEvent(true)" matTooltip="Pin event" style="margin-right:15px"><i class="fas fa-thumbtack fa-lg"></i></button>
+                  </ng-template>
+                  <button mat-raised-button (click)="deleteEvent()" matTooltip="Delete event"><i class="fas fa-trash fa-lg"></i></button>
+                </div>
+                <ng-template #notThisHour>
+                  <div *ngIf="isLessThenTwoDays(); else moreThanTwoDays" >
+                    {{getLocalDateTime() | amCalendar}}
+                  </div>
+                </ng-template>
+                <ng-template #moreThanTwoDays>
+                  {{getLocalDateTimeFormatted()}}
+                </ng-template>
+              </div>
             </div>
           </div>
-          <div class="app-column" style="text-align:right; width:20%">
-            <span *ngIf="this.hasAudio" >
-                <i class="fas fa-lg fa-volume-up" style="color: #424242;"></i>
-            </span>
-            <span *ngIf="this.hasVideo" >
-                <i class="fas fa-lg fa-child" style="color: #424242;"></i>
-            </span>
-          </div>
+
         </div>
 
-    <!-- <a href="{{videoUrl}}" (mouseleave)="videoPlaying=false; videoLoading=false" class="img"> -->
-    <!-- <a href="{{videoUrl}}" (mouseleave)="videoPlaying=false; videoLoading=false" class="img" [@animate]="'fadeIn'"> -->
-    <div (click)="openDialog()" class="img" (mouseleave)="videoPlaying=false; videoLoading=false; loadedPercent=0;">
-
-      <div *ngIf="autoplayOnHover" >
-        <div class="event-image-container" [hidden]="videoPlaying" (mouseleave)="stopProgressBar()">
-          <img class="event-image" alt="Video" src="{{imageUrl}}" (mouseover)="startPlayer($event)" />
-          <!-- <div *ngIf="!videoPlaying" class="middle circle" [hidden]="videoLoading" style="opacity:0.4;"> -->
-          <div class="middle circle" [ngStyle]="{'opacity': 0.5 - loadedPercent / 100}">
-            <div class="middle">
-              <i class="fas fa-play-circle fa-5x" style="color:white;"></i>
-            </div>
-          </div>
-        </div>
-        <div class="preloadProgress" *ngIf="videoLoading" [ngStyle]="{'width': loadedPercent + 'px'}"></div>
-        <!-- <div class="marker-overlays">10</div> -->
-        <video *ngIf="videoPlaying || videoLoading" [hidden]="!videoPlaying"
-         class="event-video" autoplay preload="auto" (mouseleave)="stopPlayer($event)" poster="{{imageUrl}}" (canplaythrough)="videoLoaded($event)">
-          <source src="{{videoUrl}}" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
-      </div>
-
-      <div *ngIf="!autoplayOnHover">
-        <div class="event-image-container">
-          <img class="event-image" src="{{imageUrl}}"/>
-          <div class="middle circle" style="opacity: 0.5;">
-            <div class="middle">
-              <i class="fas fa-play-circle fa-5x" style="color:white;"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-    <!-- </a> -->
-    </mat-card-content>
+      </mat-card-content>
     </mat-card>
   </div>
   `
 })
+//<mat-card-content [ngStyle]="{'background-color': (eventPinned ? '#112233' : 'none')}">
 
 export class EventComponent implements OnInit {
-
-    TYPE_EVENT          = 0;
-    TYPE_STATUS_STARTED = 1;
-    TYPE_STATUS_STOPPED = 2;
 
     autoplayOnHover = false;
     videoPlaying = false;
@@ -163,39 +175,79 @@ export class EventComponent implements OnInit {
     private timerSubscriptionStartedTime;
     loadedPercent = 0;
     private initTime = 0;
+    eventDeleted = false;
+    eventPinned = false;
 
     constructor(
-        private windowRef: WindowRefService,
+        private loginService: LoginService,
+        private genericService: GenericService,
+        private snackBar: MatSnackBar,
         public dialog: MatDialog) {
     }
 
-    @Input() status: number;
+    @Input() event: EventRecord;
     @Input() number: number;
-    @Input() title: string;
-    @Input() titleHint: string;
-    @Input() titleHintColor: string;
-    @Input() date: number;
-    @Input() imageUrl: string;
-    @Input() videoUrl: string;
-    @Input() hasVideo: boolean;
-    @Input() hasAudio: boolean;
+    @Input() actionCommands: boolean;
 
     ngOnInit() {
         this.autoplayOnHover = true;//Utils.isBrowserFirefox();
         this.initTime = new Date().getTime();
+        this.updateEventPinned();
+    }
+
+    private updateEventPinned() {
+        // /api/v1/get_file?file=/Terrace/2020-09-20%2014.38.56%20613sec%20person_pin.mp4
+        this.eventPinned = this.event.video.indexOf('_pin.mp4') > -1;
     }
 
     ngOnDestroy() {
         this.stopProgressBar();
     }
 
+    getEventTitle(): string {
+        if (this.event.motion === undefined) {
+            return 'Recording - ' + (this.event.duration / 1000).toFixed() + ' sec';
+        } else {
+            return 'Motion - ' + (this.event.duration / 1000).toFixed() + ' sec';
+        }
+    }
+
+    getEventTitleHint(): string {
+        if (this.event.motion === undefined)
+            return null;
+        // Capitalize first letter
+        return this.event.motion.charAt(0).toUpperCase() + this.event.motion.slice(1);
+    }
+
+    getEventTitleHintColor(): string {
+        return Utils.getEventColor(this.event);
+    }
+
+    getEventImageUrl(): string {
+        if (this.event.image.startsWith('http')) {
+            return this.event.image;
+        } else {
+            const char = this.event.image.indexOf('?') == -1 ? '?' : '&';
+            return `${this.loginService.server.url}${this.event.image}${char}token=${this.loginService.login.token}`;
+        }
+    }
+
+    getEventVideoUrl(): string {
+        if (this.event.image.startsWith("http")) {
+            return `${this.event.video}`;
+        } else {
+          const char = this.event.image.indexOf('?') == -1 ? '?' : '&';
+          return `${this.loginService.server.url}${this.event.video}${char}token=${this.loginService.login.token}`;
+        }
+    }
+
     getLocalDateTime(): Date {
-        return new Date(this.date);
+        return new Date(this.event.time);
         // return new Date(this.date).toLocaleString();
     }
 
     getLocalDateTimeFormatted(): string {
-        return new Date(this.date).toLocaleString();
+        return new Date(this.event.time).toLocaleString();
     }
 
     getUtcNow(): Date {
@@ -286,24 +338,72 @@ export class EventComponent implements OnInit {
     // };
 
     isThisHour() {
-        return this.initTime - new Date(this.date).getTime() < 1800000;
+        return this.initTime - new Date(this.event.time).getTime() < 1800000;
     }
 
     isLessThenTwoDays() {
-        return this.initTime - new Date(this.date).getTime() < 86400000; // 2 days in msec
+        return this.initTime - new Date(this.event.time).getTime() < 86400000; // 2 days in msec
+    }
+
+    // From '/api/v1/get_file?file=/Doorbell/2020-09-20%2017.15.55%2043sec%20person.mp4'
+    // To '/Doorbell/2020-09-20%2017.15.55%2043sec%20person.mp4'
+    getPlainFilename(filename: string): string {
+        return filename.replace("/api/v1/get_file?file=", "");
+    }
+
+    deleteEvent() {
+        // console.log("deleteEvent()");
+        const url = `/param.cgi?action=delete&root.Filename=${this.getPlainFilename(this.event.video)}`;
+        this.sendHttpGetRequest(url)
+        .then(
+            res => {
+                this.eventDeleted = true;
+                this.snackBar.open('Event deleted', null, {
+                    duration: 4000,
+            })
+        });
+    }
+
+    pinUnpinEvent(pin: boolean) {
+        console.log(`pinEvent(pin=${pin})`);
+        const ch = pin ? 'pin' : 'unpin';
+        const url = `/param.cgi?action=${ch}&root.Filename=${this.getPlainFilename(this.event.video)}`;
+        this.sendHttpGetRequest(url)
+        .then(
+            res => {
+                if (pin) {
+                    this.event.video = this.event.video.replace('.mp4', '_pin.mp4');
+                    this.event.image = this.event.image.replace('.mp4', '_pin.mp4');
+                } else {
+                    this.event.video = this.event.video.replace('_pin.mp4', '.mp4');
+                    this.event.image = this.event.image.replace('_pin.mp4', '.mp4');
+                }
+                this.eventPinned = pin;
+                this.snackBar.open(`Event ${ch}ned`, null, {
+                    duration: 4000,
+            })
+        });
+    }
+
+    sendHttpGetRequest(request: string): Promise<any> {
+        return this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
     }
 
     openDialog() {
-        console.log("openDialog()");
+        // console.log("openDialog()");
         // this.stopPlayer(event);
         this.videoPlaying = false;
-        const dialog = this.dialog.open(VideoDialogComponent);//, this.config);
+        // const config = {
+        //   width: '100%',
+        // };
+        const dialog = this.dialog.open(VideoDialogComponent);//, config);
+        const title = this.getEventTitle();
         dialog.componentInstance.title =
-            (this.title == null ? "" : this.title) +
+            (title == null ? "" : title) +
             " (" + this.getLocalDateTimeFormatted() + ")";//'Duration - ' + (this.duration / 1000).toFixed() + ' sec';
         //this.getLocalDateTime();
-        dialog.componentInstance.videoUrl = this.videoUrl;
-        dialog.componentInstance.imageUrl = this.imageUrl;
+        dialog.componentInstance.videoUrl = this.getEventVideoUrl();
+        dialog.componentInstance.imageUrl = this.getEventImageUrl();
     }
 
 }

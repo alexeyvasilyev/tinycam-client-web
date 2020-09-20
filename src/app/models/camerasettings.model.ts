@@ -3,6 +3,8 @@ export class CameraSettings {
     enabled: boolean;
     id: number;
     name: string;
+    ptzCapabilities: number;
+    audioListening: boolean;
 
     static getName(cameraSettings: CameraSettings): string {
         var text = cameraSettings.name;
@@ -13,4 +15,7 @@ export class CameraSettings {
         return text;
     }
 
+    public toString = () : string => {
+        return `CameraSettings (name: ${this.name}, id: ${this.id}, enabled: ${this.enabled})`;
+    }
 }
