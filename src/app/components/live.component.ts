@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, Input, ElementRef, SimpleChanges, ViewChild } from '@angular/core';
-import { LoginService, StatusService } from '../services';
+import { LoginService } from '../services';
 import { fadeInAnimation } from '../animations/';
 import { WindowRefService } from '../services';
 
@@ -32,12 +32,11 @@ import { WindowRefService } from '../services';
 
 export class LiveComponent implements AfterViewInit {
 
-    @Input() cameraId: number; 
+    @Input() cameraId: number;
     @ViewChild('cell', { static: true }) cellEl: ElementRef;
 
     constructor(
         public loginService: LoginService,
-        private statusService: StatusService,
         private windowRef: WindowRefService) {
     }
 

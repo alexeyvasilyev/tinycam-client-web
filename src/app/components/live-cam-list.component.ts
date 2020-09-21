@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import Utils from '../utils';
+import * as nipplejs from 'nipplejs';
 
 @Component({
   selector: 'live-cam-list',
@@ -50,6 +51,18 @@ import Utils from '../utils';
         width: auto;
         overflow: hidden;
       }
+      .zone {
+        display: block;
+        position: relative;
+        //position: absolute;
+        //left: 0;
+        //top: 0;
+        width: 100%;
+        height: 50%;
+        min-width: 100%;
+        min-height: 50%;
+        background: rgba(255, 0, 0, 0.1);
+      }
   `],
   template: `
     <div>
@@ -86,7 +99,7 @@ import Utils from '../utils';
               <span *ngIf="status.motion !== undefined" style="padding: 10px; margin-right:20px">
                 <span *ngIf="status.motion; else no_motion_content" matTooltip="Motion detected"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
               </span>
-              <button class="live-button" style="margin-right:20px;">
+              <button class="live-button" style="margin-right:20px;" (click)="showHideJoystick()">
                 <i class="far fa-dot-circle"></i>
               </button>
               <button class="live-button" (click)="gotoPreset(1)">1</button>
@@ -111,7 +124,7 @@ import Utils from '../utils';
 
           </div>
 
-          <div style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight" #live>
+          <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight">
             <live [cameraId]="cameraSelected.id" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
           </div>
         </div>
@@ -121,7 +134,7 @@ import Utils from '../utils';
       <ng-template #loading_content><mat-card>Loading cameras list...</mat-card></ng-template>
       <ng-template #no_motion_content><span matTooltip="No motion detected"><i class="fas fa-male fa-lg"></i></span></ng-template>
     </div>
-
+    <div #joystick style="position: absolute; right: 150px; bottom: 0px;" ></div>
   `
 })
 
@@ -129,7 +142,11 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 
     myInnerHeight = this.windowRef.nativeWindow.innerHeight;
     @ViewChild('live') liveEl: ElementRef;
+    @ViewChild('joystick') joystickEl: ElementRef;
+
     private timerSubscription;
+    private nipple = null;
+    nippleShown = false;
     status: Status = new Status();
 
     PTZ_REQUEST = '/axis-cgi/com/ptz.cgi';
@@ -149,6 +166,46 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         protected camListService: CamListService,
         private windowRef: WindowRefService) {
             super(router, loginService, camListService);
+    }
+
+    showHideJoystick() {
+      // console.log('showHideJoystick()');
+      this.nippleShown = !this.nippleShown;
+      if (this.nippleShown) {
+        this.initJoystick();
+      } else {
+        this.nipple.destroy();
+      }
+    }
+
+    initJoystick() {
+        this.nipple = nipplejs.create({
+            zone: this.joystickEl.nativeElement,
+            size: 150,
+            mode: 'static',
+            restOpacity: 0.7,
+            position: {right: '20%', bottom: '20%'}
+        });
+  
+        this.nipple.on('dir:up', function (evt, nipple) {
+            this.moveUp();
+        }.bind(this))
+
+        this.nipple.on('dir:down', function (evt, nipple) {
+            this.moveDown();
+        }.bind(this))
+
+        this.nipple.on('dir:left', function (evt, nipple) {
+            this.moveLeft();
+        }.bind(this))
+
+        this.nipple.on('dir:right', function (evt, nipple) {
+            this.moveRight();
+        }.bind(this))
+
+        this.nipple.on('end', function (evt, nipple) {
+            this.moveStop();
+        }.bind(this));
     }
 
     ngOnInit() {
@@ -197,7 +254,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         return this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
     }
 
-    moveUp() {
+    public moveUp() {
         this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,100`);
     }
 
@@ -212,7 +269,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
       this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=100,0`);
     }
 
-    moveStop() {
+    public moveStop() {
       this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,0`);
     }
 
