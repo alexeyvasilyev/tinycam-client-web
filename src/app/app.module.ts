@@ -4,6 +4,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 //import { MatChipsModule } from '@angular/material/chips';
 // import { MatToolbarModule } from '@angular/material/toolbar';
@@ -81,6 +82,7 @@ import { MomentModule } from 'angular2-moment';
     HttpClientModule,
     AppRoutingModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatCardModule,
     // MatChipsModule,
     MatDatepickerModule,

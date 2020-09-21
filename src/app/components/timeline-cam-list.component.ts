@@ -7,6 +7,14 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
     .full-width {
       width: 100%;
     }
+    .left {
+      overflow: hidden;
+    }
+    .right {
+      float: right;
+      width: auto;
+      margin-left: 10px;
+    }
   `],
   template: `
     <div>
@@ -18,18 +26,29 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
           <div *ngIf="cameras.length > 1" style="text-align:right;padding-top:20px;padding-bottom:20px;">
             <mat-checkbox [(ngModel)]="multipleTimeline">Show all cameras on timeline</mat-checkbox>
           </div>
+
           <div *ngIf="cameras.length > 1 && !multipleTimeline" style="margin-bottom:20px;">
             <mat-card>
-              <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera timeline">
-                  <mat-option *ngFor="let camera of cameras" [value]="camera">
-                    {{getCameraName(camera)}}
-                  </mat-option> 
-                </mat-select>
-              </mat-form-field>
+              <div class="right">
+                <mat-button-toggle-group *ngIf="cameraSelected !== null && cameraSelected.cloudAccess" [(value)]="localCloudSelected">
+                  <mat-button-toggle value="local">Local</mat-button-toggle>
+                  <mat-button-toggle value="cloud">Cloud</mat-button-toggle>
+                </mat-button-toggle-group>
+              </div>
+
+              <div class="left">
+                <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
+                  <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera timeline">
+                    <mat-option *ngFor="let camera of cameras" [value]="camera">
+                      {{getCameraName(camera)}}
+                    </mat-option> 
+                  </mat-select>
+                </mat-form-field>
+              </div>
             </mat-card>
           </div>
-          <timeline [selectedCamId]="cameraSelected.id" [cameras]="cameras" [multipleTimeline]="multipleTimeline"></timeline>
+
+          <timeline [selectedCameraId]="cameraSelected.id" [cameras]="cameras" [multipleTimeline]="multipleTimeline" [type]="localCloudSelected"></timeline>
         </div>
       </div>
 

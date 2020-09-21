@@ -5,6 +5,7 @@ export class CameraSettings {
     name: string;
     ptzCapabilities: number;
     audioListening: boolean;
+    cloudAccess: boolean;
 
     static getName(cameraSettings: CameraSettings): string {
         var text = cameraSettings.name;

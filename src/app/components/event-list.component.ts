@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { EventRecord, CameraSettings, } from '../models';
-import { EventType, EventListService, LoginService } from '../services';
+import { EventListService, LoginService } from '../services';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { Platform } from '@angular/cdk/platform';
 import { fadeInAnimation } from '../animations/';
@@ -79,8 +79,9 @@ export class EventListComponent implements OnInit {
         public platform: Platform) {
     }
 
-    @Input() camId: number; // can be -1 for all cameras events
+    @Input() cameraId: number; // can be -1 for all cameras events
     @Input() cameras: CameraSettings[];
+    @Input() type: string = 'local'; // 'local' or 'cloud'
 
             today: Date = new Date(); // today
     private minus7days: Date = new Date(this.today.getTime() - 604800000 /*7 days*/);
@@ -127,17 +128,17 @@ export class EventListComponent implements OnInit {
         // this.eventListService.getEventListByDate(
         //     this.loginService.server,
         //     this.loginService.login,
-        //     this.camId,
+        //     this.cameraId,
         //     '2017-02-21T13:30:40+00:00',
         //     this.EVENTS_TO_LOAD)
         //         .then(events => { this.processEventList(events); });
         this.eventListService.getEventList(
             this.loginService.server,
             this.loginService.login,
-            this.camId,
+            this.cameraId,
             null,
             this.EVENTS_TO_LOAD,
-            EventType.Local)
+            this.type)
                 .then(events => { this.processEventList(events); });
     }
 
@@ -147,10 +148,10 @@ export class EventListComponent implements OnInit {
         this.eventListService.getEventList(
             this.loginService.server,
             this.loginService.login,
-            this.camId,
+            this.cameraId,
             event.time,
             this.EVENTS_TO_LOAD,
-            EventType.Local)
+            this.type)
                 .then(events => { this.processEventList(events); });
     }
 
@@ -167,11 +168,12 @@ export class EventListComponent implements OnInit {
             //     this.events.push(event);
             // }
             // Concatinate arrays
-            for (let event of events) {
-                this.events.push(event);
-            }
+            // for (let event of events) {
+            //     this.events.push(event);
+            // }
+            this.events = this.events.concat(events);
             // console.log('Filtered events: ' + newEvents.length);
-            console.log('Loaded ' + events.length + ' events' );
+            console.log('Loaded ' + this.events.length + ' events' );
         } else {
             console.log('Events list is empty');
         }
@@ -199,10 +201,10 @@ export class EventListComponent implements OnInit {
             this.eventListService.getEventList(
                 this.loginService.server,
                 this.loginService.login,
-                this.camId,
+                this.cameraId,
                 selectedDate.getTime(),
                 this.EVENTS_TO_LOAD,
-                EventType.Local)
+                this.type)
                     .then(events => { this.processEventList(events); });
         }
     }

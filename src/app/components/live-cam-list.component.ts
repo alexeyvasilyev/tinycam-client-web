@@ -112,7 +112,7 @@ import Utils from '../utils';
           </div>
 
           <div style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight" #live>
-            <live [camId]="cameraSelected.id" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
+            <live [cameraId]="cameraSelected.id" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
           </div>
         </div>
       </div>

@@ -4,10 +4,10 @@ import { EventRecord, Login, Server, ServerResponse } from '../models'
 import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/timeout'
 
-export const enum EventType {
-    Local = "local",
-    Cloud = "cloud"
-};
+// export const enum EventType {
+//     Local = "local",
+//     Cloud = "cloud"
+// };
 
 @Injectable()
 export class EventListService {
@@ -15,8 +15,8 @@ export class EventListService {
     constructor(private http: HttpClient) {
     }
 
-    getEventList(server: Server, login: Login, cameraId: number, endtime: number, limit: number, type: EventType): Promise<EventRecord[]> {
-        // console.log('getEventList(camId=' + camId + ', eventId=' + eventId + ', endtime=' + endtime + ', limit=' + limit + ')');
+    getEventList(server: Server, login: Login, cameraId: number, endtime: number, limit: number, type: string): Promise<EventRecord[]> {
+        // console.log('getEventList(cameraId=' + cameraId + ', eventId=' + eventId + ', endtime=' + endtime + ', limit=' + limit + ')');
 
         const url = `${server.url}/api/v1/get_cam_event_list?token=${login.token}&cameraId=${cameraId}&endtime=${endtime}&count=${limit}&type=${type}`;
         return this.http

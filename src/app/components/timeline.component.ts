@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
 import { CameraSettings, EventRecord } from '../models'
-import { EventType, EventListService, LoginService } from '../services';
+import { EventListService, LoginService } from '../services';
 import Utils from '../utils';
 import ResizeObserver from 'resize-observer-polyfill';
 import { fadeInAnimation } from '../animations/';
@@ -252,8 +252,9 @@ export class TimelineComponent implements OnInit {
     }
 
     @Input() cameras: CameraSettings[];
-    @Input() selectedCamId: number;
+    @Input() selectedCameraId: number;
     @Input() multipleTimeline: boolean;
+    @Input() type: string; // 'local' or 'cloud'
     @ViewChild('component', { static: true }) componentEl: ElementRef;
     @ViewChild('canvasTimeline', { static: true }) canvasTimelineEl: ElementRef;
     @ViewChild('videoComponent', { static: true }) videoEl: ElementRef;
@@ -667,10 +668,10 @@ export class TimelineComponent implements OnInit {
            this.eventListService.getEventList(
                this.loginService.server,
                this.loginService.login,
-               timelines > 1 ? this.cameras[i].id : this.selectedCamId,
+               timelines > 1 ? this.cameras[i].id : this.selectedCameraId,
                null,
                this.getEventsToLoad(),
-               EventType.Local)
+               this.type)
                    .then(events => {
                        this.requestingMoreVideoEvents = false;
                        this.processEventList(i, events, true);
@@ -688,23 +689,24 @@ export class TimelineComponent implements OnInit {
                 if (timelineIndex > -1)
                     this.noOldEventsAvailable[timelineIndex] = true;
             } else {
-                let newEvents = [];
-                for (let event of events) {
-                    if (event.duration > this.MIN_DURATION_EVENT_MSEC) {
-                        // Make event started before 3 seconds
-//                        event.video_offset = Math.max(0, event.video_offset - this.EVENT_OFFSET_MSEC);
-                        event.duration += this.EVENT_OFFSET_MSEC;
-                        newEvents.push(event);
-                    }
-                }
-                if (newEvents.length == 0) {
+                // let newEvents = [];
+//                 for (let event of events) {
+//                     if (event.duration > this.MIN_DURATION_EVENT_MSEC) {
+//                         // Make event started before 3 seconds
+// //                        event.video_offset = Math.max(0, event.video_offset - this.EVENT_OFFSET_MSEC);
+//                         event.duration += this.EVENT_OFFSET_MSEC;
+//                         newEvents.push(event);
+//                     }
+//                 }
+                // newEvents.concat(events);
+                if (events.length == 0) {
                     if (timelineIndex > -1)
                         this.noOldEventsAvailable[timelineIndex] = true;
                 } else {
                     // Concatinate arrays
-                    this.events[timelineIndex] = this.events[timelineIndex].concat(newEvents);
+                    this.events[timelineIndex] = this.events[timelineIndex].concat(events);
                 }
-                console.log('Filtered events: ' + newEvents.length);
+                console.log('Filtered events: ' + events.length);
             }
         } else {
             console.log('Events empty');
@@ -844,13 +846,13 @@ export class TimelineComponent implements OnInit {
             this.eventListService.getEventList(
                 this.loginService.server,
                 this.loginService.login,
-                timelines > 1 ? this.cameras[timelineIndex].id : this.selectedCamId,
+                timelines > 1 ? this.cameras[timelineIndex].id : this.selectedCameraId,
                 //
                 // this.cameras[timelineIndex].id,//this.selectedCamId,
                 event.time,
                 //this.EVENTS_TO_LOAD)//
                 eventsToLoad,
-                EventType.Local)
+                this.type)
                     .then(events => {
                        // console.log("this.requestingMoreVideoEvents = false");
                         this.requestingMoreVideoEvents = false;
@@ -894,20 +896,24 @@ export class TimelineComponent implements OnInit {
     }
 
     getEventImage(event: EventRecord): string {
-        if (event.image.startsWith('http')) {
-            return event.image;
-        } else {
-            const char = event.image.indexOf('?') == -1 ? '?' : '&';
-            return `${this.loginService.server.url}${event.image}${char}token=${this.loginService.login.token}`;
+        if (event.image !== undefined) {
+            if (event.image.startsWith('http')) {
+                return event.image;
+            } else {
+                const char = event.image.indexOf('?') == -1 ? '?' : '&';
+                return `${this.loginService.server.url}${event.image}${char}token=${this.loginService.login.token}`;
+            }
         }
     }
 
     getEventVideo(event: EventRecord): string {
-        if (event.image.startsWith("http")) {
-            return `${event.video}`;
-        } else {
-          const char = event.image.indexOf('?') == -1 ? '?' : '&';
-          return `${this.loginService.server.url}${event.video}${char}token=${this.loginService.login.token}`;
+        if (event.video !== undefined) {
+            if (event.video.startsWith("http")) {
+                return `${event.video}`;
+            } else {
+              const char = event.video.indexOf('?') == -1 ? '?' : '&';
+              return `${this.loginService.server.url}${event.video}${char}token=${this.loginService.login.token}`;
+            }
         }
     }
 

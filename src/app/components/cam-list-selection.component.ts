@@ -13,6 +13,7 @@ export class CamListSelectionComponent implements OnInit {
 
     cameras: CameraSettings[] = null;
     cameraSelected: CameraSettings = null;
+    localCloudSelected: string = 'local'; // 'local' or 'cloud'
     errorMessage: string = null;
     responseCode: number = -1;
 
@@ -36,7 +37,8 @@ export class CamListSelectionComponent implements OnInit {
 
     onSelected(camera: CameraSettings): void {
         console.log('Selected camera: ' + camera.name);
-        // this.camId = camId;
+        this.localCloudSelected = 'local';
+        // this.cameraId = camId;
         //this.cameraSelected = camera;
         StorageUtils.setLastCameraSelected(camera.id);
         // console.log('Selected: "' + target.value + '", camId: ' + camIdSelected);

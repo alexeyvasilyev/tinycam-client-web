@@ -32,7 +32,7 @@ import { WindowRefService } from '../services';
 
 export class LiveComponent implements AfterViewInit {
 
-    @Input() camId: number; 
+    @Input() cameraId: number; 
     @ViewChild('cell', { static: true }) cellEl: ElementRef;
 
     constructor(
@@ -54,7 +54,7 @@ export class LiveComponent implements AfterViewInit {
 
     loadImage() {
         // console.log('loadImage()');
-        // console.log(`${this.loginService.server.url}/axis-cgi/mjpg/video.cgi?cameraId=${this.camId}&token=${this.loginService.login.token}`);
+        // console.log(`${this.loginService.server.url}/axis-cgi/mjpg/video.cgi?cameraId=${this.cameraId}&token=${this.loginService.login.token}`);
         this.cellEl.nativeElement.style.backgroundImage = "url('" + this.getLiveImage() + "')";
     }
 
@@ -78,7 +78,7 @@ export class LiveComponent implements AfterViewInit {
     // }
   
     getLiveImage(): string {
-        return `${this.loginService.server.url}/axis-cgi/mjpg/video.cgi?cameraId=${this.camId}&token=${this.loginService.login.token}`;
+        return `${this.loginService.server.url}/axis-cgi/mjpg/video.cgi?cameraId=${this.cameraId}&token=${this.loginService.login.token}`;
     }
 
 }

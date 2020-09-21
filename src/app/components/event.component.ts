@@ -224,20 +224,24 @@ export class EventComponent implements OnInit {
     }
 
     getEventImageUrl(): string {
-        if (this.event.image.startsWith('http')) {
-            return this.event.image;
-        } else {
-            const char = this.event.image.indexOf('?') == -1 ? '?' : '&';
-            return `${this.loginService.server.url}${this.event.image}${char}token=${this.loginService.login.token}`;
+        if (this.event.image !== undefined) {
+            if (this.event.image.startsWith('http')) {
+                return this.event.image;
+            } else {
+                const char = this.event.image.indexOf('?') == -1 ? '?' : '&';
+                return `${this.loginService.server.url}${this.event.image}${char}token=${this.loginService.login.token}`;
+            }
         }
     }
 
     getEventVideoUrl(): string {
-        if (this.event.image.startsWith("http")) {
-            return `${this.event.video}`;
-        } else {
-          const char = this.event.image.indexOf('?') == -1 ? '?' : '&';
-          return `${this.loginService.server.url}${this.event.video}${char}token=${this.loginService.login.token}`;
+        if (this.event.video !== undefined) {
+            if (this.event.video.startsWith("http")) {
+                return `${this.event.video}`;
+            } else {
+                const char = this.event.video.indexOf('?') == -1 ? '?' : '&';
+                return `${this.loginService.server.url}${this.event.video}${char}token=${this.loginService.login.token}`;
+            }
         }
     }
 

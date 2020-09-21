@@ -4,14 +4,16 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
 @Component({
   selector: 'event-cam-list',
   styles: [ `
-    .camlist-info {
-      color: #616161;
-    }
-    .full-width {
-      width: 100%;
-    }
     .my-card {
       margin-bottom: 20px;
+    }
+    .left {
+      overflow: hidden;
+    }
+    .right {
+      float: right;
+      width: auto;
+      margin-left: 10px;
     }
   `],
   template: `
@@ -23,14 +25,25 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
 
         <div *ngIf="cameras.length > 0; else no_cams_content">
           <mat-card *ngIf="cameras.length > 1" style="margin-bottom:20px;">
-            <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-              <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera events">
-                <!-- <mat-option [value]="-1" >All cameras</mat-option> -->
-                <mat-option *ngFor="let camera of cameras" [value]="camera">
-                  {{getCameraName(camera)}}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+
+            <div class="right">
+              <mat-button-toggle-group *ngIf="cameraSelected !== null && cameraSelected.cloudAccess" [(value)]="localCloudSelected">
+                <mat-button-toggle value="local">Local</mat-button-toggle>
+                <mat-button-toggle value="cloud">Cloud</mat-button-toggle>
+              </mat-button-toggle-group>
+            </div>
+
+            <div class="left">
+              <mat-form-field color="accent" style="padding-top:10px;width:100%">
+                <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera events">
+                  <!-- <mat-option [value]="-1" >All cameras</mat-option> -->
+                  <mat-option *ngFor="let camera of cameras" [value]="camera">
+                    {{getCameraName(camera)}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
             <span *ngIf="cameraSelected !== null">
               <ng-container *ngTemplateOutlet="liveview_content">
               </ng-container>
@@ -41,12 +54,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
             </span>
           </mat-card>
 
-          <!-- <mat-card *ngIf="cameras.length == 1 && cameraSelected.id != -1" style="margin-bottom:20px;">
-            <ng-container *ngTemplateOutlet="liveview_content">
-            </ng-container>
-          </mat-card> -->
-
-          <event-list [camId]="cameraSelected.id" [cameras]="cameras"></event-list>
+          <event-list [type]="localCloudSelected" [cameraId]="cameraSelected.id" [cameras]="cameras"></event-list>
         </div>
       </div>
 
