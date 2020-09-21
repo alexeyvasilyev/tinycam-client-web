@@ -29,8 +29,9 @@ import StorageUtils from '../utils-storage';
   `],
   template: `
     <div class="login-screen">
-      <div class="app-text-center"><a href="https://tinycammonitor.com"><img src="assets/img/applogo.png"/></a></div>
-      <div class="app-text-center mat-display-1">tinyCam Monitor Login</div>
+      <div class="app-text-center"><a href="https://tinycammonitor.com"><img src="assets/img/applogo.png"/><br/>
+      https://tinycammonitor.com</a></div>
+      <div class="app-text-center" style="padding:25px 0px"><h1>tinyCam Monitor Login</h1></div>
       <mat-card>
         <mat-card-content>
           <form (ngSubmit)="doLogin()" #loginForm="ngForm" class="login-form">
@@ -64,7 +65,7 @@ import StorageUtils from '../utils-storage';
 
             <div class="app-text-center">
               <button type="submit" [disabled]="!loginForm.form.valid" mat-raised-button color="accent" class="login-button">LOGIN</button>
-              <mat-card *ngIf="error != null" class="app-card-warning" style="padding: 30px;">
+              <mat-card *ngIf="error != null" class="app-card-warning" style="padding: 20px; margin-top:20px">
                 <mat-card-content>Failed to login.<br/>{{error}}</mat-card-content>
               </mat-card>
             </div>
