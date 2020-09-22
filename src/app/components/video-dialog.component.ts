@@ -53,7 +53,7 @@ export class VideoDialogComponent implements OnInit, AfterViewInit {
 
     private fitToContainerWidth(element) {
         // TODO: document.documentElement.clientWidth is refreshed only after refresh button pressed in browser.
-        element.width = document.documentElement.clientWidth * 0.7;
+        element.width = document.documentElement.clientWidth * 0.6;
     }
 
     ngAfterViewInit() {

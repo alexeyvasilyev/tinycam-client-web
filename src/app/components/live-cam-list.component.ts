@@ -2,7 +2,7 @@ import { Component, ViewChild, ElementRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { CamListSelectionComponent } from './cam-list-selection.component';
 import { CamListService, GenericService, LoginService, StatusService, WindowRefService } from '../services';
-import { Status } from '../models'
+import { PtzCapability, CameraSettings, Status } from '../models'
 import { LiveInfoDialogComponent } from './live-info-dialog.component';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -24,11 +24,10 @@ import * as nipplejs from 'nipplejs';
         background-color: #212121;
         border: none;
         color: white;
-        padding: 10px 20px;
+        padding: 4px 4px;
         text-align: center;
         text-decoration: none;
-        margin: 4px 2px;
-        cursor: pointer;
+        margin: 0px 2px;
         font-size: 18px;
     }
     .live-button:hover {
@@ -89,23 +88,35 @@ import * as nipplejs from 'nipplejs';
 
             <div class="right">
 
-              <span *ngIf="cameraSelected.enabled && cameraSelected.audioListening" style="padding: 10px; margin-right:20px">
-                <button><i class="fas fa-volume-off fa-lg"></i></button>
-                <!--<audio preload="none" controls autoplay style="vertical-align: middle;">
-                  <source src="{{getAudioUrl()}}" type="audio/wav">
-                </audio>-->
+              <span *ngIf="isAudioListeningSupported()" style="padding: 10px; margin-right:20px">
+                <span *ngIf="audioShown; else notAudioShown">
+                  <audio preload="none" controls autoplay style="vertical-align: middle; margin-right:10px">
+                    <source src="{{getAudioUrl()}}" type="audio/wav">
+                  </audio>
+                  <button mat-flat-button class="live-button" (click)="showHideAudio()" matTooltip="Stop audio"><i class="fas fa-volume-down"></i></button>
+                </span>
+                <ng-template #notAudioShown>
+                  <button mat-raised-button class="live-button" (click)="showHideAudio()" matTooltip="Play audio"><i class="fas fa-volume-off"></i></button>
+                </ng-template>
               </span>
 
               <span *ngIf="status.motion !== undefined" style="padding: 10px; margin-right:20px">
                 <span *ngIf="status.motion; else no_motion_content" matTooltip="Motion detected"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
               </span>
-              <button class="live-button" style="margin-right:20px;" (click)="showHideJoystick()">
-                <i class="far fa-dot-circle"></i>
-              </button>
-              <button class="live-button" (click)="gotoPreset(1)">1</button>
-              <button class="live-button" (click)="gotoPreset(2)">2</button>
-              <button class="live-button" (click)="gotoPreset(3)">3</button>
-              <button class="live-button" (click)="gotoPreset(4)">4</button>
+
+              <span style="margin-right:20px;">
+                <span *ngIf="nippleShown; else notNippleShown">
+                  <button mat-flat-button class="live-button" (click)="showHideJoystick()" matTooltip="Hide joystick"><i class="far fa-dot-circle"></i></button>
+                </span>
+                <ng-template #notNippleShown>
+                  <button mat-raised-button class="live-button" [disabled]="!isPtzPanTiltSupported()" (click)="showHideJoystick()" matTooltip="Show joystick"><i class="far fa-dot-circle"></i></button>
+                </ng-template>
+              </span>
+
+              <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(1)" matTooltip="Go to preset 1">1</button>
+              <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(2)" matTooltip="Go to preset 2">2</button>
+              <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(3)" matTooltip="Go to preset 3">3</button>
+              <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(4)" matTooltip="Go to preset 4">4</button>
 
               <button mat-icon-button [matMenuTriggerFor]="menu"><i class="fas fa-ellipsis-v fa-lg" style="color:#111111;"></i></button>
               <mat-menu #menu="matMenu">
@@ -117,7 +128,7 @@ import * as nipplejs from 'nipplejs';
                 </button>
               </mat-menu>
 
-              <button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;">
+              <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
                 <i class="fas fa-expand-alt"></i>
               </button>
             </div>
@@ -134,7 +145,7 @@ import * as nipplejs from 'nipplejs';
       <ng-template #loading_content><mat-card>Loading cameras list...</mat-card></ng-template>
       <ng-template #no_motion_content><span matTooltip="No motion detected"><i class="fas fa-male fa-lg"></i></span></ng-template>
     </div>
-    <div #joystick style="position: absolute; right: 150px; bottom: 0px;" ></div>
+    <div *ngIf="isPtzPanTiltSupported()" #joystick style="position: absolute; right: 150px; bottom: 100px;" ></div>
   `
 })
 
@@ -147,6 +158,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     private timerSubscription;
     private nipple = null;
     nippleShown = false;
+    audioShown = false;
     status: Status = new Status();
 
     PTZ_REQUEST = '/axis-cgi/com/ptz.cgi';
@@ -168,14 +180,37 @@ export class LiveCamListComponent extends CamListSelectionComponent {
             super(router, loginService, camListService);
     }
 
+    isAudioListeningSupported(): boolean {
+        if (this.cameraSelected === null)
+            return false;
+        return this.cameraSelected.audioListening;
+    }
+
+    isPtzPanTiltSupported(): boolean {
+        if (this.cameraSelected === null)
+            return false;
+        return Utils.hasCapability(this.cameraSelected.ptzCapabilities, PtzCapability.MoveRel);
+    }
+
+    isPtzPresetsSupported(): boolean {
+        if (this.cameraSelected === null)
+            return false;
+        return Utils.hasCapability(this.cameraSelected.ptzCapabilities, PtzCapability.GotoPresets);
+    }
+
     showHideJoystick() {
-      // console.log('showHideJoystick()');
-      this.nippleShown = !this.nippleShown;
-      if (this.nippleShown) {
-        this.initJoystick();
-      } else {
-        this.nipple.destroy();
-      }
+        // console.log('showHideJoystick()');
+        this.nippleShown = !this.nippleShown;
+        if (this.nippleShown) {
+            this.initJoystick();
+        } else {
+            this.nipple.destroy();
+        }
+    }
+
+    showHideAudio() {
+        // console.log('showHideJoystick()');
+        this.audioShown = !this.audioShown;
     }
 
     initJoystick() {
@@ -231,7 +266,8 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     getAudioUrl() {
-        return `${this.loginService.server.url}/axis-cgi/audio/receive.wav?token=${this.loginService.login.token}`;
+        console.log(`Audio: ${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${this.cameraSelected.id}&token=${this.loginService.login.token}`);
+        return `${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${this.cameraSelected.id}&token=${this.loginService.login.token}`;
     }
 
     camerasLoaded() {
@@ -390,6 +426,17 @@ export class LiveCamListComponent extends CamListSelectionComponent {
           this.scrollTop();
       else
           this.scrollBottom();
+    }
+
+    onSelected(camera: CameraSettings): void {
+        // Check if joystick and shown and remove it
+        this.nippleShown = false;
+        if (this.nipple) {
+            this.nipple.destroy();
+            this.nipple = null;
+        }
+        this.audioShown = false;
+        super.onSelected(camera);
     }
 
     processStatus(status: Status) {

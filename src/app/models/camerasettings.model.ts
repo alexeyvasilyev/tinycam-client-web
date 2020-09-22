@@ -1,5 +1,12 @@
 //{"data":[{"name":"Front yard","enabled":true,"id":182399567}]}
+
+export const enum PtzCapability {
+    MoveRel     = 0x1 << 1,
+    GotoPresets = 0x1 << 4
+};
+
 export class CameraSettings {
+
     enabled: boolean;
     id: number;
     name: string;

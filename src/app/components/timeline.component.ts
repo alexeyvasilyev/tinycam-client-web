@@ -518,7 +518,7 @@ export class TimelineComponent implements OnInit {
             this.playRecord(record, playerPosition);
             this.videoError = false;
         } else {
-            console.error('Cannot play video');
+            console.error('Cannot play video. Selected record is empty.');
             this.stopPlay();
             this.videoError = true;
         }
@@ -617,6 +617,10 @@ export class TimelineComponent implements OnInit {
 
     private playRecord(record, positionSec: number) {
         console.log('playRecord(positionSec=' + positionSec + ')');
+        if (record === undefined || record === null) {
+            console.error('Failed to play empty record.');
+            return;
+        }
         const video = this.videoEl.nativeElement;
         let needRefresh = true;
         if (video) {
@@ -635,7 +639,11 @@ export class TimelineComponent implements OnInit {
                 video.poster = "";
                 video.pause();
                 // Load preview image before
-                video.poster = this.getEventImage(record.object);
+                const imageUrl = this.getEventImage(record.object);
+                if (imageUrl !== undefined)
+                    video.poster = imageUrl;
+                else
+                    console.log('Skipped showing empty poster');
                 this.videoUrl = newUrl + '#t=' + positionSec;
                 console.log('videUrl: ' + this.videoUrl);
                 // Load video
@@ -690,15 +698,10 @@ export class TimelineComponent implements OnInit {
                     this.noOldEventsAvailable[timelineIndex] = true;
             } else {
                 // let newEvents = [];
-//                 for (let event of events) {
-//                     if (event.duration > this.MIN_DURATION_EVENT_MSEC) {
-//                         // Make event started before 3 seconds
-// //                        event.video_offset = Math.max(0, event.video_offset - this.EVENT_OFFSET_MSEC);
-//                         event.duration += this.EVENT_OFFSET_MSEC;
-//                         newEvents.push(event);
-//                     }
-//                 }
-                // newEvents.concat(events);
+                for (let event of events) {
+                    if (event.duration < 1500)
+                        event.duration = 1500; // 1.5 sec min
+                }
                 if (events.length == 0) {
                     if (timelineIndex > -1)
                         this.noOldEventsAvailable[timelineIndex] = true;
