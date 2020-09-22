@@ -27,7 +27,7 @@ import * as nipplejs from 'nipplejs';
         padding: 4px 4px;
         text-align: center;
         text-decoration: none;
-        margin: 0px 2px;
+        margin: 2px 2px;
         font-size: 18px;
     }
     .live-button:hover {
@@ -88,12 +88,12 @@ import * as nipplejs from 'nipplejs';
 
             <div class="right">
 
-              <span *ngIf="isAudioListeningSupported()" style="padding: 10px; margin-right:20px">
+              <span *ngIf="isAudioListeningSupported()" style="margin-right:20px">
                 <span *ngIf="audioShown; else notAudioShown">
                   <audio preload="none" controls autoplay style="vertical-align: middle; margin-right:10px">
                     <source src="{{getAudioUrl()}}" type="audio/wav">
                   </audio>
-                  <button mat-flat-button class="live-button" (click)="showHideAudio()" matTooltip="Stop audio"><i class="fas fa-volume-down"></i></button>
+                  <button mat-flat-button class="live-button" (click)="showHideAudio()" matTooltip="Stop audio"><i class="fas fa-volume-up"></i></button>
                 </span>
                 <ng-template #notAudioShown>
                   <button mat-raised-button class="live-button" (click)="showHideAudio()" matTooltip="Play audio"><i class="fas fa-volume-off"></i></button>

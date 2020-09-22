@@ -42,7 +42,7 @@ import { fadeInAnimation } from '../animations/';
                 <event
                     [number]="i"
                     [event]="event"
-                    [actionCommands]="true"></event>
+                    [actionCommands]="loginService.login.isAdmin()"></event>
             </div>
 
             <div *ngIf="isFabShown()" style="position: fixed;right: 50px; bottom: 50px;">
