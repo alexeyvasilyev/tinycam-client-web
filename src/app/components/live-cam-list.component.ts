@@ -9,9 +9,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import Utils from '../utils';
 import * as nipplejs from 'nipplejs';
+import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
 
 @Component({
   selector: 'live-cam-list',
+  animations: [fadeInAnimation, fadeInOutAnimation],
   host: {
     '(document:keydown)': 'handleKeyDown($event)',
     '(document:keyup)': 'handleKeyUp($event)'
@@ -88,20 +90,21 @@ import * as nipplejs from 'nipplejs';
 
             <div class="right">
 
+              <span *ngIf="status.motion !== undefined" style="padding: 10px; margin-right:20px">
+                <span *ngIf="status.motion; else no_motion_content" matTooltip="Motion detected"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
+              </span>
+
               <span *ngIf="isAudioListeningSupported()" style="margin-right:20px">
                 <span *ngIf="audioShown; else notAudioShown">
-                  <audio preload="none" controls autoplay style="vertical-align: middle; margin-right:10px">
+                  <span *ngIf="audioLoading" [@fadeInOutAnimation] style="padding:2px; text-align: center; vertical-align: middle"><i class="fas fa-circle-notch fa-2x fa-spin"></i></span>
+                  <audio preload="none" autoplay (canplay)="handleAudioCanPlay()" (error)="handleAudioError()" style="vertical-align: middle; margin-right:10px">
                     <source src="{{getAudioUrl()}}" type="audio/wav">
                   </audio>
                   <button mat-flat-button class="live-button" (click)="showHideAudio()" matTooltip="Stop audio"><i class="fas fa-volume-up"></i></button>
                 </span>
                 <ng-template #notAudioShown>
-                  <button mat-raised-button class="live-button" (click)="showHideAudio()" matTooltip="Play audio"><i class="fas fa-volume-off"></i></button>
+                  <button mat-raised-button class="live-button" (click)="showHideAudio()" matTooltip="Play audio"><i class="fas fa-volume-mute"></i></button>
                 </ng-template>
-              </span>
-
-              <span *ngIf="status.motion !== undefined" style="padding: 10px; margin-right:20px">
-                <span *ngIf="status.motion; else no_motion_content" matTooltip="Motion detected"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
               </span>
 
               <span style="margin-right:20px;">
@@ -128,6 +131,9 @@ import * as nipplejs from 'nipplejs';
                 </button>
               </mat-menu>
 
+              <!-- <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Multiple cameras layout">
+                <i class="fas fa-th-large"></i>
+              </button> -->
               <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
                 <i class="fas fa-expand-alt"></i>
               </button>
@@ -135,7 +141,7 @@ import * as nipplejs from 'nipplejs';
 
           </div>
 
-          <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight">
+          <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight" [@fadeInAnimation]>
             <live [cameraId]="cameraSelected.id" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
           </div>
         </div>
@@ -159,6 +165,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     private nipple = null;
     nippleShown = false;
     audioShown = false;
+    audioLoading = false;
     status: Status = new Status();
 
     PTZ_REQUEST = '/axis-cgi/com/ptz.cgi';
@@ -178,6 +185,14 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         protected camListService: CamListService,
         private windowRef: WindowRefService) {
             super(router, loginService, camListService);
+    }
+
+    handleAudioCanPlay() {
+        this.audioLoading = false;
+    }
+
+    handleAudioError() {
+        this.audioShown = false;
     }
 
     isAudioListeningSupported(): boolean {
@@ -211,6 +226,8 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     showHideAudio() {
         // console.log('showHideJoystick()');
         this.audioShown = !this.audioShown;
+        if (this.audioShown)
+            this.audioLoading = true;
     }
 
     initJoystick() {
@@ -310,11 +327,21 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     zoomIn() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_ZOOM}=100`);
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_ZOOM}=100`)
+        .then(
+            res => { this.snackBar.open(`Zoom in`, null, {
+                duration: 3000,
+            })
+        });
     }
 
     zoomOut() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_ZOOM}=-100`);
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_ZOOM}=-100`)
+        .then(
+            res => { this.snackBar.open(`Zoom out`, null, {
+                duration: 3000,
+            })
+        });
     }
 
     zoomStop() {
@@ -322,11 +349,21 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
   
     focusNear() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_FOCUS}=100`);
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_FOCUS}=100`)
+        .then(
+            res => { this.snackBar.open(`Focus near`, null, {
+                duration: 3000,
+            })
+        });
     }
 
     focusFar() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_FOCUS}=-100`);
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_FOCUS}=-100`)
+        .then(
+            res => { this.snackBar.open(`Focus far`, null, {
+                duration: 3000,
+            })
+        });
     }
 
     focusStop() {
@@ -334,11 +371,21 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     irisOpen() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_IRIS}=100`);
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_IRIS}=100`)
+        .then(
+            res => { this.snackBar.open(`Iris open`, null, {
+                duration: 3000,
+            })
+        });
     }
 
     irisClose() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_IRIS}=-100`);
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_IRIS}=-100`)
+        .then(
+            res => { this.snackBar.open(`Iris close`, null, {
+                duration: 3000,
+            })
+        });
     }
 
     irisStop() {
@@ -346,7 +393,12 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     gotoPreset(preset: number) {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_GOTO_PRESET}=${preset}`);
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_GOTO_PRESET}=${preset}`)
+        .then(
+            res => { this.snackBar.open(`Preset ${preset}`, null, {
+                duration: 3000,
+            })
+        });
     }
 
     handleKeyDown(event: KeyboardEvent) {
