@@ -97,6 +97,7 @@ import Utils from '../utils'
               <div>Live view connections: {{status.liveConnections}}</div>
               <div>Network In: {{humanReadableKBs(status.networkInBps)}}, Out: {{humanReadableKBs(status.networkOutBps)}}</div>
               <div>Web server uptime: {{status.uptime}}</div>
+              <div>Battery: {{status.batteryLevel}} ({{status.batteryStatus}})</div>
               <div>CPU usage: {{status.cpuUsagePercents}}%</div>
               <div>CPU frequency: {{status.cpuFrequencyMhz}}MHz</div>
             </div>
