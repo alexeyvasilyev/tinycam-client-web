@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { GenericService, LoginService, StatusService } from '../services';
 import { Status } from '../models'
 import { HttpErrorResponse } from '@angular/common/http';
 import { fadeInAnimation } from '../animations/';
 import Utils from '../utils'
+import ResizeObserver from 'resize-observer-polyfill';
+import { SmoothieChart, TimeSeries } from 'smoothie';
 
 @Component({
     // animations: [animateFactory(150, 0, 'ease-in')],
@@ -24,7 +26,7 @@ import Utils from '../utils'
     `],
     template: `
       <header [selected]="3" [isAdmin]=true></header>
-      <div class="app-container">
+      <div #component class="app-container">
         <h2 class="mat-h2" style="padding-top:20px">Admin information</h2>
 
         <mat-card>
@@ -91,15 +93,21 @@ import Utils from '../utils'
         <mat-card>
           <mat-card-content>
             <div class="app-text-dark-hint">
-              <div [@fadeInAnimation] *ngIf="status.threadsRunnableUsed !== undefined">Threads: {{status.threadsRunnableUsed}}/{{status.threadsUsed}}</div>
-              <div>Processes: {{status.processes}}</div>
-              <div>Memory Used: {{humanReadableByteCount(status.memoryUsed)}}, Free: {{humanReadableByteCount(status.memoryAvailable)}} (<a href="{{getMemoryInfoUrl()}}">info</a>)</div>
               <div>Live view connections: {{status.liveConnections !== undefined ? status.liveConnections : '-'}}</div>
-              <div>Network In: {{humanReadableKBs(status.networkInBps)}}, Out: {{humanReadableKBs(status.networkOutBps)}}</div>
+              <div [@fadeInAnimation] *ngIf="status.threadsRunnableUsed !== undefined">Threads: {{status.threadsRunnableUsed}}/{{status.threadsUsed}}</div>
+              <div>Processes: {{getProcessesWithUsage()}}</div>
+              <div>Memory Used: {{humanReadableByteCount(status.memoryUsed)}}, Free: {{humanReadableByteCount(status.memoryAvailable)}}</div>
               <div>Web server uptime: {{humanReadableTime(status.uptime)}}</div>
               <div>Battery: {{status.batteryLevel}} ({{status.batteryStatus}})</div>
-              <div>CPU usage: {{status.cpuUsagePercents}}%</div>
-              <div>CPU frequency: {{status.cpuFrequencyMhz}}MHz</div>
+
+              <div style="margin-top:10px">Network <span style="color:#EA4238">In</span>: {{humanReadableKBs(status.networkInBps)}}, <span style="color:#5DAEE4">Out</span>: {{humanReadableKBs(status.networkOutBps)}}</div>
+              <div><canvas #networkChart height="70"></canvas></div>
+
+              <div style="margin-top:10px">CPU usage: {{status.cpuUsagePercents}}%</div>
+              <div><canvas #cpuUsageChart height="70"></canvas></div>
+
+              <div style="margin-top:10px">CPU frequency: {{status.cpuFrequencyMhz}}MHz</div>
+              <div><canvas #cpuFreqChart height="70"></canvas></div>
             </div>
           </mat-card-content>
         </mat-card>
@@ -133,12 +141,20 @@ import Utils from '../utils'
 
 export class PageAdminComponent implements OnInit {
 
-    // streamProfile: StatusStreamProfile;
-    // powerSafeMode: boolean;
-    // notifications: boolean;
-    // backgroundMode: boolean = undefined;
+    @ViewChild('component', { static: true }) componentEl: ElementRef;
+    @ViewChild('networkChart', { static: true }) networkChartEl: ElementRef;
+    @ViewChild('cpuUsageChart', { static: true }) cpuUsageChartEl: ElementRef;
+    @ViewChild('cpuFreqChart', { static: true }) cpuFreqChartEl: ElementRef;
+
     status: Status = new Status();
     private timerSubscription;
+    private networkChart: SmoothieChart = null;
+    private cpuUsageChart: SmoothieChart = null;
+    private cpuFreqChart: SmoothieChart = null;
+    private networkInSeries = new TimeSeries();
+    private networkOutSeries = new TimeSeries();
+    private cpuUsageSeries = new TimeSeries();
+    private cpuFreqSeries = new TimeSeries();
 
     constructor(
         public loginService: LoginService,
@@ -148,10 +164,10 @@ export class PageAdminComponent implements OnInit {
 
     humanReadableByteCount(bytes: number): string {
         return bytes !== undefined ? Utils.humanReadableByteCount(bytes) : '-';
+        return bytes !== undefined ? Math.round(bytes / 1024 / 1024) + ' MB' : '-';
     }
 
     humanReadableTime(msec: number): string {
-        console.log('humanReadableTime');
         return msec !== undefined ? Utils.humanReadableTime(msec) : '-';
     }
 
@@ -160,11 +176,56 @@ export class PageAdminComponent implements OnInit {
     }
 
     ngOnInit() {
+        const ro = new ResizeObserver((entries, observer) => {
+            this.resizeCanvas();
+        });
+        ro.observe(this.componentEl.nativeElement);
+
         this.startUpdateTimer(100);
+        this.initCharts();
     }
 
     ngOnDestroy() {
         this.stopUpdateTimer();
+    }
+
+    getProcessesWithUsage(): string {
+        if (this.status.processes !== undefined) {
+            let processText = '';
+            for (let process of this.status.processes) {
+                processText += `${process.name} (${Math.floor(process.memoryUsed / 1024 / 1024)} MB), `;
+            }
+            if (this.status.processes.length > 1)
+                processText = processText.substr(0, processText.length - 2);
+            return processText;
+        }
+        return '-';
+    }
+
+    private fitToContainerWidth(element) {
+        element.style.width = '100%';
+        element.width = element.offsetWidth;
+    }
+
+    private initCharts() {
+        this.networkChart = new SmoothieChart({millisPerPixel:100, grid:{fillStyle:'#EEEEEE', verticalSections:5, strokeStyle:'#E0E0E0'}, labels:{fillStyle:'#000000', precision:0}, minValue:0});
+        this.networkChart.addTimeSeries(this.networkInSeries, {lineWidth:2, strokeStyle:'#EA4238', fillStyle:'rgba(234,66,56,0.30)'});
+        this.networkChart.addTimeSeries(this.networkOutSeries, {lineWidth:2, strokeStyle:'#5DAEE4', fillStyle:'rgba(93,174,228,0.30)'});
+        this.networkChart.streamTo(this.networkChartEl.nativeElement, 3000);
+
+        this.cpuUsageChart = new SmoothieChart({millisPerPixel:100, grid:{fillStyle:'#EEEEEE', verticalSections:5, strokeStyle:'#E0E0E0'}, labels:{fillStyle:'#000000', precision:0}, minValue:0});
+        this.cpuUsageChart.addTimeSeries(this.cpuUsageSeries, {lineWidth:2, strokeStyle:'#F57C00', fillStyle:'rgba(245,124,0,0.30)'});
+        this.cpuUsageChart.streamTo(this.cpuUsageChartEl.nativeElement, 3000);
+
+        this.cpuFreqChart = new SmoothieChart({millisPerPixel:100, grid:{fillStyle:'#EEEEEE', verticalSections:5, strokeStyle:'#E0E0E0'}, labels:{fillStyle:'#000000', precision:0}, minValue:0});
+        this.cpuFreqChart.addTimeSeries(this.cpuFreqSeries, {lineWidth:2, strokeStyle:'#8BC34A', fillStyle:'rgba(139,195,74,0.30)'});
+        this.cpuFreqChart.streamTo(this.cpuFreqChartEl.nativeElement, 3000);
+    }
+
+    private resizeCanvas() {
+        this.fitToContainerWidth(this.networkChartEl.nativeElement);
+        this.fitToContainerWidth(this.cpuUsageChartEl.nativeElement);
+        this.fitToContainerWidth(this.cpuFreqChartEl.nativeElement);
     }
 
     setBackgroundMode(start: boolean) {
@@ -175,6 +236,13 @@ export class PageAdminComponent implements OnInit {
 
     processStatus(status: Status) {
         this.status = status;
+
+        const currentTime = new Date().getTime();
+        this.networkInSeries.append(currentTime, Math.round(status.networkInBps / 1024));
+        this.networkOutSeries.append(currentTime, Math.round(status.networkOutBps / 1024));
+        this.cpuUsageSeries.append(currentTime, status.cpuUsagePercents);
+        this.cpuFreqSeries.append(currentTime, status.cpuFrequencyMhz);
+
         // this.backgroundMode = status.backgroundMode;
         // this.streamProfile = status.streamProfile;
         // this.powerSafeMode = status.powerSafeMode;
@@ -190,10 +258,6 @@ export class PageAdminComponent implements OnInit {
 
     sendHttpGetRequest(request: string) {
         this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
-    }
-
-    getMemoryInfoUrl(): string {
-        return `${this.loginService.server.url}/axis-cgi/admin/memoryinfo.cgi?token=${this.loginService.login.token}`;
     }
 
     getAppLogsUrl(): string {

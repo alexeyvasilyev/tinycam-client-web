@@ -12,6 +12,14 @@ export const enum BatteryStatus {
     Unknown = 'unknown'
 };
 
+export class StatusProcess {
+    name: string;
+    memoryUsed: number;
+    public toString = () : string => {
+        return this.name + ' ' + Math.floor(this.memoryUsed / 1024 / 1024) + ' MB';
+    }
+}
+
 export class Status {
 
     // Global status
@@ -26,7 +34,7 @@ export class Status {
     liveConnections: number;
     networkInBps: number; // bytes per second
     networkOutBps: number; // bytes per second
-    processes: string[]; // names of processes running
+    processes: StatusProcess[]; // names and memory used of processes running
     threadsRunnableUsed: number;
     threadsUsed: number;
     uptime: number; // msec
