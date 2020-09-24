@@ -94,9 +94,9 @@ import Utils from '../utils'
               <div [@fadeInAnimation] *ngIf="status.threadsRunnableUsed !== undefined">Threads: {{status.threadsRunnableUsed}}/{{status.threadsUsed}}</div>
               <div>Processes: {{status.processes}}</div>
               <div>Memory Used: {{humanReadableByteCount(status.memoryUsed)}}, Free: {{humanReadableByteCount(status.memoryAvailable)}} (<a href="{{getMemoryInfoUrl()}}">info</a>)</div>
-              <div>Live view connections: {{status.liveConnections}}</div>
+              <div>Live view connections: {{status.liveConnections !== undefined ? status.liveConnections : '-'}}</div>
               <div>Network In: {{humanReadableKBs(status.networkInBps)}}, Out: {{humanReadableKBs(status.networkOutBps)}}</div>
-              <div>Web server uptime: {{status.uptime}}</div>
+              <div>Web server uptime: {{humanReadableTime(status.uptime)}}</div>
               <div>Battery: {{status.batteryLevel}} ({{status.batteryStatus}})</div>
               <div>CPU usage: {{status.cpuUsagePercents}}%</div>
               <div>CPU frequency: {{status.cpuFrequencyMhz}}MHz</div>
@@ -148,6 +148,11 @@ export class PageAdminComponent implements OnInit {
 
     humanReadableByteCount(bytes: number): string {
         return bytes !== undefined ? Utils.humanReadableByteCount(bytes) : '-';
+    }
+
+    humanReadableTime(msec: number): string {
+        console.log('humanReadableTime');
+        return msec !== undefined ? Utils.humanReadableTime(msec) : '-';
     }
 
     humanReadableKBs(bytesPerSec: number): string {

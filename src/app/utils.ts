@@ -2,14 +2,28 @@ import { EventRecord } from './models'
 
 export default class Utils {
 
-  static hasCapability(capability: number, capabilitiesMask: number): boolean  {
-      return (capabilitiesMask & capability) != 0;
-  }
+    static hasCapability(capability: number, capabilitiesMask: number): boolean  {
+        return (capabilitiesMask & capability) != 0;
+    }
 
     static humanReadableByteCount(bytes: number): string {
-      var i = Math.floor( Math.log(bytes) / Math.log(1024) );
-      return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
-  }
+        var i = Math.floor( Math.log(bytes) / Math.log(1024) );
+        return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+    }
+
+    static humanReadableTime(msec: number): string {
+        const minCount = Math.floor(msec / (60 * 1000));
+        const hourCount = Math.floor(minCount / 60);
+        const dayCount = Math.floor(hourCount / 24);
+        if (dayCount > 0) {
+            return dayCount + " day " + (hourCount % 24) + " hour";
+        } else if (hourCount > 0) {
+            return hourCount + " hour " + (minCount % 60) + " min";
+        } else {
+            return minCount + " min";
+        }
+    }
+
 
     static getEventColor(event: EventRecord): string {
       if (event.motion === undefined)
