@@ -13,26 +13,58 @@ import { fadeInAnimation } from '../animations/';
   animations: [fadeInAnimation],
   styles: [ `
     .recordings-date-class {
-      background: #EEEEEE;
-      border-radius: 100%;
+        background: #EEEEEE;
+        border-radius: 100%;
     }
+    .container2 {
+        margin: 0px 10px;
+        height: auto;
+        overflow: hidden;
+     }
+    .right2 {
+         width: 50%;
+         float: right;
+    }
+    .left2 {
+        float: left;
+        width: 50%;
+        text-align: right;
+        overflow: hidden;
+      }
   `],
   encapsulation: ViewEncapsulation.None,
   template: `
   <div>
-    <div class="app-text-center" style="padding-bottom: 20px">
-      <mat-form-field style="padding-top: 20px">
-        <input matInput [max]="today" [matDatepicker]="picker" placeholder="Choose a date" (dateChange)="onDateChanged($event)">
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker [dateClass]="dateClass" #picker></mat-datepicker>
-      </mat-form-field>
+
+    <div class="container2" style="padding-top: 20px">
+      <div class="left2">
+        <mat-form-field style="padding:0px 15px">
+          <input matInput [max]="today" [matDatepicker]="picker" placeholder="Choose a date" (dateChange)="onDateChanged($event)">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker [dateClass]="dateClass" #picker></mat-datepicker>
+        </mat-form-field>
+      </div>
+      <div class="right2">
+        <mat-form-field style="padding:0px 15px">
+          <mat-select [(value)]="motionSelected" [disabled]="type === 'cloud'" (selectionChange)="onMotionSelected($event.value)" placeholder="Filter">
+            <mat-option>All events</mat-option>
+            <mat-option [value]="'motion'">Motion</mat-option>
+            <mat-option [value]="'person'">Person</mat-option>
+            <mat-option [value]="'vehicle'">Vehicle</mat-option>
+            <mat-option [value]="'pet'">Pet</mat-option>
+            <mat-option [value]="'audio'">Audio</mat-option>
+            <mat-option [value]="'face'">Face</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
     </div>
+
     <mat-card *ngIf="!eventsLoaded">
       Loading events...
     </mat-card>
     <div *ngIf="eventsLoaded">
       <div *ngIf="events.length > 0; else no_events_content">
-        <p class="app-text-dark-secondary" style="padding-top: 5px; padding-bottom: 5px">TIP: Hold mouse cursor on image for a couple seconds to show recorded video.</p>
+        <p class="app-text-dark-secondary app-text-center" style="padding-top: 5px; padding-bottom: 5px">TIP: Hold mouse cursor on image for a couple seconds to show recorded video.</p>
         <div
             infinite-scroll
             [infiniteScrollDistance]="2"
@@ -65,12 +97,13 @@ import { fadeInAnimation } from '../animations/';
 
 export class EventListComponent implements OnInit {
 
-    private EVENTS_TO_LOAD = 30;
+    private EVENTS_TO_LOAD = 15;
 
     events: EventRecord[] = [];
     eventsLoaded = false;
     // autoplayOnHover = false;
     showFab = false;
+    motionSelected = undefined;
 
     constructor(
         private loginService: LoginService,
@@ -95,6 +128,11 @@ export class EventListComponent implements OnInit {
         return document.documentElement.scrollTop > document.documentElement.clientHeight;
     }
 
+    onMotionSelected(motion: string) {
+        console.log(`onMotionSelected(motion=${motion})`);
+        this.loadLastEvents();
+    }
+
     ngOnInit() {
         // console.log('ngOnInit())');
         // this.loadLastEvents();
@@ -107,6 +145,7 @@ export class EventListComponent implements OnInit {
         //     let chng = changes[propName];
         //     // console.log('ngOnChanges() cur: ' + chng.currentValue);
         // }
+        this.motionSelected = '';
         this.loadLastEvents();
     }
 
@@ -134,9 +173,10 @@ export class EventListComponent implements OnInit {
             this.loginService.server,
             this.loginService.login,
             this.cameraId,
-            null,
+            -1,
             this.EVENTS_TO_LOAD,
-            this.type)
+            this.type,
+            this.motionSelected) // all events
                 .then(events => { this.processEventList(events); },
                       error => { this.processEventListError(error); });
     }
@@ -150,7 +190,8 @@ export class EventListComponent implements OnInit {
             this.cameraId,
             event.time,
             this.EVENTS_TO_LOAD,
-            this.type)
+            this.type,
+            this.motionSelected) // all events
                 .then(events => { this.processEventList(events); },
                       error => { this.processEventListError(error); });
     }
@@ -213,7 +254,8 @@ export class EventListComponent implements OnInit {
                 this.cameraId,
                 selectedDate.getTime(),
                 this.EVENTS_TO_LOAD,
-                this.type)
+                this.type,
+                this.motionSelected) // all events
                     .then(events => { this.processEventList(events); });
         }
     }

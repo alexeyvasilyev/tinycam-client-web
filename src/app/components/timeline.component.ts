@@ -676,9 +676,10 @@ export class TimelineComponent implements OnInit {
                this.loginService.server,
                this.loginService.login,
                timelines > 1 ? this.cameras[i].id : this.selectedCameraId,
-               null,
+               -1,
                this.getEventsToLoad(),
-               this.type)
+               this.type,
+               '') // all events
                    .then(events => {
                           this.requestingMoreVideoEvents = false;
                           this.processEventList(i, events, true);
@@ -863,7 +864,8 @@ export class TimelineComponent implements OnInit {
                 timelines > 1 ? this.cameras[timelineIndex].id : this.selectedCameraId,
                 event.time,
                 eventsToLoad,
-                this.type)
+                this.type,
+                '') // all events
                     .then(events => {
                        // console.log("this.requestingMoreVideoEvents = false");
                         this.requestingMoreVideoEvents = false;

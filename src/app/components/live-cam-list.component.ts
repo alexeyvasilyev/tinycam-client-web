@@ -52,18 +52,6 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
         width: auto;
         overflow: hidden;
       }
-      .zone {
-        display: block;
-        position: relative;
-        //position: absolute;
-        //left: 0;
-        //top: 0;
-        width: 100%;
-        height: 50%;
-        min-width: 100%;
-        min-height: 50%;
-        background: rgba(255, 0, 0, 0.1);
-      }
   `],
   template: `
     <div>
