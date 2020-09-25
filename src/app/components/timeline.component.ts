@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
 import { CameraSettings, EventRecord } from '../models'
 import { EventListService, LoginService } from '../services';
+import { HttpErrorResponse } from '@angular/common/http';
 import Utils from '../utils';
 import ResizeObserver from 'resize-observer-polyfill';
 import { fadeInAnimation } from '../animations/';
@@ -635,15 +636,13 @@ export class TimelineComponent implements OnInit {
                 }
             }
             if (needRefresh) {
-                // Clear preview image
-                video.poster = "";
-                video.pause();
-                // Load preview image before
+                // Load preview image before video stopped for smooth transition
                 const imageUrl = this.getEventImage(record.object);
                 if (imageUrl !== undefined)
                     video.poster = imageUrl;
                 else
                     console.log('Skipped showing empty poster');
+                video.pause();
                 this.videoUrl = newUrl + '#t=' + positionSec;
                 console.log('videUrl: ' + this.videoUrl);
                 // Load video
@@ -681,17 +680,29 @@ export class TimelineComponent implements OnInit {
                this.getEventsToLoad(),
                this.type)
                    .then(events => {
-                       this.requestingMoreVideoEvents = false;
-                       this.processEventList(i, events, true);
-                       this.gotoLastEvent();
-                   });
+                          this.requestingMoreVideoEvents = false;
+                          this.processEventList(i, events, true);
+                          this.gotoLastEvent();
+                      },
+                      error => { this.processEventListError(i, error); }
+                   );
            }
+    }
+
+
+    private processEventListError(timelineIndex: number, error: HttpErrorResponse) {
+        console.error(`Error while getting events list for timeline ${timelineIndex}`, error.message);
+        if (this.multipleTimeline && error.status == 400 && this.type === 'cloud') {
+            // 400 (Bad Request) is OK for some timelines
+            this.eventsLoaded[timelineIndex] = true;
+            this.noOldEventsAvailable[timelineIndex] = true;
+        }
     }
 
     private processEventList(timelineIndex: number, events: EventRecord[], firstLoad: boolean) {
         console.log('processEventList(timelineIndex=' + timelineIndex + ', firstLoad=' + firstLoad + ')');
         if (events) {
-            console.log('Events: ' + events.length);
+            console.log('Obtained events: ' + events.length);
             // Forbid requesting old events
             if (events.length == 0) {
                 if (timelineIndex > -1)
@@ -850,10 +861,7 @@ export class TimelineComponent implements OnInit {
                 this.loginService.server,
                 this.loginService.login,
                 timelines > 1 ? this.cameras[timelineIndex].id : this.selectedCameraId,
-                //
-                // this.cameras[timelineIndex].id,//this.selectedCamId,
                 event.time,
-                //this.EVENTS_TO_LOAD)//
                 eventsToLoad,
                 this.type)
                     .then(events => {
@@ -868,10 +876,8 @@ export class TimelineComponent implements OnInit {
         console.log(`getVideoEventRecords(${timelineIndex})`);
         let records = [];
         for (let event of this.events[timelineIndex]) {
-            // if (event.has_video) {
             const l = new Date(event.time).getTime();
             records.push(new TimeRecord(l, event.duration, event));
-            // }
         }
         return records;
     }

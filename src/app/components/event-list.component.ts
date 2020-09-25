@@ -1,8 +1,8 @@
 import { Component, OnInit, Input, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { EventRecord, CameraSettings, } from '../models';
 import { EventListService, LoginService } from '../services';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { Platform } from '@angular/cdk/platform';
 import { fadeInAnimation } from '../animations/';
 
 // <video> tag is shown only for Chrome/Firefox/Safari browsers. Not shown for IE.
@@ -32,7 +32,7 @@ import { fadeInAnimation } from '../animations/';
     </mat-card>
     <div *ngIf="eventsLoaded">
       <div *ngIf="events.length > 0; else no_events_content">
-        <p *ngIf="autoplayOnHover" class="app-text-dark-secondary" style="padding-top: 5px; padding-bottom: 5px">TIP: Hold mouse cursor on image for a couple seconds to show recorded video.</p>
+        <p class="app-text-dark-secondary" style="padding-top: 5px; padding-bottom: 5px">TIP: Hold mouse cursor on image for a couple seconds to show recorded video.</p>
         <div
             infinite-scroll
             [infiniteScrollDistance]="2"
@@ -69,14 +69,12 @@ export class EventListComponent implements OnInit {
 
     events: EventRecord[] = [];
     eventsLoaded = false;
-    autoplayOnHover = false;
+    // autoplayOnHover = false;
     showFab = false;
-    // camerasMap: Map<number, CameraRecord> = new Map();
 
     constructor(
         private loginService: LoginService,
-        private eventListService: EventListService,
-        public platform: Platform) {
+        private eventListService: EventListService) {
     }
 
     @Input() cameraId: number; // can be -1 for all cameras events
@@ -100,7 +98,7 @@ export class EventListComponent implements OnInit {
     ngOnInit() {
         // console.log('ngOnInit())');
         // this.loadLastEvents();
-        this.autoplayOnHover = this.platform.FIREFOX;
+        //this.autoplayOnHover = this.platform.FIREFOX;
     }
 
     ngOnChanges(changes: SimpleChanges) {
@@ -139,7 +137,8 @@ export class EventListComponent implements OnInit {
             null,
             this.EVENTS_TO_LOAD,
             this.type)
-                .then(events => { this.processEventList(events); });
+                .then(events => { this.processEventList(events); },
+                      error => { this.processEventListError(error); });
     }
 
     onScroll() {
@@ -152,7 +151,17 @@ export class EventListComponent implements OnInit {
             event.time,
             this.EVENTS_TO_LOAD,
             this.type)
-                .then(events => { this.processEventList(events); });
+                .then(events => { this.processEventList(events); },
+                      error => { this.processEventListError(error); });
+    }
+
+    private processEventListError(error: HttpErrorResponse) {
+        console.error('Error in getCamList()', error.message);
+        // Token expired
+        // if (error.status == 401 || error.status == 403)
+        //     this.router.navigate(['/login']);
+        //     this.errorMessage = error.message;
+        // this.responseCode = -1;
     }
 
     processEventList(events: EventRecord[]) {
