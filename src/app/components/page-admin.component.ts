@@ -8,7 +8,6 @@ import ResizeObserver from 'resize-observer-polyfill';
 import { SmoothieChart, TimeSeries } from 'smoothie';
 
 @Component({
-    // animations: [animateFactory(150, 0, 'ease-in')],
     animations: [fadeInAnimation],
     styles: [ `
       .my-button {
@@ -95,10 +94,10 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
             <div class="app-text-dark-hint">
               <div>Live view connections: {{status.liveConnections !== undefined ? status.liveConnections : '-'}}</div>
               <div [@fadeInAnimation] *ngIf="status.threadsRunnableUsed !== undefined">Threads: {{status.threadsRunnableUsed}}/{{status.threadsUsed}}</div>
-              <div>Processes: {{getProcessesWithUsage()}}</div>
               <div>Memory Used: {{humanReadableByteCount(status.memoryUsed)}}, Free: {{humanReadableByteCount(status.memoryAvailable)}}</div>
-              <div>Web server uptime: {{humanReadableTime(status.uptime)}}</div>
+              <div>Processes: {{getProcessesWithUsage()}}</div>
               <div>Battery: {{status.batteryLevel}} ({{status.batteryStatus}})</div>
+              <div>Web server uptime: {{humanReadableTime(status.uptime)}}</div>
 
               <div style="margin-top:10px">Network <span style="color:#EA4238">In</span>: {{humanReadableKBs(status.networkInBps)}}, <span style="color:#5DAEE4">Out</span>: {{humanReadableKBs(status.networkOutBps)}}</div>
               <div><canvas #networkChart height="70"></canvas></div>
@@ -164,7 +163,7 @@ export class PageAdminComponent implements OnInit {
 
     humanReadableByteCount(bytes: number): string {
         return bytes !== undefined ? Utils.humanReadableByteCount(bytes) : '-';
-        return bytes !== undefined ? Math.round(bytes / 1024 / 1024) + ' MB' : '-';
+        return bytes !== undefined ? Math.round(bytes / 1048576) + ' MB' : '-';
     }
 
     humanReadableTime(msec: number): string {
@@ -193,7 +192,7 @@ export class PageAdminComponent implements OnInit {
         if (this.status.processes !== undefined) {
             let processText = '';
             for (let process of this.status.processes) {
-                processText += `${process.name} (${Math.floor(process.memoryUsed / 1024 / 1024)} MB), `;
+                processText += `${process.name} (${Math.floor(process.memoryUsed / 1048576)} MB), `;
             }
             if (this.status.processes.length > 1)
                 processText = processText.substr(0, processText.length - 2);

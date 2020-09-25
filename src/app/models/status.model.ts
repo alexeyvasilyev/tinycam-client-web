@@ -16,7 +16,7 @@ export class StatusProcess {
     name: string;
     memoryUsed: number;
     public toString = () : string => {
-        return this.name + ' ' + Math.floor(this.memoryUsed / 1024 / 1024) + ' MB';
+        return this.name + ' ' + Math.floor(this.memoryUsed / 1048576) + ' MB';
     }
 }
 
@@ -35,8 +35,8 @@ export class Status {
     networkInBps: number; // bytes per second
     networkOutBps: number; // bytes per second
     processes: StatusProcess[]; // names and memory used of processes running
-    threadsRunnableUsed: number;
-    threadsUsed: number;
+    threadsRunnableUsed?: number;
+    threadsUsed?: number;
     uptime: number; // msec
     rootAvailable: boolean;
     memoryUsed: number; // bytes, RAM
