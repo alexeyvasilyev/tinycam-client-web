@@ -11,6 +11,7 @@ export * from './live-multiple.component';
 export * from './login.component';
 export * from './page-admin.component';
 export * from './page-live.component';
+export * from './page-live-multiple.component';
 export * from './page-timeline.component';
 export * from './pagenotfound.component';
 export * from './timeline-cam-list.component';

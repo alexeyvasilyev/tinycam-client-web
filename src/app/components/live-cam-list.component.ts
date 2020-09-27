@@ -119,9 +119,9 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
                 </button>
               </mat-menu>
 
-              <!-- <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Multiple cameras layout">
+              <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Multiple cameras layout">
                 <i class="fas fa-th-large"></i>
-              </button> -->
+              </button>
               <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
                 <i class="fas fa-expand-alt"></i>
               </button>
@@ -199,6 +199,10 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         if (this.cameraSelected === null)
             return false;
         return Utils.hasCapability(this.cameraSelected.ptzCapabilities, PtzCapability.GotoPresets);
+    }
+
+    showMultipleScreen() {
+        this.router.navigate(['/livem']);
     }
 
     showHideJoystick() {

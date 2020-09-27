@@ -49,17 +49,17 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
                   <mat-select [(value)]="status.streamProfile" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.StreamProfile=' + ($event.value==0 ? 'main' : ($event.value==1 ? 'sub' : 'auto')))" placeholder="Stream profile">
-                    <mat-option [value]="0">MAIN</mat-option>
-                    <mat-option [value]="1">SUB</mat-option>
-                    <mat-option [value]="2">AUTO</mat-option>
+                    <mat-option [value]="0">Main</mat-option>
+                    <mat-option [value]="1">Sub</mat-option>
+                    <mat-option [value]="2">Auto</mat-option>
                   </mat-select>
                 </mat-form-field>
               </div>
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
                   <mat-select [(value)]="status.powerSafeMode" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.PowerSafeMode=' + ($event.value ? 'on' : 'off'))" placeholder="Power safe mode">
-                    <mat-option [value]="true">ON</mat-option>
-                    <mat-option [value]="false">OFF</mat-option>
+                    <mat-option [value]="true">On</mat-option>
+                    <mat-option [value]="false">Off</mat-option>
                   </mat-select>
                 </mat-form-field>
               </div>
@@ -67,8 +67,8 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
                   <mat-select [(value)]="status.notifications" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.Notifications=' + ($event.value ? 'on' : 'off'))" placeholder="Notifications">
-                    <mat-option [value]="true">ON</mat-option>
-                    <mat-option [value]="false">OFF</mat-option>
+                    <mat-option [value]="true">On</mat-option>
+                    <mat-option [value]="false">Off</mat-option>
                   </mat-select>
                 </mat-form-field>
               </div>
