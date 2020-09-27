@@ -15,7 +15,6 @@ export class CamListSelectionComponent implements OnInit {
     cameraSelected: CameraSettings = null;
     localCloudSelected: string = 'local'; // 'local' or 'cloud'
     errorMessage: string = null;
-    responseCode: number = -1;
 
     constructor(
         protected router: Router,
@@ -52,9 +51,8 @@ export class CamListSelectionComponent implements OnInit {
 //        if (!this.isConnected) {
 //            this.errorMessage = "Check Internet connection";
 //        } else {
-            this.errorMessage = error.message;
+        this.errorMessage = error.message;
 //        }
-        this.responseCode = -1;
     }
 
     processCamList(cameras: CameraSettings[]) {

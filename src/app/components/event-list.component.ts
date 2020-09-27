@@ -16,35 +16,35 @@ import { fadeInAnimation } from '../animations/';
         background: #EEEEEE;
         border-radius: 100%;
     }
-    .container2 {
+    .container-event-list {
         margin: 0px 10px;
         height: auto;
         overflow: hidden;
      }
-    .right2 {
+    .right-event-list {
          width: 50%;
          float: right;
-    }
-    .left2 {
+     }
+    .left-event-list {
         float: left;
         width: 50%;
         text-align: right;
         overflow: hidden;
-      }
+     }
   `],
   encapsulation: ViewEncapsulation.None,
   template: `
   <div>
 
-    <div class="container2" style="padding-top: 20px">
-      <div class="left2">
+    <div class="container-event-list" style="padding-top: 20px">
+      <div class="left-event-list" style="min-width:250px">
         <mat-form-field style="padding:0px 15px">
           <input matInput [max]="today" [matDatepicker]="picker" placeholder="Choose a date" (dateChange)="onDateChanged($event)">
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker [dateClass]="dateClass" #picker></mat-datepicker>
         </mat-form-field>
       </div>
-      <div class="right2">
+      <div class="right-event-list" style="min-width:250px">
         <mat-form-field style="padding:0px 15px">
           <mat-select [(value)]="motionSelected" [disabled]="type === 'cloud'" (selectionChange)="onMotionSelected($event.value)" placeholder="Filter">
             <mat-option>All events</mat-option>

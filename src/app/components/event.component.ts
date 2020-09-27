@@ -231,6 +231,8 @@ export class EventComponent implements OnInit {
                 const char = this.event.image.indexOf('?') == -1 ? '?' : '&';
                 return `${this.loginService.server.url}${this.event.image}${char}token=${this.loginService.login.token}`;
             }
+        } else {
+            return `assets/img/placeholder.png`;
         }
     }
 

@@ -6,7 +6,6 @@ import { WindowRefService } from '../services';
 @Component({
     selector: 'live',
     animations: [fadeInAnimation],
-    // animations: [animateFactory(150, 0, 'ease-in')],
     styles: [ `
       .live-view-loading {
         background-repeat: no-repeat;
