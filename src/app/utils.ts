@@ -7,7 +7,7 @@ export default class Utils {
     }
 
     static humanReadableByteCount(bytes: number): string {
-        var i = Math.floor( Math.log(bytes) / Math.log(1024) );
+        const i = Math.floor( Math.log(bytes) / Math.log(1024) );
         return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
     }
 
@@ -42,7 +42,7 @@ export default class Utils {
     static isPrivateIpAddress(ip: string): boolean {
         if (ip == null)
             return false;
-        var parts = ip.split('.');
+        const parts = ip.split('.');
         return parts.length == 4 &&
             (parts[0] === '10' ||
             (parts[0] === '172' && (parseInt(parts[1], 10) >= 16 && parseInt(parts[1], 10) <= 31)) ||
@@ -50,19 +50,20 @@ export default class Utils {
     }
 
     static isBrowserFirefox(): boolean {
-        var ua = window.navigator.userAgent;
+        const ua = window.navigator.userAgent;
+        console.log(`UA: ` + ua);
         var chrome = ua.indexOf('Firefox');
         return chrome > 0;
     }
 
     static isBrowserChrome(): boolean {
-        var ua = window.navigator.userAgent;
-        var chrome = ua.indexOf('Chrome');
+        const ua = window.navigator.userAgent;
+        const chrome = ua.indexOf('Chrome');
         return chrome > 0;
     }
 
     static isBrowserIE(): boolean {
-        var ua = window.navigator.userAgent;
+        const ua = window.navigator.userAgent;
 
       // Test values; Uncomment to check result …
 

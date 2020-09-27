@@ -23,7 +23,7 @@ export class CamListSelectionComponent implements OnInit {
     }
 
     ngOnInit() {
-        console.log('ngOnInit()');
+        // console.log('ngOnInit()');
         this.camListService.getCamList(this.loginService.server, this.loginService.login)
             .then(
                 res  => { this.processCamList(res); },
@@ -35,7 +35,7 @@ export class CamListSelectionComponent implements OnInit {
     }
 
     onSelected(camera: CameraSettings): void {
-        console.log('Selected camera: ' + camera.name);
+        console.log(`Selected camera: '${camera.name}'`);
         this.localCloudSelected = 'local';
         // this.cameraId = camId;
         //this.cameraSelected = camera;
@@ -56,7 +56,7 @@ export class CamListSelectionComponent implements OnInit {
     }
 
     processCamList(cameras: CameraSettings[]) {
-        console.log('processCamList()');
+        // console.log('processCamList()');
         if (cameras) {
             this.cameras = cameras;
             console.log('Total cameras: ' + cameras.length);

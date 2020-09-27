@@ -4,7 +4,7 @@ import { LoginService } from './services';
 export default class StorageUtils {
 
     static loadStorage(loginService: LoginService) {
-        console.log('loadStorage()');
+        // console.log('loadStorage()');
         var login = JSON.parse(localStorage.getItem('login'));
         if (login != null && login.user != null) {
             console.log('Restoring login...');
@@ -50,7 +50,7 @@ export default class StorageUtils {
 
 
     static getLastCameraSelected(): number {
-        console.log('getLastCameraSelected()');
+        // console.log('getLastCameraSelected()');
         var camId = localStorage.getItem('lastCameraSelected');
         if (camId != null && !isNaN(Number(camId))) {
             console.log('Last selected camera: ' + camId);

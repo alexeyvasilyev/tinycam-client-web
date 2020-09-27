@@ -409,7 +409,7 @@ export class EventComponent implements OnInit {
             " (" + this.getLocalDateTimeFormatted() + ")";//'Duration - ' + (this.duration / 1000).toFixed() + ' sec';
         //this.getLocalDateTime();
         dialog.componentInstance.videoUrl = this.getEventVideoUrl();
-        dialog.componentInstance.imageUrl = this.getEventImageUrl();
+        //dialog.componentInstance.imageUrl = this.getEventImageUrl();
     }
 
 }

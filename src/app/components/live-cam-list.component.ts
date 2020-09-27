@@ -36,22 +36,24 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
         background-color: #424242;
         box-shadow: 0 0 2px rgba(0,0,0,.12), 0 2px 2px rgba(0,0,0,.2);
     }
-    .container {
-        margin: 0px 10px;
+    .live-container {
+        margin-left: 10px;
+        margin-right: 10px;
+        margin-bottom: 2px;
         height: auto;
         overflow: hidden;
      }
-    .right {
+    .live-right {
          width: auto;
          float: right;
          height: 100%;
          text-align: center;
     }
-    .left {
+    .live-left {
         float: left;
         width: auto;
         overflow: hidden;
-      }
+    }
   `],
   template: `
     <div>
@@ -61,8 +63,8 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
       <div *ngIf="cameras; else loading_content">
         <div *ngIf="cameras.length > 0; else no_cams_content">
 
-          <div class="container">
-            <div class="left">
+          <div class="live-container">
+            <div class="live-left">
               <div *ngIf="cameras.length > 1">
                 <div style="margin:0px 15px;">
                   <mat-form-field color="accent">
@@ -76,7 +78,7 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
               </div>
             </div>
 
-            <div class="right">
+            <div class="live-right">
 
               <span *ngIf="status.motion !== undefined" style="padding: 10px; margin-right:20px">
                 <span *ngIf="status.motion; else no_motion_content" matTooltip="Motion detected"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
@@ -119,7 +121,7 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
                 </button>
               </mat-menu>
 
-              <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Multiple cameras layout">
+              <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Multiple cameras layout" (click)="showMultipleScreen()">
                 <i class="fas fa-th-large"></i>
               </button>
               <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
@@ -232,19 +234,19 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         });
   
         this.nipple.on('dir:up', function (evt, nipple) {
-            this.moveUp();
+            this.moveUp(false);
         }.bind(this))
 
         this.nipple.on('dir:down', function (evt, nipple) {
-            this.moveDown();
+            this.moveDown(false);
         }.bind(this))
 
         this.nipple.on('dir:left', function (evt, nipple) {
-            this.moveLeft();
+            this.moveLeft(false);
         }.bind(this))
 
         this.nipple.on('dir:right', function (evt, nipple) {
-            this.moveRight();
+            this.moveRight(false);
         }.bind(this))
 
         this.nipple.on('end', function (evt, nipple) {
@@ -268,10 +270,6 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 
     toggleFullScreen() {
         Utils.toggleFullScreen(this.liveEl.nativeElement);
-    }
-
-    toggleAudio() {
-
     }
 
     getAudioUrl() {
@@ -299,22 +297,43 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         return this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
     }
 
-    public moveUp() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,100`);
+    moveUp(showTip: boolean) {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,100`)
+        .then(
+            res => { if (showTip) this.snackBar.open(`Move up`, null, {
+                duration: 3000,
+            })
+        });
     }
 
-    moveDown() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,-100`);
+    moveDown(showTip: boolean) {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,-100`)
+        .then(
+            res => { if (showTip) this.snackBar.open(`Move down`, null, {
+                duration: 3000,
+            })
+        });
     }
 
-    moveLeft() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=-100,0`);
-    }
-    moveRight() {
-      this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=100,0`);
+    moveLeft(showTip: boolean) {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=-100,0`)
+        .then(
+            res => { if (showTip) this.snackBar.open(`Move left`, null, {
+                duration: 3000,
+            })
+        });
     }
 
-    public moveStop() {
+    moveRight(showTip: boolean) {
+        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=100,0`)
+        .then(
+            res => { if (showTip) this.snackBar.open(`Move right`, null, {
+                duration: 3000,
+            })
+        });
+    }
+
+    moveStop() {
       this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,0`);
     }
 
@@ -393,20 +412,54 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         });
     }
 
+    private getCameraIndex(camera: CameraSettings): number {
+        let i = 0;
+        for (let camera of this.cameras) {
+            if (camera == this.cameraSelected)
+                return i;
+            i++;
+        }
+        return 0;
+    }
+
+    showCurrentCamera() {
+        this.snackBar.open(`Camera '${this.cameraSelected.name}'`, null, {
+            duration: 3000,
+        });
+    }
+
+    switchPrevCamera(showTip: boolean) {
+        let index = this.getCameraIndex(this.cameraSelected);
+        if (--index >= 0) {
+            this.cameraSelected = this.cameras[index];
+            if (showTip)
+                this.showCurrentCamera();
+        }
+    }
+
+    switchNextCamera(showTip: boolean) {
+        let index = this.getCameraIndex(this.cameraSelected);
+        if (++index < this.cameras.length) {
+            this.cameraSelected = this.cameras[index];
+            if (showTip)
+                this.showCurrentCamera();
+        }
+    }
+
     handleKeyDown(event: KeyboardEvent) {
         if (event.repeat) return;
         // console.log("Key down: " + event.key);
         switch(event.key) {
             case "ArrowUp": this.scrollTop(); event.preventDefault(); break;
             case "ArrowDown": this.scrollBottom(); event.preventDefault(); break;
-            case "ArrowLeft": event.preventDefault(); 
-            case "a": this.moveLeft(); break;
+            case "ArrowLeft": this.switchPrevCamera(true); break;
+            case "ArrowRight": this.switchNextCamera(true); break;
+            case "a": this.moveLeft(true); break;
             // case "ArrowLeft": this.moveLeft(); break;
-            case "ArrowRight": event.preventDefault(); 
-            case "d": this.moveRight(); break;
+            case "d": this.moveRight(true); break;
             // case "ArrowRight": this.moveRight(); break;
-            case "w": this.moveUp(); break;
-            case "s": this.moveDown(); break;
+            case "w": this.moveUp(true); break;
+            case "s": this.moveDown(true); break;
             case "1": this.gotoPreset(1); break;
             case "2": this.gotoPreset(2); break;
             case "3": this.gotoPreset(3); break;
@@ -503,11 +556,13 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         if (this.timerSubscription)
             clearTimeout(this.timerSubscription);
         this.timerSubscription = setTimeout(() => {
-            this.statusService
-                .getStatusCamera(this.loginService.server, this.loginService.login, this.cameraSelected.id)
-                .then(
-                  status => { this.processStatus(status); },
-                  error => { this.processStatusError(error); });
+            if (this.cameraSelected != null) {
+                this.statusService
+                    .getStatusCamera(this.loginService.server, this.loginService.login, this.cameraSelected.id)
+                    .then(
+                    status => { this.processStatus(status); },
+                    error => { this.processStatusError(error); });
+            }
         }, timeout);
     }
 

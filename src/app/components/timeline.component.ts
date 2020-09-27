@@ -40,11 +40,10 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
       background-color: #212121;
       border: none;
       color: white;
-      padding: 10px 20px;
+      padding: 4px 4px;
       text-align: center;
       text-decoration: none;
-      margin: 4px 2px;
-      cursor: pointer;
+      margin: 2px 2px;
       font-size: 18px;
     }
     .button:hover {
@@ -55,13 +54,11 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
       background-color: #212121;
       border: none;
       color: white;
-      padding: 10px 10px;
+      padding: 4px 0px;
       text-align: center;
       text-decoration: none;
-      margin: 4px 1px;
-      width: 60px;
-      cursor: pointer;
-      font-size: 16px;
+      margin: 0px 1px;
+      font-size: 18px;
     }
     .button-selectable:hover {
       background-color: #424242;
@@ -79,7 +76,7 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
     }
   `],
   host: {
-    '(document:keydown)': 'handleKeyboardEvents($event)'
+    '(document:keydown)': 'handleKeyDown($event)'
   },
   template: `
   <div #component>
@@ -132,71 +129,71 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
     </div>
 
     <div style="padding: 20px; text-align: center;">
-      <button class="button" (click)="handlePlayPauseClicked();">
+      <button mat-raised-button class="button" (click)="handlePlayPauseClicked();">
         <span *ngIf="!videoPlaying">
           <i class="fas fa-play"></i>
         </span>
-        <span *ngIf="videoPlaying">
+        <span mat-raised-button *ngIf="videoPlaying">
           <i class="fas fa-pause"></i>
         </span>
       </button>
 
-      <button class="button" (click)="gotoPrevEvent(true);" style="margin-left:30px;">
+      <button mat-raised-button class="button" (click)="gotoPrevEvent(true);" style="margin-left:30px;">
         <span>
           <i class="fas fa-backward"></i>
         </span>
       </button>
-      <button class="button" (click)="gotoNextEvent(true);">
+      <button mat-raised-button class="button" (click)="gotoNextEvent(true);">
         <span>
           <i class="fas fa-forward"></i>
         </span>
       </button>
-      <button class="button" (click)="gotoLastEvent();" style="margin-left:30px;">
+      <button mat-raised-button class="button" (click)="gotoLastEvent();" style="margin-left:30px;">
         <span>
           <i class="fas fa-fast-forward"></i>
         </span>
       </button>
 
-      <button class="button" (click)="timeline.increaseInterval();" style="margin-left:30px;">
+      <button mat-raised-button class="button" (click)="timeline.increaseInterval();" style="margin-left:30px;">
         <span>
           <i class="fas fa-minus"></i>
         </span>
       </button>
-      <button class="button" (click)="timeline.decreaseInterval();">
+      <button mat-raised-button class="button" (click)="timeline.decreaseInterval();">
         <span>
           <i class="fas fa-plus"></i>
         </span>
       </button>
 
-      <button class="button" (click)="toggleFullScreen();" style="margin-left:30px;">
+      <button mat-raised-button class="button" (click)="toggleFullScreen();" style="margin-left:30px;">
         <span>
           <i class="fas fa-expand-alt"></i>
         </span>
       </button>
 
-      <button class="button" (click)="handleMoreClicked();" style="margin-left:30px;">
+      <button mat-raised-button class="button" (click)="handleMoreClicked();" style="margin-left:30px;">
         <span *ngIf="!moreButtons">
           <i class="fas fa-angle-down"></i>
         </span>
-        <span *ngIf="moreButtons">
+        <span mat-raised-button *ngIf="moreButtons">
           <i class="fas fa-angle-up"></i>
         </span>
       </button>
 
       <div *ngIf="moreButtons" style="padding-top:20px;">
-        <button class="button-selectable" (click)="setSpeed(0.1);" style="margin-left:30px;" [ngStyle]="{'opacity':playerSpeed==0.1?'0.5':'1.0'}">
+        <button mat-raised-button class="button-selectable" (click)="setSpeed(0.1);" style="margin-left:30px;" [ngStyle]="{'opacity':playerSpeed==0.1?'0.5':'1.0'}">
           <span>0.1x</span>
         </button>
-        <button class="button-selectable" (click)="setSpeed(0.5);" [ngStyle]="{'opacity':playerSpeed==0.5?'0.5':'1.0'}">
+        <button mat-raised-button class="button-selectable" (click)="setSpeed(0.5);" [ngStyle]="{'opacity':playerSpeed==0.5?'0.5':'1.0'}">
           <span>0.2x</span>
         </button>
-        <button class="button-selectable" (click)="setSpeed(1.0);" [ngStyle]="{'opacity':playerSpeed==1.0?'0.5':'1.0'}">
+        <button mat-raised-button class="button-selectable" (click)="setSpeed(1.0);" [ngStyle]="{'opacity':playerSpeed==1.0?'0.5':'1.0'}">
           <span>1x</span>
         </button>
-        <button class="button-selectable" (click)="setSpeed(2.0);" [ngStyle]="{'opacity':playerSpeed==2.0?'0.5':'1.0'}">
+        <button mat-raised-button class="button-selectable" (click)="setSpeed(2.0);" [ngStyle]="{'opacity':playerSpeed==2.0?'0.5':'1.0'}">
           <span>2x</span>
         </button>
-        <button class="button-selectable" (click)="setSpeed(3.0);" [ngStyle]="{'opacity':playerSpeed==3.0?'0.5':'1.0'}">
+        <button mat-raised-button class="button-selectable" (click)="setSpeed(3.0);" [ngStyle]="{'opacity':playerSpeed==3.0?'0.5':'1.0'}">
           <span>3x</span>
         </button>
         <!-- <a href="{{this.videoUrl}}" download class="button" style="margin-left:30px;" target="_blank">
@@ -206,9 +203,9 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
     </div>
 
     <div style="padding:10px;">
-      <p>Keys <b>+</b>/<b>-</b> to increase/decrease timeline scale.<br/>
-      Keys <b>left</b>/<b>right</b> to select previous/next events.<br/>
-      <span *ngIf="multipleTimeline">Keys <b>q</b>/<b>a</b> to change timelines.<br/></span>
+      <p>Keys <b>+</b>/<b>-</b> - increase/decrease timeline scale.<br/>
+      Keys <b>Left</b>/<b>Right</b>/<b>A</b>/<b>D</b> - previous/next events.<br/>
+      <span *ngIf="multipleTimeline">Keys <b>W</b>/<b>S</b> - change timelines.<br/></span>
       <b>Space bar</b> - start/stop playback.<br/>
       <div style="margin-top:20px;">
         <span style="margin-right:25px;"><span style="background-color: #1de9b6; padding:3px; margin-right:8px;"></span>motion</span>
@@ -342,21 +339,38 @@ export class TimelineComponent implements OnInit {
         document.onfullscreenchange = null;
     }
 
-    handleKeyboardEvents(event: KeyboardEvent) {
-        const keyCode = event.which || event.keyCode;
-        // console.log("Key: " + keyCode);
-        switch(keyCode) {
-            case 32: this.handlePlayPauseClicked(); event.preventDefault(); break;
-            case 173: // firefox
-            case 189: this.timeline.increaseInterval(); event.preventDefault(); break; // -
-            case 61: // firefox
-            case 187: this.timeline.decreaseInterval(); event.preventDefault(); break; // +
-            case 37: this.gotoPrevEvent(true); event.preventDefault(); break; // Left
-            case 39: this.gotoNextEvent(true); event.preventDefault(); break; // Right
-            case 81: this.selectUpperTimeline(); event.preventDefault(); break; // Q
-            case 65: this.selectBottomTimeline(); event.preventDefault(); break; // A
-        }
+    handleKeyDown(event: KeyboardEvent) {
+        if (event.repeat) return;
+        console.log("Key down: " + event.key);
+        switch(event.key) {
+            case "a":
+            case "ArrowLeft": this.gotoPrevEvent(true); event.preventDefault(); break;
+            case "d":
+            case "ArrowRight": this.gotoNextEvent(true); event.preventDefault(); break;
+            case "w": this.selectUpperTimeline(); event.preventDefault(); break;
+            case "ArrowUp": if (document.fullscreenElement) { this.selectUpperTimeline(); event.preventDefault(); } break;
+            case "ArrowDown": if (document.fullscreenElement) { this.selectBottomTimeline(); event.preventDefault(); } break;
+            case "s": this.selectBottomTimeline(); event.preventDefault(); break;
+            case " ": this.handlePlayPauseClicked(); event.preventDefault(); break;
+            case "-": this.timeline.increaseInterval(); event.preventDefault(); break;
+            case "=": this.timeline.decreaseInterval(); event.preventDefault(); break;
+        };
     }
+
+    // handleKeyboardEvents(event: KeyboardEvent) {
+    //     const keyCode = event.which || event.keyCode;
+    //     // console.log("Key: " + keyCode);
+    //     switch(keyCode) {
+    //         // case 173: // firefox
+    //         // case 189: this.timeline.increaseInterval(); event.preventDefault(); break; // -
+    //         // case 61: // firefox
+    //         // case 187: this.timeline.decreaseInterval(); event.preventDefault(); break; // +
+    //         case 37: this.gotoPrevEvent(true); event.preventDefault(); break; // Left
+    //         case 39: this.gotoNextEvent(true); event.preventDefault(); break; // Right
+    //         case 81: this.selectUpperTimeline(); event.preventDefault(); break; // Q
+    //         case 65: this.selectBottomTimeline(); event.preventDefault(); break; // A
+    //     }
+    // }
 
     private mouseScrolling: boolean = false;
     handleMouseUpEvent(event: MouseEvent) {
