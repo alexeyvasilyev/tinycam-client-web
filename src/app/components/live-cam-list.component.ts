@@ -131,8 +131,8 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
 
           </div>
 
-          <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="myInnerHeight" [@fadeInAnimation]>
-            <live [cameraId]="cameraSelected.id" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
+          <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="getLiveHeight()" [@fadeInAnimation]>
+            <live [cameraId]="cameraSelected.id" [viewHeightPx]="getLiveHeight()" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
           </div>
         </div>
       </div>
@@ -147,10 +147,10 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
 
 export class LiveCamListComponent extends CamListSelectionComponent {
 
-    myInnerHeight = this.windowRef.nativeWindow.innerHeight;
     @ViewChild('live') liveEl: ElementRef;
     @ViewChild('joystick') joystickEl: ElementRef;
 
+    windowInnerHeight = this.windowRef.nativeWindow.innerHeight;
     private timerSubscription;
     private nipple = null;
     nippleShown = false;
@@ -175,6 +175,10 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         protected camListService: CamListService,
         private windowRef: WindowRefService) {
             super(router, loginService, camListService);
+    }
+
+    getLiveHeight(): number {
+        return this.windowRef.nativeWindow.innerHeight;
     }
 
     handleAudioCanPlay() {

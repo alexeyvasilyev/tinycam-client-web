@@ -12,25 +12,25 @@ import { WindowRefService } from '../services';
         background-position: center;
         background-size: contain;
         background-image: url("assets/img/loading.png");
-        height:100%;
       }
       .live-view {
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;
-        height:100%;
       }
     `],
     template: `
-      <!-- <img #image alt="" (load)="loadImage()" (error)="loadImageError()" src="{{getLiveImage()}}"/> -->
+      <!-- <img style="height:100px" #image alt="" (load)="loadImage()" (error)="loadImageError()" src="{{getLiveImage()}}"/> -->
       <div [@fadeInAnimation] class="live-view-loading" style="cursor: pointer;">
-        <div #cell class="live-view"></div>
+        <div #cell class="live-view" [style.height.px]="viewHeightPx"></div>
+        <!-- <div #cell class="live-view" [style.height.vh]="viewHeightVh"></div> -->
       </div>
     `
 })
 
 export class LiveComponent implements AfterViewInit {
 
+    @Input() viewHeightPx: number = 100; // Hack for Safari
     @Input() cameraId: number;
     @ViewChild('cell', { static: true }) cellEl: ElementRef;
 

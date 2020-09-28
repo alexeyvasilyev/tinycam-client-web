@@ -46,6 +46,9 @@ import Utils from '../utils';
         width: auto;
         overflow: hidden;
     }
+    .cell {
+        background-color: #212121;
+    }
     `],
     template: `
     <div>
@@ -80,22 +83,22 @@ import Utils from '../utils';
         </div>
       </div>
 
-      <div *ngIf="cameras !== null" #live style="background-color: #424242; overflow: auto;" [style.height.px]="windowInnerHeight" [@fadeInAnimation]>
-      <table #livem width="100%" height="100%" style="border-spacing:3px;border-collapse:separate;" (click)="showHideToolbar()">
+      <div *ngIf="cameras !== null" #live style="background-color: #424242; overflow: auto;" [style.height.px]="getLiveHeight()" [@fadeInAnimation]>
+      <table #livem width="100%" height="100%" style="border-spacing:2px;border-collapse:separate;" (click)="showHideToolbar()">
         <tr>
-          <td style="background-color:#212121">
-            <live [cameraId]="getCamera(currentPage * getCamerasPerPage()).id" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
+          <td class="cell">
+            <live [cameraId]="getCamera(currentPage * getCamerasPerPage()).id" [viewHeightPx]="getCellHeight()" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
           </td>
-          <td style="background-color:#212121">
-            <live *ngIf="getCamera(currentPage * getCamerasPerPage() + 1) != null" [cameraId]="getCamera(currentPage * getCamerasPerPage() + 1).id" (dblclick)="toggleFullScreen()"></live>
+          <td class="cell">
+            <live *ngIf="getCamera(currentPage * getCamerasPerPage() + 1) != null" [cameraId]="getCamera(currentPage * getCamerasPerPage() + 1).id" [viewHeightPx]="getCellHeight()" (dblclick)="toggleFullScreen()"></live>
           </td>
         </tr>
         <tr *ngIf="getCamerasPerPage() >= 4">
-          <td style="background-color:#212121">
-            <live *ngIf="getCamera(currentPage * getCamerasPerPage() + 2) != null"  [cameraId]="getCamera(currentPage * getCamerasPerPage() + 2).id" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
+          <td class="cell">
+            <live *ngIf="getCamera(currentPage * getCamerasPerPage() + 2) != null"  [cameraId]="getCamera(currentPage * getCamerasPerPage() + 2).id" [viewHeightPx]="getCellHeight()" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
           </td>
-          <td style="background-color:#212121">
-            <live *ngIf="getCamera(currentPage * getCamerasPerPage() + 3) != null" [cameraId]="getCamera(currentPage * getCamerasPerPage() + 3).id" (dblclick)="toggleFullScreen()"></live>
+          <td class="cell">
+            <live *ngIf="getCamera(currentPage * getCamerasPerPage() + 3) != null" [cameraId]="getCamera(currentPage * getCamerasPerPage() + 3).id" [viewHeightPx]="getCellHeight()" (dblclick)="toggleFullScreen()"></live>
           </td>
         </tr>
       </table>
@@ -108,11 +111,10 @@ export class LiveMultipleComponent implements OnInit {
 
     @ViewChild('livem') livemEl: ElementRef;
 
-    windowInnerHeight = this.windowRef.nativeWindow.innerHeight;
     cameras: CameraSettings[] = null;
     errorMessage: string = null;
     currentPage: number = 0;
-    private CAMS_PER_LAYOUT: number = 4;//number = Utils.isBrowserFirefox() ? 4 : 2;
+    private CAMS_PER_LAYOUT: number = 4; // Utils.isBrowserFirefox() ? 4 : 2;
 
     constructor (
         private router: Router,
@@ -132,6 +134,15 @@ export class LiveMultipleComponent implements OnInit {
 
     toggleFullScreen() {
         Utils.toggleFullScreen(this.livemEl.nativeElement);
+    }
+
+    getCellHeight(): number {
+        const rows = this.getCamerasPerPage() == 2 ? 1 : 2;
+        return Math.floor(this.windowRef.nativeWindow.innerHeight / rows) - 2 /*size of border-spacing*/ * (rows + 2);
+    }
+
+    getLiveHeight(): number {
+        return this.windowRef.nativeWindow.innerHeight;
     }
 
     getCamera(index: number): CameraSettings {
