@@ -30,7 +30,7 @@ import StorageUtils from '../utils-storage';
   template: `
     <div class="login-screen">
       <div class="app-text-center"><a href="https://tinycammonitor.com"><img src="assets/img/applogo.png"/><br/>
-      https://tinycammonitor.com</a></div>
+      https://tinycammonitor.com</a> - <a href="https://github.com/alexeyvasilyev/tinycam-api">API</a></div>
       <div class="app-text-center" style="padding:25px 0px"><h1>tinyCam Monitor Login</h1></div>
       <mat-card>
         <mat-card-content>

@@ -133,7 +133,10 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
           </mat-card-content>
         </mat-card>
 
-        <div class="mat-small app-text-right" style="padding:10px;">tinyCam Monitor web client is <a href="https://github.com/alexeyvasilyev/tinycam-client-web">open sourced</a> under Apache License 2.0</div>
+        <div style="padding:30px 0px;">
+          <div class="mat-small app-text-right">tinyCam Monitor web client is <a href="https://github.com/alexeyvasilyev/tinycam-client-web">open sourced</a> under Apache License 2.0</div>
+          <div class="mat-small app-text-right">tinyCam Monitor web server <a href="https://github.com/alexeyvasilyev/tinycam-api">API</a></div>
+        </div>
       </div>
     `
 })
