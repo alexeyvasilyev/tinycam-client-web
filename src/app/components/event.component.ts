@@ -131,7 +131,8 @@ import Utils from "../utils";
           <div class="right">
             <div>
               <span style="color:#424242;font-weight:bold;">{{number + 1}}. {{getEventTitle()}}</span>
-              <span *ngIf="getEventTitleHint() != null" class="app-chip" style="margin-left:10px;background-color:{{getEventTitleHintColor()}}">{{getEventTitleHint()}}</span>
+              <span *ngIf="eventPinned" class="app-chip" style="margin-left:10px; background-color:#0D47A1">Pinned</span>
+              <span *ngIf="getEventTitleHint() != null" class="app-chip" style="margin-left:10px; background-color:{{getEventTitleHintColor()}}">{{getEventTitleHint()}}</span>
               <div class="app-text-dark-secondary" style="padding-bottom: 10px">
                 <div *ngIf="isThisHour(); else notThisHour" >
                   {{getLocalDateTime() | amTimeAgo}}
