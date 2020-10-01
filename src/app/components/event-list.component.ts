@@ -46,8 +46,9 @@ import { fadeInAnimation } from '../animations/';
       </div>
       <div class="right-event-list" style="min-width:250px">
         <mat-form-field style="padding:0px 15px">
-          <mat-select [(value)]="motionSelected" [disabled]="type === 'cloud'" (selectionChange)="onMotionSelected($event.value)" placeholder="Filter">
+          <mat-select [(value)]="filterSelected" [disabled]="type === 'cloud'" (selectionChange)="onFilterSelected($event.value)" placeholder="Filter">
             <mat-option>All events</mat-option>
+            <mat-option [value]="'pin'">Pinned</mat-option>
             <mat-option [value]="'motion'">Motion</mat-option>
             <mat-option [value]="'person'">Person</mat-option>
             <mat-option [value]="'vehicle'">Vehicle</mat-option>
@@ -103,7 +104,7 @@ export class EventListComponent implements OnInit {
     eventsLoaded = false;
     // autoplayOnHover = false;
     showFab = false;
-    motionSelected = undefined;
+    filterSelected = undefined;
 
     constructor(
         private loginService: LoginService,
@@ -128,8 +129,8 @@ export class EventListComponent implements OnInit {
         return document.documentElement.scrollTop > document.documentElement.clientHeight;
     }
 
-    onMotionSelected(motion: string) {
-        console.log(`onMotionSelected(motion=${motion})`);
+    onFilterSelected(filter: string) {
+        console.log(`onFilterSelected(filter=${filter})`);
         this.loadLastEvents();
     }
 
@@ -145,7 +146,7 @@ export class EventListComponent implements OnInit {
         //     let chng = changes[propName];
         //     // console.log('ngOnChanges() cur: ' + chng.currentValue);
         // }
-        this.motionSelected = '';
+        this.filterSelected = '';
         this.loadLastEvents();
     }
 
@@ -176,7 +177,7 @@ export class EventListComponent implements OnInit {
             -1,
             this.EVENTS_TO_LOAD,
             this.type,
-            this.motionSelected) // all events
+            this.filterSelected)
                 .then(events => { this.processEventList(events); },
                       error => { this.processEventListError(error); });
     }
@@ -191,7 +192,7 @@ export class EventListComponent implements OnInit {
             event.time,
             this.EVENTS_TO_LOAD,
             this.type,
-            this.motionSelected) // all events
+            this.filterSelected)
                 .then(events => { this.processEventList(events); },
                       error => { this.processEventListError(error); });
     }
@@ -255,7 +256,7 @@ export class EventListComponent implements OnInit {
                 selectedDate.getTime(),
                 this.EVENTS_TO_LOAD,
                 this.type,
-                this.motionSelected) // all events
+                this.filterSelected)
                     .then(events => { this.processEventList(events); });
         }
     }

@@ -15,10 +15,10 @@ export class EventListService {
     constructor(private http: HttpClient) {
     }
 
-    getEventList(server: Server, login: Login, cameraId: number, endtime: number, limit: number, type: string, motion: string): Promise<EventRecord[]> {
+    getEventList(server: Server, login: Login, cameraId: number, endtime: number, limit: number, type: string, filter: string): Promise<EventRecord[]> {
         // console.log('getEventList(cameraId=' + cameraId + ', eventId=' + eventId + ', endtime=' + endtime + ', limit=' + limit + ')');
 
-        const url = `${server.url}/api/v1/get_cam_event_list?token=${login.token}&cameraId=${cameraId}&endtime=${endtime}&count=${limit}&type=${type}&motion=${motion}`;
+        const url = `${server.url}/api/v1/get_cam_event_list?token=${login.token}&cameraId=${cameraId}&endtime=${endtime}&count=${limit}&type=${type}&filter=${filter}`;
         return this.http
             .get<ServerResponse>(url)
             .timeout(10000)
