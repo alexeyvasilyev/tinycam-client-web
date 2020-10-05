@@ -68,7 +68,7 @@ export class CamListSelectionComponent implements OnInit {
     }
 
     camerasLoaded() {
-        if (this.cameraSelected === null && this.cameras.length > 0) {
+        if (this.cameraSelected == null && this.cameras.length > 0) {
             // Select camera with last saved camId
             const camId = StorageUtils.getLastCameraSelected();
             for (let camera of this.cameras) {

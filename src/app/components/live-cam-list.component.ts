@@ -192,19 +192,19 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     isAudioListeningSupported(): boolean {
         if (this.cameraSelected === null)
             return false;
-        return this.cameraSelected.audioListening;
+        return (this.cameraSelected as CameraSettings).audioListening;
     }
 
     isPtzPanTiltSupported(): boolean {
         if (this.cameraSelected === null)
             return false;
-        return Utils.hasCapability(this.cameraSelected.ptzCapabilities, PtzCapability.MoveRel);
+        return Utils.hasCapability((this.cameraSelected as CameraSettings).ptzCapabilities, PtzCapability.MoveRel);
     }
 
     isPtzPresetsSupported(): boolean {
         if (this.cameraSelected === null)
             return false;
-        return Utils.hasCapability(this.cameraSelected.ptzCapabilities, PtzCapability.GotoPresets);
+        return Utils.hasCapability((this.cameraSelected as CameraSettings).ptzCapabilities, PtzCapability.GotoPresets);
     }
 
     showMultipleScreen() {
@@ -277,8 +277,8 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     getAudioUrl() {
-        console.log(`Audio: ${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${this.cameraSelected.id}&token=${this.loginService.login.token}`);
-        return `${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${this.cameraSelected.id}&token=${this.loginService.login.token}`;
+        console.log(`Audio: ${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${(this.cameraSelected as CameraSettings).id}&token=${this.loginService.login.token}`);
+        return `${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${(this.cameraSelected as CameraSettings).id}&token=${this.loginService.login.token}`;
     }
 
     camerasLoaded() {
@@ -289,7 +289,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     sendCameraMotionEvent() {
-        this.sendHttpGetRequest(`/axis-cgi/motion/createmotion.cgi?cameraId=${this.cameraSelected.id}`)
+        this.sendHttpGetRequest(`/axis-cgi/motion/createmotion.cgi?cameraId=${(this.cameraSelected as CameraSettings).id}`)
         .then(
             res => { this.snackBar.open('Motion signal sent', null, {
                 duration: 4000,
@@ -427,13 +427,13 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     showCurrentCamera() {
-        this.snackBar.open(`Camera '${this.cameraSelected.name}'`, null, {
+        this.snackBar.open(`Camera '${(this.cameraSelected as CameraSettings).name}'`, null, {
             duration: 3000,
         });
     }
 
     switchPrevCamera(showTip: boolean) {
-        let index = this.getCameraIndex(this.cameraSelected);
+        let index = this.getCameraIndex((this.cameraSelected as CameraSettings));
         if (--index >= 0) {
             this.cameraSelected = this.cameras[index];
             if (showTip)
@@ -442,7 +442,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     switchNextCamera(showTip: boolean) {
-        let index = this.getCameraIndex(this.cameraSelected);
+        let index = this.getCameraIndex((this.cameraSelected as CameraSettings));
         if (++index < this.cameras.length) {
             this.cameraSelected = this.cameras[index];
             if (showTip)
@@ -562,7 +562,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         this.timerSubscription = setTimeout(() => {
             if (this.cameraSelected != null) {
                 this.statusService
-                    .getStatusCamera(this.loginService.server, this.loginService.login, this.cameraSelected.id)
+                    .getStatusCamera(this.loginService.server, this.loginService.login, (this.cameraSelected as CameraSettings).id)
                     .then(
                     status => { this.processStatus(status); },
                     error => { this.processStatusError(error); });
