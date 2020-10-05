@@ -12,7 +12,8 @@ import StorageUtils from '../utils-storage';
 export class CamListSelectionComponent implements OnInit {
 
     cameras: CameraSettings[] = null;
-    cameraSelected: CameraSettings = null;
+    cameraSelected: CameraSettings | number = null; // CameraSettings or number (-1)
+    allCamerasSupport: boolean = false;
     localCloudSelected: string = 'local'; // 'local' or 'cloud'
     errorMessage: string = null;
 
@@ -34,12 +35,12 @@ export class CamListSelectionComponent implements OnInit {
     ngOnDestroy() {
     }
 
-    onSelected(camera: CameraSettings): void {
-        console.log(`Selected camera: '${camera.name}'`);
+    onSelected(camera: CameraSettings | number): void {
+        console.log(`Selected camera: '${camera instanceof CameraSettings ? camera.name : camera}'`);
         this.localCloudSelected = 'local';
         // this.cameraId = camId;
         //this.cameraSelected = camera;
-        StorageUtils.setLastCameraSelected(camera.id);
+        StorageUtils.setLastCameraSelected(camera instanceof Object ? camera.id : camera);
         // console.log('Selected: "' + target.value + '", camId: ' + camIdSelected);
     }
 
@@ -77,14 +78,17 @@ export class CamListSelectionComponent implements OnInit {
                 }
             }
             // No camId found. Try to select first enabled camera.
-            for (let camera of this.cameras) {
-                if (camera.enabled) {
-                    this.cameraSelected = camera;
-                    return;
-                }
-            }
+            // for (let camera of this.cameras) {
+            //     if (camera.enabled) {
+            //         this.cameraSelected = camera;
+            //         return;
+            //     }
+            // }
             // Select first camera.
-            this.cameraSelected = this.cameras[0];
+            if (this.allCamerasSupport)
+                this.cameraSelected = -1;
+            else
+                this.cameraSelected = this.cameras[0];
         }
     }
 

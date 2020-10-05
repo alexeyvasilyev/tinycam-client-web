@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { CamListSelectionComponent } from './cam-list-selection.component';
+import { CamListService, LoginService } from '../services';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'event-cam-list',
@@ -36,7 +38,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
             <div class="left">
               <mat-form-field color="accent" style="padding-top:10px;width:100%">
                 <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera events">
-                  <!-- <mat-option [value]="-1" >All cameras</mat-option> -->
+                  <mat-option [value]="-1" >All cameras</mat-option>
                   <mat-option *ngFor="let camera of cameras" [value]="camera">
                     {{getCameraName(camera)}}
                   </mat-option>
@@ -65,4 +67,13 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
 })
 
 export class EventCamListComponent extends CamListSelectionComponent {
+
+    constructor(
+        protected router: Router,
+        protected loginService: LoginService,
+        protected camListService: CamListService) {
+          super(router, loginService, camListService);
+          this.allCamerasSupport = true;
+    }
+
 }
