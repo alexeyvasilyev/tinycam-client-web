@@ -1,7 +1,7 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { GenericService, LoginService, StatusService } from '../services';
-import { Status } from '../models'
-import { HttpErrorResponse } from '@angular/common/http';
+import { ServerResponse, Status } from '../models'
+import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { fadeInAnimation } from '../animations/';
 import Utils from '../utils'
 import ResizeObserver from 'resize-observer-polyfill';
@@ -92,20 +92,22 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
         <mat-card>
           <mat-card-content>
             <div class="app-text-dark-hint">
-              <div>Live view connections: {{status.liveConnections !== undefined ? status.liveConnections : '-'}}</div>
-              <div [@fadeInAnimation] *ngIf="status.threadsRunnableUsed !== undefined">Threads: {{status.threadsRunnableUsed}}/{{status.threadsUsed}}</div>
-              <div>Memory Used: {{humanReadableByteCount(status.memoryUsed)}}, Free: {{humanReadableByteCount(status.memoryAvailable)}}</div>
+              <div>Live view connections: <b>{{status.liveConnections !== undefined ? status.liveConnections : '-'}}</b></div>
+              <div [@fadeInAnimation] *ngIf="status.threadsRunnableUsed !== undefined">Threads: <b>{{status.threadsRunnableUsed}}/{{status.threadsUsed}}</b></div>
+              <div>Memory Used: <b>{{humanReadableByteCount(status.memoryUsed)}}</b>, Free: <b>{{humanReadableByteCount(status.memoryAvailable)}}</b></div>
               <div>Processes: {{getProcessesWithUsage()}}</div>
-              <div>Battery: {{status.batteryLevel}} ({{status.batteryStatus}})</div>
-              <div>Web server uptime: {{humanReadableTime(status.uptime)}}</div>
+              <div>Battery: <b>{{status.batteryLevel}}%</b> ({{status.batteryStatus}})</div>
 
-              <div style="margin-top:10px">Network <span style="color:#EA4238">In</span>: {{humanReadableKBs(status.networkInBps)}}, <span style="color:#5DAEE4">Out</span>: {{humanReadableKBs(status.networkOutBps)}}</div>
+              <div style="padding-top:15px">Web server version: <b>{{this.server}}</b></div>
+              <div>Web server uptime: <b>{{humanReadableTime(status.uptime)}}</b></div>
+
+              <div style="margin-top:15px">Network <span style="color:#EA4238">In</span>: <b>{{humanReadableKBs(status.networkInBps)}}</b>, <span style="color:#5DAEE4">Out</span>: <b>{{humanReadableKBs(status.networkOutBps)}}</b></div>
               <div><canvas #networkChart height="70"></canvas></div>
 
-              <div style="margin-top:10px">CPU usage: {{status.cpuUsagePercents}}%</div>
+              <div style="margin-top:15px">CPU usage: <b>{{status.cpuUsagePercents}}%</b></div>
               <div><canvas #cpuUsageChart height="70"></canvas></div>
 
-              <div style="margin-top:10px">CPU frequency: {{status.cpuFrequencyMhz}}MHz</div>
+              <div style="margin-top:15px">CPU frequency: <b>{{status.cpuFrequencyMhz}} MHz</b></div>
               <div><canvas #cpuFreqChart height="70"></canvas></div>
             </div>
           </mat-card-content>
@@ -149,6 +151,7 @@ export class PageAdminComponent implements OnInit {
     @ViewChild('cpuFreqChart', { static: true }) cpuFreqChartEl: ElementRef;
 
     status: Status = new Status();
+    server: string = '';
     private timerSubscription;
     private networkChart: SmoothieChart = null;
     private cpuUsageChart: SmoothieChart = null;
@@ -166,7 +169,6 @@ export class PageAdminComponent implements OnInit {
 
     humanReadableByteCount(bytes: number): string {
         return bytes !== undefined ? Utils.humanReadableByteCount(bytes) : '-';
-        return bytes !== undefined ? Math.round(bytes / 1048576) + ' MB' : '-';
     }
 
     humanReadableTime(msec: number): string {
@@ -236,8 +238,9 @@ export class PageAdminComponent implements OnInit {
         this.status.backgroundMode = start;
     }
 
-    processStatus(status: Status) {
+    processStatus(status: Status, headers: HttpHeaders) {
         this.status = status;
+        this.server = headers.get('Server');
 
         const currentTime = new Date().getTime();
         this.networkInSeries.append(currentTime, Math.round(status.networkInBps / 1024));
@@ -301,9 +304,13 @@ export class PageAdminComponent implements OnInit {
         this.timerSubscription = setTimeout(() => {
             this.statusService
                 .getStatusGlobal(this.loginService.server, this.loginService.login)
-                .then(
-                  status => { this.processStatus(status); },
-                  error => { this.processStatusError(error); });
+                .subscribe(resp => {
+//                if (resp.ok)
+                  this.processStatus((resp.body as ServerResponse).data as Status, resp.headers);
+                })
+                // .then(
+                //   status => { this.processStatus(status); },
+                //   error => { this.processStatusError(error); });
         }, timeout);
   }
 
