@@ -185,7 +185,7 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
           <span>0.1x</span>
         </button>
         <button mat-raised-button class="button-selectable" (click)="setSpeed(0.5);" [ngStyle]="{'opacity':playerSpeed==0.5?'0.5':'1.0'}">
-          <span>0.2x</span>
+          <span>0.5x</span>
         </button>
         <button mat-raised-button class="button-selectable" (click)="setSpeed(1.0);" [ngStyle]="{'opacity':playerSpeed==1.0?'0.5':'1.0'}">
           <span>1x</span>
