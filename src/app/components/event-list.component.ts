@@ -48,13 +48,13 @@ import { fadeInAnimation } from '../animations/';
         <mat-form-field style="padding:0px 15px">
           <mat-select [(value)]="filterSelected" [disabled]="type === 'cloud'" (selectionChange)="onFilterSelected($event.value)" placeholder="Filter">
             <mat-option>All events</mat-option>
-            <mat-option [value]="'pin'">Pinned</mat-option>
-            <mat-option [value]="'motion'">Motion</mat-option>
-            <mat-option [value]="'person'">Person</mat-option>
-            <mat-option [value]="'vehicle'">Vehicle</mat-option>
-            <mat-option [value]="'pet'">Pet</mat-option>
-            <mat-option [value]="'audio'">Audio</mat-option>
-            <mat-option [value]="'face'">Face</mat-option>
+            <mat-option [value]="'pin'">📌 Pinned</mat-option>
+            <mat-option [value]="'motion'">🍃 Motion</mat-option>
+            <mat-option [value]="'person'">🚶🏽 Person</mat-option>
+            <mat-option [value]="'vehicle'">🚗 Vehicle</mat-option>
+            <mat-option [value]="'pet'">🐕 Pet</mat-option>
+            <mat-option [value]="'audio'">🔊 Audio</mat-option>
+            <mat-option [value]="'face'">👨 Face</mat-option>
           </mat-select>
         </mat-form-field>
       </div>
