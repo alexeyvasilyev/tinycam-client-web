@@ -20,6 +20,7 @@
             "allowedCommonJsDependencies": [
               "rxjs",
               "rxjs-compat",
+              "video.js",
               "angular2-moment"
             ],
             "outputPath": "dist",
@@ -34,7 +35,8 @@
             ],
             "styles": [
               "src/styles.scss",
-              "src/cloud-theme.scss"
+              "src/cloud-theme.scss",
+              "node_modules/video.js/dist/video-js.min.css"
             ],
             "scripts": []
           },

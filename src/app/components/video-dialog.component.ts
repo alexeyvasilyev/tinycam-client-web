@@ -2,7 +2,7 @@ import { Component, Input, OnInit, AfterViewInit, ElementRef, ViewChild } from '
 import { MatDialog } from '@angular/material/dialog';
 import { fadeInAnimation } from '../animations/';
 
-declare const videojs: any;
+import videojs from 'video.js';
 
 @Component({
   selector: 'video-dialog',
@@ -21,7 +21,8 @@ declare const videojs: any;
     </table>
 
     <video [@fadeInAnimation] #component id='mp4video' class="video-js vjs-default-skin vjs-big-play-centered"
-       controls (error)="handleVideoError()" (playing)="handleVideoPlaying()" poster="{{imageUrl}}">
+       controls (error)="handleVideoError()" (playing)="handleVideoPlaying()" poster="{{imageUrl}}"
+       data-setup='{"playbackRates": [0.1, 0.5, 1, 2, 3]}'>
     </video>
   `
 })
