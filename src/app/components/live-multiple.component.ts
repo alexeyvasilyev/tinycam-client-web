@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, Params, ActivatedRoute } from '@angular/router';
 import { CameraSettings } from '../models';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoginService, CamListService, WindowRefService } from '../services';
 import { HttpErrorResponse } from '@angular/common/http';
 import { fadeInAnimation } from '../animations/';
-import Utils from '../utils';
+import StorageUtils from '../utils-storage';
 
 @Component({
     selector: 'live-multiple',
@@ -73,7 +73,7 @@ import Utils from '../utils';
                 </span>
             </button>
 
-            <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Single camera layout" (click)="showSingleScreen()">
+            <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Single camera layout" (click)="showSingleScreenLastSelected()">
                 <i class="fas fa-square"></i>
             </button>
             <!-- <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
@@ -84,21 +84,21 @@ import Utils from '../utils';
       </div>
 
       <div *ngIf="cameras !== null" #live style="background-color: #424242; overflow: auto;" [style.height.px]="getLiveHeight()" [@fadeInAnimation]>
-      <table #livem width="100%" height="100%" style="border-spacing:2px;border-collapse:separate;" (click)="showHideToolbar()">
+      <table #livem width="100%" height="100%" style="border-spacing:2px;border-collapse:separate;">
         <tr>
           <td class="cell">
-            <live [cameraId]="getCamera(currentPage * getCamerasPerPage()).id" [viewHeightPx]="getCellHeight()" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
+            <live [cameraId]="getCameraPage(0).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(0)" (click)="liveSingleClick()"></live>
           </td>
           <td class="cell">
-            <live *ngIf="getCamera(currentPage * getCamerasPerPage() + 1) != null" [cameraId]="getCamera(currentPage * getCamerasPerPage() + 1).id" [viewHeightPx]="getCellHeight()" (dblclick)="toggleFullScreen()"></live>
+            <live *ngIf="getCameraPage(1) != null" [cameraId]="getCameraPage(1).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(1)" (click)="liveSingleClick()"></live>
           </td>
         </tr>
         <tr *ngIf="getCamerasPerPage() >= 4">
           <td class="cell">
-            <live *ngIf="getCamera(currentPage * getCamerasPerPage() + 2) != null"  [cameraId]="getCamera(currentPage * getCamerasPerPage() + 2).id" [viewHeightPx]="getCellHeight()" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
+            <live *ngIf="getCameraPage(2) != null" [cameraId]="getCameraPage(2).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(2)" (click)="liveSingleClick()"></live>
           </td>
           <td class="cell">
-            <live *ngIf="getCamera(currentPage * getCamerasPerPage() + 3) != null" [cameraId]="getCamera(currentPage * getCamerasPerPage() + 3).id" [viewHeightPx]="getCellHeight()" (dblclick)="toggleFullScreen()"></live>
+            <live *ngIf="getCameraPage(3) != null" [cameraId]="getCameraPage(3).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(3)" (click)="liveSingleClick()"></live>
           </td>
         </tr>
       </table>
@@ -115,9 +115,11 @@ export class LiveMultipleComponent implements OnInit {
     errorMessage: string = null;
     currentPage: number = 0;
     private CAMS_PER_LAYOUT: number = 4; // Utils.isBrowserFirefox() ? 4 : 2;
+    private timerClick;
 
     constructor (
         private router: Router,
+        private activatedRoute: ActivatedRoute,
         private snackBar: MatSnackBar,
         private loginService: LoginService,
         private camListService: CamListService,
@@ -130,11 +132,34 @@ export class LiveMultipleComponent implements OnInit {
             .then(
                 res  => { this.processCamList(res); },
                 error => { this.processCamListError(error); });
+        // Check if '/livem?bottom'
+        this.activatedRoute.queryParams.subscribe((params: Params) => {
+            let bottom = params['bottom'];
+            if (bottom) {
+                this.scrollBottom();
+            }
+        });
     }
 
-    toggleFullScreen() {
-//        Utils.toggleFullScreen(this.livemEl.nativeElement);
+    liveSingleClick() {
+        console.log('liveSingleClick()');
+        if (this.timerClick)
+            clearTimeout(this.timerClick);
+        this.timerClick = setTimeout(() => {
+            this.showHideToolbar();
+        }, 250);
     }
+
+    liveDoubleClick(index: number) {
+        console.log('liveDoubleClick()');
+        if (this.timerClick)
+            clearTimeout(this.timerClick);
+        this.showSingleScreen(index);
+    }
+
+    // toggleFullScreen() {
+    //    Utils.toggleFullScreen(this.livemEl.nativeElement);
+    // }
 
     getCellHeight(): number {
         const rows = this.getCamerasPerPage() == 2 ? 1 : 2;
@@ -143,6 +168,10 @@ export class LiveMultipleComponent implements OnInit {
 
     getLiveHeight(): number {
         return this.windowRef.nativeWindow.innerHeight;
+    }
+
+    getCameraPage(index: number): CameraSettings {
+        return this.getCamera(this.currentPage * this.getCamerasPerPage() + index);
     }
 
     getCamera(index: number): CameraSettings {
@@ -187,8 +216,16 @@ export class LiveMultipleComponent implements OnInit {
         }
     }
 
-    showSingleScreen() {
+    showSingleScreenLastSelected() {
         this.router.navigate(['/live']);
+    }
+
+    showSingleScreen(index: number) {
+        StorageUtils.setLastCameraSelected(this.getCameraPage(index).id);
+        if (document.documentElement.scrollTop > 0)
+            this.router.navigate(['/live'], { queryParams: { bottom: "yes" } });
+        else
+            this.router.navigate(['/live']);
     }
 
     processCamListError(error: HttpErrorResponse) {

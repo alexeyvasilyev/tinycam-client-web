@@ -4,7 +4,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
 import { CamListService, GenericService, LoginService, StatusService, WindowRefService } from '../services';
 import { PtzCapability, CameraSettings, Status } from '../models'
 import { LiveInfoDialogComponent } from './live-info-dialog.component';
-import { Router } from '@angular/router';
+import { Router, Params, ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import Utils from '../utils';
@@ -146,7 +146,7 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
           </div>
 
           <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="getLiveHeight()" [@fadeInAnimation]>
-            <live [cameraId]="cameraSelected.id" [viewHeightPx]="getLiveHeight()" (dblclick)="toggleFullScreen()" (click)="showHideToolbar()"></live>
+            <live [cameraId]="cameraSelected.id" [viewHeightPx]="getLiveHeight()" (dblclick)="liveDoubleClick()" (click)="liveSingleClick()"></live>
           </div>
         </div>
       </div>
@@ -171,6 +171,8 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     audioShown = false;
     audioLoading = false;
     status: Status = new Status();
+    private timerClick;
+    private showSnackBarOnStart = true;
 
     REQUEST_PTZ = '/axis-cgi/com/ptz.cgi';
     REQUEST_LED = '/axis-cgi/io/lightcontrol.cgi';
@@ -180,18 +182,33 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     PARAM_CONT_FOCUS  = "continuousfocusmove";
     PARAM_CONT_IRIS   = "continuousirismove";
     PARAM_GOTO_PRESET = "gotoserverpresetno";
-    PARAM_ACTION          = "action";
+    PARAM_ACTION      = "action";
 
     constructor(
         private dialog: MatDialog,
         private snackBar: MatSnackBar,
         protected router: Router,
+        private activatedRoute: ActivatedRoute,
         protected loginService: LoginService,
         private genericService: GenericService,
         private statusService: StatusService,
         protected camListService: CamListService,
         private windowRef: WindowRefService) {
             super(router, loginService, camListService);
+    }
+
+    liveSingleClick() {
+        if (this.timerClick)
+            clearTimeout(this.timerClick);
+        this.timerClick = setTimeout(() => {
+            this.showHideToolbar();
+        }, 250);
+    }
+
+    liveDoubleClick() {
+        if (this.timerClick)
+            clearTimeout(this.timerClick);
+        this.showMultipleScreen();
     }
 
     getLiveHeight(): number {
@@ -243,7 +260,10 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     showMultipleScreen() {
-        this.router.navigate(['/livem']);
+        if (document.documentElement.scrollTop > 0)
+            this.router.navigate(['/livem'], { queryParams: { bottom: "yes" } });
+        else
+            this.router.navigate(['/livem']);
     }
 
     showHideJoystick() {
@@ -296,6 +316,14 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     ngOnInit() {
         super.ngOnInit();
         this.startUpdateTimer(100);
+        // Check if '/live?bottom'
+        this.activatedRoute.queryParams.subscribe((params: Params) => {
+            let bottom = params['bottom'];
+            if (bottom) {
+                this.showSnackBarOnStart = false;
+                this.scrollBottom();
+            }
+        });
     }
 
     ngOnDestroy() {
@@ -307,9 +335,9 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         this.dialog.open(LiveInfoDialogComponent);
     }
 
-    toggleFullScreen() {
+    // toggleFullScreen() {
     //    Utils.toggleFullScreen(this.liveEl.nativeElement);
-    }
+    // }
 
     getAudioUrl() {
         console.log(`Audio: ${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${(this.cameraSelected as CameraSettings).id}&token=${this.loginService.login.token}`);
@@ -318,9 +346,11 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 
     camerasLoaded() {
         super.camerasLoaded();
-        this.snackBar.openFromComponent(ScrollDownComponent, {
-            duration: 3000
-        });
+        if (this.showSnackBarOnStart) {
+            this.snackBar.openFromComponent(ScrollDownComponent, {
+                duration: 3000
+            });
+        }
     }
 
     sendCameraMotionEvent() {
