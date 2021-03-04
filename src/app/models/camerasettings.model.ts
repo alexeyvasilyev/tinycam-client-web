@@ -2,7 +2,10 @@
 
 export const enum PtzCapability {
     MoveRel     = 0x1 << 1,
-    GotoPresets = 0x1 << 4
+    GotoPresets = 0x1 << 4,
+    LedOn       = 0x1 << 15,
+    LedOff      = 0x1 << 16,
+    LedAuto     = 0x1 << 17,
 };
 
 export class CameraSettings {

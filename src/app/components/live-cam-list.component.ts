@@ -114,10 +114,24 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
               <button mat-icon-button [matMenuTriggerFor]="menu"><i class="fas fa-ellipsis-v fa-lg" style="color:#111111;"></i></button>
               <mat-menu #menu="matMenu">
                 <button mat-menu-item (click)="sendCameraMotionEvent()">
-                  <span>Create motion event</span>
+                <i class="fas fa-walking fa-lg"></i> &nbsp;
+                  <span>Trigger motion event</span>
+                </button>
+                <button mat-menu-item (click)="ledOn()" [disabled]="!isLedOnSupported()" >
+                  <i class="far fa-lightbulb fa-lg"></i> &nbsp;
+                  <span>LED On</span>
+                </button>
+                <button mat-menu-item (click)="ledOff()" [disabled]="!isLedOffSupported()">
+                  <i class="far fa-lightbulb fa-lg"></i> &nbsp;
+                  <span>LED Off</span>
+                </button>
+                <button mat-menu-item (click)="ledAuto()" [disabled]="!isLedAutoSupported()">
+                  <i class="far fa-lightbulb fa-lg"></i> &nbsp;
+                  <span>LED Auto</span>
                 </button>
                 <button mat-menu-item (click)="openInfoDialog()">
-                  <span>Help</span>
+                  <i class="fas fa-info fa-lg"></i> &nbsp;
+                  <span>Info</span>
                 </button>
               </mat-menu>
 
@@ -158,12 +172,15 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     audioLoading = false;
     status: Status = new Status();
 
-    PTZ_REQUEST = '/axis-cgi/com/ptz.cgi';
+    REQUEST_PTZ = '/axis-cgi/com/ptz.cgi';
+    REQUEST_LED = '/axis-cgi/io/lightcontrol.cgi';
+
     PARAM_CONT_MOVE   = "continuouspantiltmove";
     PARAM_CONT_ZOOM   = "continuouszoommove";
     PARAM_CONT_FOCUS  = "continuousfocusmove";
     PARAM_CONT_IRIS   = "continuousirismove";
     PARAM_GOTO_PRESET = "gotoserverpresetno";
+    PARAM_ACTION          = "action";
 
     constructor(
         private dialog: MatDialog,
@@ -205,6 +222,24 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         if (this.cameraSelected === null)
             return false;
         return Utils.hasCapability((this.cameraSelected as CameraSettings).ptzCapabilities, PtzCapability.GotoPresets);
+    }
+
+    isLedOnSupported(): boolean {
+        if (this.cameraSelected === null)
+            return false;
+        return Utils.hasCapability((this.cameraSelected as CameraSettings).ptzCapabilities, PtzCapability.LedOn);
+    }
+
+    isLedOffSupported(): boolean {
+        if (this.cameraSelected === null)
+            return false;
+        return Utils.hasCapability((this.cameraSelected as CameraSettings).ptzCapabilities, PtzCapability.LedOff);
+    }
+
+    isLedAutoSupported(): boolean {
+        if (this.cameraSelected === null)
+            return false;
+        return Utils.hasCapability((this.cameraSelected as CameraSettings).ptzCapabilities, PtzCapability.LedAuto);
     }
 
     showMultipleScreen() {
@@ -291,7 +326,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     sendCameraMotionEvent() {
         this.sendHttpGetRequest(`/axis-cgi/motion/createmotion.cgi?cameraId=${(this.cameraSelected as CameraSettings).id}`)
         .then(
-            res => { this.snackBar.open('Motion signal sent', null, {
+            res => { this.snackBar.open('Motion event triggered', null, {
                 duration: 4000,
             })
         });
@@ -302,7 +337,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     moveUp(showTip: boolean) {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=0,100`)
         .then(
             res => { if (showTip) this.snackBar.open(`Move up`, null, {
                 duration: 3000,
@@ -311,7 +346,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     moveDown(showTip: boolean) {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,-100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=0,-100`)
         .then(
             res => { if (showTip) this.snackBar.open(`Move down`, null, {
                 duration: 3000,
@@ -320,7 +355,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     moveLeft(showTip: boolean) {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=-100,0`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=-100,0`)
         .then(
             res => { if (showTip) this.snackBar.open(`Move left`, null, {
                 duration: 3000,
@@ -329,7 +364,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     moveRight(showTip: boolean) {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=100,0`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=100,0`)
         .then(
             res => { if (showTip) this.snackBar.open(`Move right`, null, {
                 duration: 3000,
@@ -338,77 +373,104 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     moveStop() {
-      this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_MOVE}=0,0`);
+      this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=0,0`);
+    }
+
+    ledOn() {
+        this.sendHttpGetRequest(`${this.REQUEST_LED}?${this.PARAM_ACTION}=L1:-100`)
+        .then(
+            res => { this.snackBar.open(`LED On`, null, {
+                duration: 3000,
+            })
+        });
+    }
+
+    ledOff() {
+        this.sendHttpGetRequest(`${this.REQUEST_LED}?${this.PARAM_ACTION}=L1:-0`)
+        .then(
+            res => { this.snackBar.open(`LED Off`, null, {
+                duration: 3000,
+            })
+        });
+    }
+
+    ledAuto() {
+        this.sendHttpGetRequest(`${this.REQUEST_LED}?${this.PARAM_ACTION}=L1:-50`)
+        .then(
+            res => { this.snackBar.open(`LED Auto`, null, {
+                duration: 3000,
+            })
+        });
     }
 
     zoomIn() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_ZOOM}=100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_ZOOM}=100`)
         .then(
-            res => { this.snackBar.open(`Zoom in`, null, {
+            res => { this.snackBar.open(`Zoom In`, null, {
                 duration: 3000,
             })
         });
     }
 
     zoomOut() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_ZOOM}=-100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_ZOOM}=-100`)
         .then(
-            res => { this.snackBar.open(`Zoom out`, null, {
+            res => { this.snackBar.open(`Zoom Out`, null, {
                 duration: 3000,
             })
         });
     }
 
     zoomStop() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_ZOOM}=0`);
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_ZOOM}=0`);
     }
   
     focusNear() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_FOCUS}=100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_FOCUS}=100`)
         .then(
-            res => { this.snackBar.open(`Focus near`, null, {
+            res => { this.snackBar.open(`Focus Near`, null, {
                 duration: 3000,
             })
         });
     }
 
     focusFar() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_FOCUS}=-100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_FOCUS}=-100`)
         .then(
-            res => { this.snackBar.open(`Focus far`, null, {
+            res => { this.snackBar.open(`Focus Far`, null, {
                 duration: 3000,
             })
         });
     }
 
     focusStop() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_FOCUS}=0`);
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_FOCUS}=0`);
     }
 
     irisOpen() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_IRIS}=100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_IRIS}=100`)
         .then(
-            res => { this.snackBar.open(`Iris open`, null, {
+            res => { this.snackBar.open(`Iris Open`, null, {
                 duration: 3000,
             })
         });
     }
 
     irisClose() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_IRIS}=-100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_IRIS}=-100`)
         .then(
-            res => { this.snackBar.open(`Iris close`, null, {
+            res => { this.snackBar.open(`Iris Close`, null, {
                 duration: 3000,
             })
         });
     }
 
     irisStop() {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_CONT_IRIS}=0`);
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_IRIS}=0`);
     }
 
     gotoPreset(preset: number) {
-        this.sendHttpGetRequest(`${this.PTZ_REQUEST}?${this.PARAM_GOTO_PRESET}=${preset}`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_GOTO_PRESET}=${preset}`)
         .then(
             res => { this.snackBar.open(`Preset ${preset}`, null, {
                 duration: 3000,
