@@ -23,11 +23,8 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
       </mat-card>
       <div *ngIf="cameras; else loading_content">
         <div *ngIf="cameras.length > 0; else no_cams_content">
-          <div *ngIf="cameras.length > 1" style="text-align:right;padding-top:20px;padding-bottom:20px;">
-            <mat-checkbox [(ngModel)]="multipleTimeline">Show all cameras on timeline</mat-checkbox>
-          </div>
 
-          <div *ngIf="cameras.length > 1 && !multipleTimeline" style="margin-bottom:20px;">
+          <div *ngIf="cameras.length > 1" style="margin-bottom:20px;">
             <mat-card>
               <div class="right">
                 <mat-button-toggle-group *ngIf="cameraSelected !== null && cameraSelected.cloudAccess" [(value)]="localCloudSelected">
@@ -39,6 +36,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
               <div class="left">
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
                   <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera timeline">
+                    <mat-option [value]="-1" >All cameras</mat-option>
                     <mat-option *ngFor="let camera of cameras" [value]="camera">
                       {{getCameraName(camera)}}
                     </mat-option> 
@@ -48,7 +46,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
             </mat-card>
           </div>
 
-          <timeline [selectedCameraId]="cameraSelected.id" [cameras]="cameras" [multipleTimeline]="multipleTimeline" [type]="localCloudSelected"></timeline>
+          <timeline [selectedCameraId]="cameraSelected.id" [cameras]="cameras" [multipleTimeline]="cameraSelected == -1" [type]="localCloudSelected"></timeline>
         </div>
       </div>
 
@@ -60,6 +58,9 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
 
 export class TimelineCamListComponent extends CamListSelectionComponent {
 
-  @Input() multipleTimeline: boolean;
+    ngOnInit() {
+        this.allCamerasSupport = true;
+        super.ngOnInit();
+    }
 
 }

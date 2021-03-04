@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
 import { CamListSelectionComponent } from './cam-list-selection.component';
-import { CamListService, LoginService } from '../services';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'event-cam-list',
@@ -68,12 +66,9 @@ import { Router } from '@angular/router';
 
 export class EventCamListComponent extends CamListSelectionComponent {
 
-    constructor(
-        protected router: Router,
-        protected loginService: LoginService,
-        protected camListService: CamListService) {
-          super(router, loginService, camListService);
-          this.allCamerasSupport = true;
+    ngOnInit() {
+        this.allCamerasSupport = true;
+        super.ngOnInit();
     }
 
 }
