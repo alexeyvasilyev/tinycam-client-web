@@ -76,9 +76,9 @@ import Utils from '../utils';
             <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Single camera layout" (click)="showSingleScreen()">
                 <i class="fas fa-square"></i>
             </button>
-            <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
+            <!-- <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
                 <i class="fas fa-expand-alt"></i>
-            </button>
+            </button> -->
 
         </div>
       </div>
@@ -133,7 +133,7 @@ export class LiveMultipleComponent implements OnInit {
     }
 
     toggleFullScreen() {
-        Utils.toggleFullScreen(this.livemEl.nativeElement);
+//        Utils.toggleFullScreen(this.livemEl.nativeElement);
     }
 
     getCellHeight(): number {

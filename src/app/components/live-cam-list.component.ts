@@ -124,9 +124,9 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
               <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Multiple cameras layout" (click)="showMultipleScreen()">
                 <i class="fas fa-th-large"></i>
               </button>
-              <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
+              <!-- <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
                 <i class="fas fa-expand-alt"></i>
-              </button>
+              </button> -->
             </div>
 
           </div>
@@ -273,7 +273,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     toggleFullScreen() {
-        Utils.toggleFullScreen(this.liveEl.nativeElement);
+    //    Utils.toggleFullScreen(this.liveEl.nativeElement);
     }
 
     getAudioUrl() {
