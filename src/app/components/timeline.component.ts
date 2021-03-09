@@ -353,6 +353,7 @@ export class TimelineComponent implements OnInit {
             case "s": this.selectBottomTimeline(); event.preventDefault(); break;
             case " ": this.handlePlayPauseClicked(); event.preventDefault(); break;
             case "-": this.timeline.increaseInterval(); event.preventDefault(); break;
+            case "+":
             case "=": this.timeline.decreaseInterval(); event.preventDefault(); break;
         };
     }
