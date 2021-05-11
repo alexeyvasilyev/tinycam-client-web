@@ -4,6 +4,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
 import { CamListService, GenericService, LoginService, StatusService, WindowRefService } from '../services';
 import { PtzCapability, CameraSettings, Status } from '../models'
 import { LiveInfoDialogComponent } from './live-info-dialog.component';
+import { LiveSetPresetDialogComponent } from './live-set-preset-dialog.component';
 import { Router, Params, ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -117,17 +118,30 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
                 <i class="fas fa-walking fa-lg"></i> &nbsp;
                   <span>Trigger motion event</span>
                 </button>
-                <button mat-menu-item (click)="ledOn()" [disabled]="!isLedOnSupported()" >
+
+                <button mat-menu-item [matMenuTriggerFor]="led">
                   <i class="far fa-lightbulb fa-lg"></i> &nbsp;
-                  <span>LED On</span>
+                  <span>LED</span>
                 </button>
-                <button mat-menu-item (click)="ledOff()" [disabled]="!isLedOffSupported()">
-                  <i class="far fa-lightbulb fa-lg"></i> &nbsp;
-                  <span>LED Off</span>
-                </button>
-                <button mat-menu-item (click)="ledAuto()" [disabled]="!isLedAutoSupported()">
-                  <i class="far fa-lightbulb fa-lg"></i> &nbsp;
-                  <span>LED Auto</span>
+
+                <mat-menu #led="matMenu">
+                  <button mat-menu-item (click)="ledOn()" [disabled]="!isLedOnSupported()" >
+                    <i class="far fa-lightbulb fa-lg"></i> &nbsp;
+                    <span>LED On</span>
+                  </button>
+                  <button mat-menu-item (click)="ledOff()" [disabled]="!isLedOffSupported()">
+                    <i class="far fa-lightbulb fa-lg"></i> &nbsp;
+                    <span>LED Off</span>
+                  </button>
+                  <button mat-menu-item (click)="ledAuto()" [disabled]="!isLedAutoSupported()">
+                    <i class="far fa-lightbulb fa-lg"></i> &nbsp;
+                    <span>LED Auto</span>
+                  </button>
+                </mat-menu>
+
+                <button mat-menu-item (click)="openSetPresetDialog()">
+                  <i class="fas fa-map-marker-alt"></i> &nbsp;
+                  <span>Save preset</span>
                 </button>
                 <button mat-menu-item (click)="openInfoDialog()">
                   <i class="fas fa-info fa-lg"></i> &nbsp;
@@ -182,6 +196,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     PARAM_CONT_FOCUS  = "continuousfocusmove";
     PARAM_CONT_IRIS   = "continuousirismove";
     PARAM_GOTO_PRESET = "gotoserverpresetno";
+    PARAM_SET_PRESET  = "setserverpresetno";
     PARAM_ACTION      = "action";
 
     constructor(
@@ -333,6 +348,14 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 
     openInfoDialog() {
         this.dialog.open(LiveInfoDialogComponent);
+    }
+
+    openSetPresetDialog() {
+        let dialog = this.dialog.open(LiveSetPresetDialogComponent);
+        dialog.afterClosed().subscribe(result => {
+            if (result > -1)
+                this.setPreset(result);
+        });
     }
 
     // toggleFullScreen() {
@@ -503,6 +526,15 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_GOTO_PRESET}=${preset}`)
         .then(
             res => { this.snackBar.open(`Preset ${preset}`, null, {
+                duration: 3000,
+            })
+        });
+    }
+
+    setPreset(preset: number) {
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_SET_PRESET}=${preset}`)
+        .then(
+            res => { this.snackBar.open(`Saved preset ${preset}`, null, {
                 duration: 3000,
             })
         });
