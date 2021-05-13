@@ -6,25 +6,29 @@ import { WindowRefService } from '../services';
 @Component({
     selector: 'live',
     animations: [fadeInAnimation],
-    styles: [ `
-      .live-view-loading {
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
-        background-image: url("assets/img/loading.png");
-      }
-      .live-view {
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
-      }
-    `],
+    // styles: [ `
+    //   .live-view-loading {
+    //     background-repeat: no-repeat;
+    //     background-position: center;
+    //     background-size: contain;
+    //     background-image: url("assets/img/loading.png");
+    //   }
+    //   .live-view {
+    //     background-repeat: no-repeat;
+    //     background-position: center;
+    //     background-size: contain;
+    //   }
+    // `],
     template: `
       <!-- <img style="height:100px" #image alt="" (load)="loadImage()" (error)="loadImageError()" src="{{getLiveImage()}}"/> -->
-      <div [@fadeInAnimation] class="live-view-loading" style="cursor: pointer;">
-        <div #cell class="live-view" [style.height.px]="viewHeightPx"></div>
-        <!-- <div #cell class="live-view" [style.height.vh]="viewHeightVh"></div> -->
+      <!-- Classes live-view-loading and live-view are not loaded in Angular 12.0.0. Bug? -->
+      <div [@fadeInAnimation] style="cursor: pointer; background-repeat: no-repeat; background-position: center; background-size: contain; background-image: url('assets/img/loading.png');">
+        <div #cell style="background-repeat: no-repeat; background-position: center; background-size: contain;" [style.height.px]="viewHeightPx"></div>
       </div>
+
+      <!-- <div [@fadeInAnimation] class="live-view-loading" style="cursor: pointer;"> -->
+      <!--  <div #cell class="live-view" [style.height.px]="viewHeightPx"></div> -->
+      <!-- </div> -->
     `
 })
 
