@@ -4,7 +4,7 @@ import { ServerResponse, Status } from '../models'
 import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { fadeInAnimation } from '../animations/';
 import Utils from '../utils'
-import ResizeObserver from 'resize-observer-polyfill';
+import { ResizeObserver } from '@juggle/resize-observer';
 import { SmoothieChart, TimeSeries } from 'smoothie';
 
 @Component({

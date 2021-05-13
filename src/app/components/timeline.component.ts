@@ -3,7 +3,7 @@ import { CameraSettings, EventRecord } from '../models'
 import { EventListService, LoginService } from '../services';
 import { HttpErrorResponse } from '@angular/common/http';
 import Utils from '../utils';
-import ResizeObserver from 'resize-observer-polyfill';
+import { ResizeObserver } from '@juggle/resize-observer';
 import { fadeInAnimation } from '../animations/';
 
 declare const Timeline: any;
