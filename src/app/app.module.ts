@@ -20,10 +20,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 // import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+// import { MatTableModule } from '@angular/material/table';
 import {
   CamListService,
   EventListService,
   GenericService,
+  IpAddressesService,
+  IpLocateService,
   LoginService,
   LogoutService,
   StatusService,
@@ -103,6 +106,7 @@ import { MomentModule } from 'ngx-moment';
     MatSelectModule,
     // MatSliderModule,
     MatSnackBarModule,
+    // MatTableModule,
     MatTooltipModule,
     MomentModule,
     FormsModule
@@ -112,6 +116,8 @@ import { MomentModule } from 'ngx-moment';
     CamListService,
     EventListService,
     GenericService,
+    IpAddressesService,
+    IpLocateService,
     LoginService,
     LogoutService,
     StatusService,

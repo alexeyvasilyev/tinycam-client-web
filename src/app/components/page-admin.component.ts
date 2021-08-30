@@ -1,6 +1,6 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
-import { GenericService, LoginService, StatusService } from '../services';
-import { ServerResponse, Status } from '../models'
+import { GenericService, IpAddressesService, IpLocateService, LoginService, StatusService } from '../services';
+import { IpAddress, ServerResponse, Status } from '../models'
 import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { fadeInAnimation } from '../animations/';
 import Utils from '../utils'
@@ -21,6 +21,15 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
       }
       .warning {
         color: red;
+      }
+      .ip-header {
+        background-color: #757575;
+        color: white;
+        padding: 7px;
+      }
+      .ip-td {
+        background-color: #EEEEEE;
+        padding: 7px;
       }
     `],
     template: `
@@ -129,6 +138,26 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
 
         <mat-card>
           <mat-card-content>
+            <div class="mat-h3">Access logs</div>
+            <table class="app-text-dark-hint" style="width: 100%">
+                <tr>
+                    <td class="ip-header">IP</td>
+                    <td class="ip-header">Time</td>
+                    <td class="ip-header">Country/City</td>
+                    <td class="ip-header">User</td>
+                </tr>
+                <tr *ngFor="let ipAddress of ipAddresses">
+                    <td class="ip-td">{{ipAddress.ip}}</td>
+                    <td class="ip-td">{{getLocalDateTimeFormatted(ipAddress.time)}}</td>
+                    <td class="ip-td"><div *ngIf="ipAddress.country != null"><a href="https://www.google.com/maps/search/{{ipAddress.latitude}}%2C{{ipAddress.longitude}}" target="_blank">{{ipAddress.country}}/{{ipAddress.city}}</a></div></td>
+                    <td class="ip-td">{{ipAddress.user}}</td>
+                </tr>
+            </table>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-content>
             <div>
               <div><a class="my-button" mat-raised-button color="warn" href="{{getRestartWebServerUrl()}}">{{status.rootAvailable ? 'Reboot device' : 'Restart web server'}}</a></div>
             </div>
@@ -152,6 +181,7 @@ export class PageAdminComponent implements OnInit {
 
     status: Status = new Status();
     server: string = '';
+    ipAddresses: IpAddress[];
     private timerSubscription;
     private networkChart: SmoothieChart = null;
     private cpuUsageChart: SmoothieChart = null;
@@ -164,7 +194,9 @@ export class PageAdminComponent implements OnInit {
     constructor(
         public loginService: LoginService,
         private genericService: GenericService,
-        private statusService: StatusService) {
+        private statusService: StatusService,
+        private ipaddressesService: IpAddressesService,
+        private ipLocateService: IpLocateService) {
     }
 
     humanReadableByteCount(bytes: number): string {
@@ -179,6 +211,21 @@ export class PageAdminComponent implements OnInit {
         return bytesPerSec !== undefined ? Math.round(bytesPerSec / 1024) + ' KB/s' : '-';
     }
 
+    getLocalDateTimeFormatted(msec: number): string {
+        return new Date(msec).toLocaleString();
+    }
+
+    updateIpLocate(ipAddress: IpAddress) {
+        this.ipLocateService
+            .getLookup(ipAddress.ip)
+            .then(data => { 
+                ipAddress.city = data.city;
+                ipAddress.country = data.country;
+                ipAddress.latitude = data.latitude;
+                ipAddress.longitude = data.longitude;
+            });
+    }
+
     ngOnInit() {
         const ro = new ResizeObserver((entries, observer) => {
             this.resizeCanvas();
@@ -187,10 +234,22 @@ export class PageAdminComponent implements OnInit {
 
         this.startUpdateTimer(100);
         this.initCharts();
+        this.updateIpAddresses();
     }
 
     ngOnDestroy() {
         this.stopUpdateTimer();
+    }
+
+    private updateIpAddresses() {
+        this.ipaddressesService
+            .getIpAddresses(this.loginService.server, this.loginService.login)
+            .then(ipAddresses => { 
+                this.ipAddresses = ipAddresses;
+                for (let ipAddress of this.ipAddresses) {
+                    this.updateIpLocate(ipAddress);
+                }
+            });
     }
 
     getProcessesWithUsage(): string {
@@ -306,7 +365,7 @@ export class PageAdminComponent implements OnInit {
                 .getStatusGlobal(this.loginService.server, this.loginService.login)
                 .subscribe(resp => {
 //                if (resp.ok)
-                  this.processStatus((resp.body as ServerResponse).data as Status, resp.headers);
+                    this.processStatus((resp.body as ServerResponse).data as Status, resp.headers);
                 })
                 // .then(
                 //   status => { this.processStatus(status); },
