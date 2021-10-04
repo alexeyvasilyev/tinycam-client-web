@@ -6,6 +6,7 @@ import { VideoDialogComponent } from './video-dialog.component';
 import { fadeInAnimation } from '../animations/';
 import { EventRecord } from '../models';
 import Utils from "../utils";
+import { Observable } from 'rxjs';
 
 // <video> tag is shown only for Chrome/Firefox/Safari browsers. Not shown for IE.
 // For Chrome browser only first 5 events are shown as <video>,
@@ -362,13 +363,14 @@ export class EventComponent implements OnInit {
         // console.log("deleteEvent()");
         const url = `/param.cgi?action=delete&root.Filename=${this.getPlainFilename(this.event.video)}`;
         this.sendHttpGetRequest(url)
-        .then(
-            res => {
-                this.eventDeleted = true;
-                this.snackBar.open('Event deleted', null, {
-                    duration: 4000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.eventDeleted = true;
+                    this.snackBar.open('Event deleted', null, {
+                        duration: 4000
+                    })
+                }
+            });
     }
 
     pinUnpinEvent(pin: boolean) {
@@ -376,23 +378,24 @@ export class EventComponent implements OnInit {
         const ch = pin ? 'pin' : 'unpin';
         const url = `/param.cgi?action=${ch}&root.Filename=${this.getPlainFilename(this.event.video)}`;
         this.sendHttpGetRequest(url)
-        .then(
-            res => {
-                if (pin) {
-                    this.event.video = this.event.video.replace('.mp4', '_pin.mp4');
-                    this.event.image = this.event.image.replace('.mp4', '_pin.mp4');
-                } else {
-                    this.event.video = this.event.video.replace('_pin.mp4', '.mp4');
-                    this.event.image = this.event.image.replace('_pin.mp4', '.mp4');
+            .subscribe({
+                next: () => {
+                    if (pin) {
+                        this.event.video = this.event.video.replace('.mp4', '_pin.mp4');
+                        this.event.image = this.event.image.replace('.mp4', '_pin.mp4');
+                    } else {
+                        this.event.video = this.event.video.replace('_pin.mp4', '.mp4');
+                        this.event.image = this.event.image.replace('_pin.mp4', '.mp4');
+                    }
+                    this.eventPinned = pin;
+                    this.snackBar.open(`Event ${ch}ned`, null, {
+                        duration: 4000,
+                    })
                 }
-                this.eventPinned = pin;
-                this.snackBar.open(`Event ${ch}ned`, null, {
-                    duration: 4000,
-            })
-        });
-    }
+             });
+      }
 
-    sendHttpGetRequest(request: string): Promise<any> {
+    sendHttpGetRequest(request: string): Observable<any> {
         return this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
     }
 

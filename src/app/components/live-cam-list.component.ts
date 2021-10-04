@@ -11,6 +11,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import Utils from '../utils';
 import * as nipplejs from 'nipplejs';
 import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'live-cam-list',
@@ -378,166 +379,203 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 
     sendCameraMotionEvent() {
         this.sendHttpGetRequest(`/axis-cgi/motion/createmotion.cgi?cameraId=${(this.cameraSelected as CameraSettings).id}`)
-        .then(
-            res => { this.snackBar.open('Motion event triggered', null, {
-                duration: 4000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`Motion event triggered`, null, {
+                        duration: 4000,
+                    })
+                }
+            });
     }
 
-    sendHttpGetRequest(request: string): Promise<any> {
+    sendHttpGetRequest(request: string): Observable<any> {
+        //console.log(`Request ${request}`);
         return this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
     }
 
     moveUp(showTip: boolean) {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=0,100`)
-        .then(
-            res => { if (showTip) this.snackBar.open(`Move up`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    if (showTip) this.snackBar.open(`Move up`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     moveDown(showTip: boolean) {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=0,-100`)
-        .then(
-            res => { if (showTip) this.snackBar.open(`Move down`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    if (showTip) this.snackBar.open(`Move down`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     moveLeft(showTip: boolean) {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=-100,0`)
-        .then(
-            res => { if (showTip) this.snackBar.open(`Move left`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    if (showTip) this.snackBar.open(`Move left`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     moveRight(showTip: boolean) {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=100,0`)
-        .then(
-            res => { if (showTip) this.snackBar.open(`Move right`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    if (showTip) this.snackBar.open(`Move right`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     moveStop() {
-      this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=0,0`);
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=0,0`)
+            .subscribe();
     }
 
     ledOn() {
         this.sendHttpGetRequest(`${this.REQUEST_LED}?${this.PARAM_ACTION}=L1:-100`)
-        .then(
-            res => { this.snackBar.open(`LED On`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`LED On`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     ledOff() {
         this.sendHttpGetRequest(`${this.REQUEST_LED}?${this.PARAM_ACTION}=L1:-0`)
-        .then(
-            res => { this.snackBar.open(`LED Off`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`LED Off`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     ledAuto() {
         this.sendHttpGetRequest(`${this.REQUEST_LED}?${this.PARAM_ACTION}=L1:-50`)
-        .then(
-            res => { this.snackBar.open(`LED Auto`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`LED Auto`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     zoomIn() {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_ZOOM}=100`)
-        .then(
-            res => { this.snackBar.open(`Zoom In`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`Zoom In`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     zoomOut() {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_ZOOM}=-100`)
-        .then(
-            res => { this.snackBar.open(`Zoom Out`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`Zoom Out`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     zoomStop() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_ZOOM}=0`);
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_ZOOM}=0`)
+            .subscribe();
     }
   
     focusNear() {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_FOCUS}=100`)
-        .then(
-            res => { this.snackBar.open(`Focus Near`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`Focus Near`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     focusFar() {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_FOCUS}=-100`)
-        .then(
-            res => { this.snackBar.open(`Focus Far`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`Focus Far`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     focusStop() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_FOCUS}=0`);
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_FOCUS}=0`)
+            .subscribe();
     }
 
     irisOpen() {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_IRIS}=100`)
-        .then(
-            res => { this.snackBar.open(`Iris Open`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`Iris Open`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     irisClose() {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_IRIS}=-100`)
-        .then(
-            res => { this.snackBar.open(`Iris Close`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`Iris Close`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     irisStop() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_IRIS}=0`);
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_IRIS}=0`)
+            .subscribe();
     }
 
     gotoPreset(preset: number) {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_GOTO_PRESET}=${preset}`)
-        .then(
-            res => { this.snackBar.open(`Preset ${preset}`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`Preset ${preset}`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     setPreset(preset: number) {
         this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_SET_PRESET}=${preset}`)
-        .then(
-            res => { this.snackBar.open(`Saved preset ${preset}`, null, {
-                duration: 3000,
-            })
-        });
+            .subscribe({
+                next: () => {
+                    this.snackBar.open(`Saved preset ${preset}`, null, {
+                        duration: 3000,
+                    })
+                }
+            });
     }
 
     private getCameraIndex(camera: CameraSettings): number {
@@ -687,9 +725,13 @@ export class LiveCamListComponent extends CamListSelectionComponent {
             if (this.cameraSelected != null) {
                 this.statusService
                     .getStatusCamera(this.loginService.server, this.loginService.login, (this.cameraSelected as CameraSettings).id)
-                    .then(
-                    status => { this.processStatus(status); },
-                    error => { this.processStatusError(error); });
+                    .subscribe({
+                        next: (status) => this.processStatus(status),
+                        error: (e) => this.processStatusError(e)
+                    });
+                    // .then(
+                    // status => { this.processStatus(status); },
+                    // error => { this.processStatusError(error); });
             }
         }, timeout);
     }

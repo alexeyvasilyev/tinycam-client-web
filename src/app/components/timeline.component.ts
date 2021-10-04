@@ -683,26 +683,27 @@ export class TimelineComponent implements OnInit {
         const timelines = this.timeline.getTotalTimelines();
         this.events = new Array(timelines);
         for (let i = 0; i < timelines; i++) {
-          this.eventsLoaded[i] = false;
-          this.events[i] = [];
+            this.eventsLoaded[i] = false;
+            this.events[i] = [];
         }
         for (let i = 0; i < timelines; ++i) {
-           this.eventListService.getEventList(
-               this.loginService.server,
-               this.loginService.login,
-               timelines > 1 ? this.cameras[i].id : this.selectedCameraId,
-               -1,
-               this.getEventsToLoad(),
-               this.type,
-               '') // all events
-                   .then(events => {
-                          this.requestingMoreVideoEvents = false;
-                          this.processEventList(i, events, true);
-                          this.gotoLastEvent();
-                      },
-                      error => { this.processEventListError(i, error); }
-                   );
-           }
+            this.eventListService.getEventList(
+                this.loginService.server,
+                this.loginService.login,
+                timelines > 1 ? this.cameras[i].id : this.selectedCameraId,
+                -1,
+                this.getEventsToLoad(),
+                this.type,
+                '') // all events
+                .subscribe({
+                    next: (events) => {
+                        this.requestingMoreVideoEvents = false;
+                        this.processEventList(i, events, true);
+                        this.gotoLastEvent();
+                    },
+                    error: (e) => this.processEventListError(i, e)
+                });
+        }
     }
 
 
@@ -881,11 +882,13 @@ export class TimelineComponent implements OnInit {
                 eventsToLoad,
                 this.type,
                 '') // all events
-                    .then(events => {
-                       // console.log("this.requestingMoreVideoEvents = false");
+                .subscribe({
+                    next: (events) => {
+                        // console.log("this.requestingMoreVideoEvents = false");
                         this.requestingMoreVideoEvents = false;
                         this.processEventList(timelineIndex, events, false);
-                    });
+                    }
+                });
         }
     }
 

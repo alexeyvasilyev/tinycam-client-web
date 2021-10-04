@@ -129,8 +129,10 @@ export class LoginComponent implements OnInit {
       
         // Send HTTP request
         this.loginService.getLogin(this.loginService.server, this.login.username, this.password)
-            .then(login => this.processLogin(login))
-            .catch(this.handleError.bind(this));
+            .subscribe({
+                next: (login) => this.processLogin(login),
+                error: (e) => this.handleError(e)
+            });
     }
 
     private handleError(error: HttpErrorResponse): Promise<any> {

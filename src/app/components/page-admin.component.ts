@@ -218,12 +218,20 @@ export class PageAdminComponent implements OnInit {
     updateIpLocate(ipAddress: IpAddress) {
         this.ipLocateService
             .getLookup(ipAddress.ip)
-            .then(data => { 
-                ipAddress.city = data.city;
-                ipAddress.country = data.country;
-                ipAddress.latitude = data.latitude;
-                ipAddress.longitude = data.longitude;
+            .subscribe({
+                next: (data) => {
+                    ipAddress.city = data.city;
+                    ipAddress.country = data.country;
+                    ipAddress.latitude = data.latitude;
+                    ipAddress.longitude = data.longitude;
+                }
             });
+            // .then(data => { 
+            //     ipAddress.city = data.city;
+            //     ipAddress.country = data.country;
+            //     ipAddress.latitude = data.latitude;
+            //     ipAddress.longitude = data.longitude;
+            // });
     }
 
     ngOnInit() {
@@ -244,12 +252,20 @@ export class PageAdminComponent implements OnInit {
     private updateIpAddresses() {
         this.ipaddressesService
             .getIpAddresses(this.loginService.server, this.loginService.login)
-            .then(ipAddresses => { 
-                this.ipAddresses = ipAddresses;
-                for (let ipAddress of this.ipAddresses) {
-                    this.updateIpLocate(ipAddress);
+            .subscribe({
+                next: (ipAddresses) => {
+                    this.ipAddresses = ipAddresses;
+                    for (let ipAddress of this.ipAddresses) {
+                        this.updateIpLocate(ipAddress);
+                    }
                 }
             });
+            // .then(ipAddresses => { 
+            //     this.ipAddresses = ipAddresses;
+            //     for (let ipAddress of this.ipAddresses) {
+            //         this.updateIpLocate(ipAddress);
+            //     }
+            // });
     }
 
     getProcessesWithUsage(): string {
@@ -321,7 +337,7 @@ export class PageAdminComponent implements OnInit {
     }
 
     sendHttpGetRequest(request: string) {
-        this.genericService.getRequest(this.loginService.server, this.loginService.login, request);
+        this.genericService.getRequest(this.loginService.server, this.loginService.login, request).subscribe();
     }
 
     getAppLogsUrl(): string {

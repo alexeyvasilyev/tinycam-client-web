@@ -26,10 +26,10 @@ export class CamListSelectionComponent implements OnInit {
     ngOnInit() {
         // console.log('ngOnInit()');
         this.camListService.getCamList(this.loginService.server, this.loginService.login)
-            .then(
-                res  => { this.processCamList(res); },
-                error => { this.processCamListError(error); });
-            // .catch(this.processCamListError);
+            .subscribe({
+                next: (data) => this.processCamList(data),
+                error: (e) => this.processCamListError(e)
+            })
     }
 
     ngOnDestroy() {

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Login, Server, ServerResponse, IpAddress } from '../models';
-import 'rxjs/add/operator/toPromise';
-import 'rxjs/add/operator/timeout'
+import { Observable } from 'rxjs';
+import { timeout, map } from 'rxjs/operators'
 
 @Injectable()
 export class IpAddressesService {
@@ -10,20 +10,20 @@ export class IpAddressesService {
     constructor(private http: HttpClient) {
     }
 
-    getIpAddresses(server: Server, login: Login): Promise<IpAddress[]> {
+    getIpAddresses(server: Server, login: Login): Observable<IpAddress[]> {
         // console.log('getIpAddresses()');
         const url = `${server.url}/api/v1/get_ip_addresses?token=${login.token}`;
         return this.http
             .get<ServerResponse>(url)
-            .timeout(10000)
-            .toPromise()
-            .then((res:ServerResponse) => res.data as IpAddress[])
-            .catch(this.handleError);
+            .pipe(
+                timeout(10000),
+                map((res:ServerResponse) => res.data as IpAddress[])
+            );
     }
 
-    private handleError(error: HttpErrorResponse): Promise<any> {
-        // console.error('An error occurred in /api/v1/get_ip_addresses', error);
-        return Promise.reject(error);
-    }
+    // private handleError(error: HttpErrorResponse): Promise<any> {
+    //     // console.error('An error occurred in /api/v1/get_ip_addresses', error);
+    //     return Promise.reject(error);
+    // }
 
 }

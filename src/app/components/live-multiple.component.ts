@@ -129,9 +129,10 @@ export class LiveMultipleComponent implements OnInit {
     ngOnInit() {
         console.log('ngOnInit()');
         this.camListService.getCamList(this.loginService.server, this.loginService.login)
-            .then(
-                res  => { this.processCamList(res); },
-                error => { this.processCamListError(error); });
+            .subscribe({
+                next: (events) => this.processCamList(events),
+                error: (e) => this.processCamListError(e)
+            });
         // Check if '/livem?bottom'
         this.activatedRoute.queryParams.subscribe((params: Params) => {
             let bottom = params['bottom'];

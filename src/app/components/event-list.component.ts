@@ -178,8 +178,10 @@ export class EventListComponent implements OnInit {
             this.EVENTS_TO_LOAD,
             this.type,
             this.filterSelected)
-                .then(events => { this.processEventList(events); },
-                      error => { this.processEventListError(error); });
+                .subscribe({
+                    next: (events) => this.processEventList(events),
+                    error: (e) => this.processEventListError(e)
+                });
     }
 
     onScroll() {
@@ -193,8 +195,12 @@ export class EventListComponent implements OnInit {
             this.EVENTS_TO_LOAD,
             this.type,
             this.filterSelected)
-                .then(events => { this.processEventList(events); },
-                      error => { this.processEventListError(error); });
+                .subscribe({
+                    next: (events) => this.processEventList(events),
+                    error: (e) => this.processEventListError(e)
+                });
+            // .then(events => { this.processEventList(events); },
+            //       error => { this.processEventListError(error); });
     }
 
     private processEventListError(error: HttpErrorResponse) {
@@ -257,7 +263,10 @@ export class EventListComponent implements OnInit {
                 this.EVENTS_TO_LOAD,
                 this.type,
                 this.filterSelected)
-                    .then(events => { this.processEventList(events); });
+                    .subscribe({
+                        next: (events) => this.processEventList(events),
+//                      error: (e) => this.processEventListError(e)
+                    });
         }
     }
 
