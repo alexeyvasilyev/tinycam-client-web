@@ -394,7 +394,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     moveUp(showTip: boolean) {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=0,100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_MOVE}=0,100`)
             .subscribe({
                 next: () => {
                     if (showTip) this.snackBar.open(`Move up`, null, {
@@ -405,7 +405,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     moveDown(showTip: boolean) {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=0,-100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_MOVE}=0,-100`)
             .subscribe({
                 next: () => {
                     if (showTip) this.snackBar.open(`Move down`, null, {
@@ -416,7 +416,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     moveLeft(showTip: boolean) {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=-100,0`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_MOVE}=-100,0`)
             .subscribe({
                 next: () => {
                     if (showTip) this.snackBar.open(`Move left`, null, {
@@ -427,7 +427,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     moveRight(showTip: boolean) {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=100,0`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_MOVE}=100,0`)
             .subscribe({
                 next: () => {
                     if (showTip) this.snackBar.open(`Move right`, null, {
@@ -438,12 +438,12 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     moveStop() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_MOVE}=0,0`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_MOVE}=0,0`)
             .subscribe();
     }
 
     ledOn() {
-        this.sendHttpGetRequest(`${this.REQUEST_LED}?${this.PARAM_ACTION}=L1:-100`)
+        this.sendHttpGetRequest(`${this.REQUEST_LED}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_ACTION}=L1:-100`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`LED On`, null, {
@@ -454,7 +454,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     ledOff() {
-        this.sendHttpGetRequest(`${this.REQUEST_LED}?${this.PARAM_ACTION}=L1:-0`)
+        this.sendHttpGetRequest(`${this.REQUEST_LED}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_ACTION}=L1:-0`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`LED Off`, null, {
@@ -465,7 +465,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     ledAuto() {
-        this.sendHttpGetRequest(`${this.REQUEST_LED}?${this.PARAM_ACTION}=L1:-50`)
+        this.sendHttpGetRequest(`${this.REQUEST_LED}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_ACTION}=L1:-50`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`LED Auto`, null, {
@@ -476,7 +476,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     zoomIn() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_ZOOM}=100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_ZOOM}=100`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`Zoom In`, null, {
@@ -487,7 +487,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     zoomOut() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_ZOOM}=-100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_ZOOM}=-100`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`Zoom Out`, null, {
@@ -498,12 +498,12 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     zoomStop() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_ZOOM}=0`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_ZOOM}=0`)
             .subscribe();
     }
   
     focusNear() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_FOCUS}=100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_FOCUS}=100`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`Focus Near`, null, {
@@ -514,7 +514,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     focusFar() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_FOCUS}=-100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_FOCUS}=-100`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`Focus Far`, null, {
@@ -525,12 +525,12 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     focusStop() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_FOCUS}=0`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_FOCUS}=0`)
             .subscribe();
     }
 
     irisOpen() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_IRIS}=100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_IRIS}=100`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`Iris Open`, null, {
@@ -541,7 +541,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     irisClose() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_IRIS}=-100`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_IRIS}=-100`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`Iris Close`, null, {
@@ -552,12 +552,12 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     irisStop() {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_CONT_IRIS}=0`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_CONT_IRIS}=0`)
             .subscribe();
     }
 
     gotoPreset(preset: number) {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_GOTO_PRESET}=${preset}`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_GOTO_PRESET}=${preset}`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`Preset ${preset}`, null, {
@@ -568,7 +568,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     }
 
     setPreset(preset: number) {
-        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?${this.PARAM_SET_PRESET}=${preset}`)
+        this.sendHttpGetRequest(`${this.REQUEST_PTZ}?cameraId=${(this.cameraSelected as CameraSettings).id}&${this.PARAM_SET_PRESET}=${preset}`)
             .subscribe({
                 next: () => {
                     this.snackBar.open(`Saved preset ${preset}`, null, {
