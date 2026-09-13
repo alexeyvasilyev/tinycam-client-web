@@ -5,6 +5,7 @@ import { CamListService, GenericService, LoginService, StatusService, WindowRefS
 import { PtzCapability, CameraSettings, Status } from '../models'
 import { LiveInfoDialogComponent } from './live-info-dialog.component';
 import { LiveSetPresetDialogComponent } from './live-set-preset-dialog.component';
+import { LiveShareRtspDialogComponent } from './live-share-rtsp-dialog.component';
 import { Router, Params, ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -126,6 +127,9 @@ import { Observable } from 'rxjs';
                   <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(2)" matTooltip="Go to preset 2">2</button>
                   <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(3)" matTooltip="Go to preset 3">3</button>
                   <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(4)" matTooltip="Go to preset 4">4</button>
+                  <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Share livestream" (click)="shareRtspLiveStream()">
+                    <i class="fas fa-link"></i>
+                  </button>
                   <button mat-icon-button [matMenuTriggerFor]="menu"><i class="fas fa-ellipsis-v fa-lg" style="color:#111111;"></i></button>
                   <mat-menu #menu="matMenu">
                     <button mat-menu-item (click)="sendCameraMotionEvent()">
@@ -380,6 +384,25 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     getAudioUrl() {
         console.log(`Audio: ${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${(this.cameraSelected as CameraSettings).id}&token=${this.loginService.login.token}`);
         return `${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${(this.cameraSelected as CameraSettings).id}&token=${this.loginService.login.token}`;
+    }
+
+    getRtspUrl() {
+        const httpBase = this.loginService.server.url || window.location.origin;
+        const rtspBase = httpBase.replace(/^https?:\/\//, 'rtsp://');
+        return `${rtspBase}/axis-media/media.amp?cameraId=${(this.cameraSelected as CameraSettings).id}&token=${this.loginService.login.token}`;
+    }
+
+    getMjpegUrl() {
+        const httpBase = this.loginService.server.url || window.location.origin;
+        return `${httpBase}/axis-cgi/mjpg/video.cgi?cameraId=${(this.cameraSelected as CameraSettings).id}&token=${this.loginService.login.token}`;
+    }
+
+    shareRtspLiveStream() {
+        this.dialog.open(LiveShareRtspDialogComponent, {
+            data: { rtspUrl: this.getRtspUrl(), mjpegUrl: this.getMjpegUrl() },
+            width: '900px',
+            maxWidth: '90vw'
+        });
     }
 
     camerasLoaded() {

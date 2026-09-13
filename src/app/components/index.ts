@@ -9,6 +9,7 @@ export * from './live-cam-list.component';
 export * from './live-info-dialog.component';
 export * from './live-multiple.component';
 export * from './live-set-preset-dialog.component';
+export * from './live-share-rtsp-dialog.component';
 export * from './login.component';
 export * from './page-admin.component';
 export * from './page-live.component';
