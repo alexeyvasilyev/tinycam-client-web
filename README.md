@@ -1,28 +1,488 @@
-# tinyCam app web client written in Angular2
-https://tinycammonitor.com
-More info is <a href="https://www.reddit.com/r/tinycam/comments/iqnov1/tinycam_150_will_have_completely_redesigned_web_ui/">here</a>.
+# tinyCam app web server API
+This is official documentation of the REST API provided by <a href="https://tinycammonitor.com/">tinyCam Monitor PRO</a> web server - Android app for video surveillance.
+tinyCam web server uses API which is partially compatible with <a href="https://www.axis.com/vapix-library">Axis IP cameras</a>. You can use any IP camera viewer software to view tinyCam server remotely.
 
-tinyCam web server main features:
-* **Live view up to 4 cameras** at the same time.
-* **PTZ and audio support** from live view (admin only).
-* **Timeline support** (multiple timelines as well) w/ slow/fast playback.
-* **Autoplay event on hover**.
-* **Sort events by date and type** (person, vehicle, etc.).
-* **Delete and pin events** (admin only).
-* Support for **playback cloud events** in web browser.
-* **Admin console** (admin only).
+## Authentication
+tinyCam supports three types of authentication:
+### 1. <a href="https://en.wikipedia.org/wiki/Basic_access_authentication">Basic authentication</a> (legacy)
 
-PTZ keyboard controls:
-* Keys W/A/S/D - pan-tilt
-* Keys +/- - optical zoom in/out
-* Keys F/N - focus far/near
-* Keys O/C - iris open/close
-* Keys 1..9 - presets
+Example:
+```
+https://admin:mypassword@192.168.0.3:8083/axis-cgi/mjpg/video.cgi
+```
 
-## See also:
-- [Web timeline UI widget written in JavaScript](https://github.com/alexeyvasilyev/timeline-ui-web)
-- [tinyCam web server API](https://github.com/alexeyvasilyev/tinycam-api)
 
-## Hacks:
-* Adding `remote=yes` to login screen will show remote server input field, e.g `http://192.168.0.3:8083/login?remote=yes`
+### 2. Providing credentials as parameters
 
+GET parameters `user=<string>&pwd=<string>`
+
+* `user` (optional) - username,
+* `pwd` (optional) - password.
+
+Use it when there is no way to use basic authentication (e.g. for home automation).
+
+Example:
+```
+https://192.168.0.3:8083/axis-cgi/mjpg/video.cgi?user=admin&pwd=mypassword
+```
+
+
+### 3. <b>Token based authentication</b> (recommended to use)
+Access: guest, admin
+
+GET `/api/v1/login?user=<string>&pwd=<string>`
+
+Example:
+```
+https://192.168.0.3:8083/api/v1/login?user=admin&pwd=mypassword
+```
+
+JSON payload:
+```
+{
+	"data": {
+		"token": "d6bdc406225bf6bb6ecf720e97e8927acfe52022",
+		"access": "admin"
+	}
+}
+```
+
+For subsequent requests, add `token` with token value returned in the login response.
+
+Example:
+```
+https://192.168.0.3:8083/axis-cgi/mjpg/video.cgi?token=d6bdc406225bf6bb6ecf720e97e8927acfe52022
+```
+
+## Logout
+Access: guest, admin
+
+GET `/api/v1/logout?token=<string>`
+
+Deletes authentication token.
+
+Example:
+```
+https://192.168.0.3:8083/api/v1/logout?token=d6bdc406225bf6bb6ecf720e97e8927acfe52022
+```
+
+## Get camera list
+Access: guest, admin
+
+GET `/api/v1/get_cam_list?token=<string>`
+
+Example:
+```
+https://192.168.0.3:8083/api/v1/get_cam_list?token=d6bdc406225bf6bb6ecf720e97e8927acfe52022
+```
+
+JSON payload:
+```
+{
+	"data": [{
+		"name": "Front yard",
+		"enabled": true,
+		"id": 182399567,
+		"ptzCapabilities": 230911,
+		"audioListening": true,
+		"cloudAccess": false
+	}, {
+		"name": "Doorbell",
+		"enabled": true,
+		"id": 1455317736,
+		"ptzCapabilities": 32768,
+		"audioListening": true,
+		"cloudAccess": true
+	}]
+}
+```
+
+
+## Get camera event list
+Access: guest, admin
+
+GET `/api/v1/get_cam_event_list?token=<string>&cameraId=<number>&endtime=<number>&count=<number>&type=<string>&filter=<string>`
+* `cameraId` (optional) - camera ID returned by `/api/v1/get_cam_list` request. If empty, events from all enabled cameras returned.
+* `endtime` (optional) - time (Unix timestamp in milliseconds) from which events should be returned
+* `count` (optional) - max number of events to get
+* `type` (optional) - `local` (default) or `cloud` events
+* `filter` (optional) - can be `pin`, `face`, `person`, `vehicle`, `pet`, `motion`, or `audio`. If empty, all events returned.
+
+List is returned in descending order (new events first).
+
+Example:
+```
+ https://192.168.0.3/api/v1/get_cam_event_list?token=d6bdc406225bf6bb6ecf720e97e8927acfe52022&cameraId=182399567&endtime=1601381164000&count=15&type=local&filter=person
+```
+
+JSON payload:
+```
+{
+	"data": [{
+		"time": 1601381164000,
+		"duration": 120000,
+		"motion": "person",
+		"video": "\/api\/v1\/get_file?file=\/Front%20yard\/2020-09-29%2015.06.04%20120sec%20person.mp4",
+		"image": "\/api\/v1\/get_file?file=\/Front%20yard\/2020-09-29%2015.06.04%20120sec%20person.mp4.jpg"
+	}, {
+		"time": 1601380363000,
+		"duration": 58000,
+		"motion": "person",
+		"video": "\/api\/v1\/get_file?file=\/Front%20yard\/2020-09-29%2014.52.43%2058sec%20person.mp4",
+		"image": "\/api\/v1\/get_file?file=\/Front%20yard\/2020-09-29%2014.52.43%2058sec%20person.mp4.jpg"
+	}, {
+		"time": 1601379016000,
+		"duration": 54000,
+		"motion": "person",
+		"video": "\/api\/v1\/get_file?file=\/Front%20yard\/2020-09-29%2014.30.16%2054sec%20person.mp4",
+		"image": "\/api\/v1\/get_file?file=\/Front%20yard\/2020-09-29%2014.30.16%2054sec%20person.mp4.jpg"
+	}]
+}
+```
+
+## Get file
+
+GET `/api/v1/get_file?token=<string>&file=<string>`
+
+* `file` (mandatory) - filename returned by `/api/v1/get_cam_event_list` to be requested (image or video)
+
+Example:
+```
+https://192.168.0.3/api/v1/get_file?file=/Front%20yard/2020-09-29%2010.51.26%2043sec%20motion.mp4.jpg&token=d6bdc406225bf6bb6ecf720e97e8927acfe52022
+```
+
+## Get status
+Access: admin
+
+GET `/api/v1/get_status?token=<string>&cameraId=<number>`
+
+* `cameraId` (optional) - camera ID returned by `/api/v1/get_cam_list` request. If empty, global status returned.
+
+Example:
+```
+https://192.168.0.3/api/v1/get_status?token=d6bdc406225bf6bb6ecf720e97e8927acfe52022
+https://192.168.0.3/api/v1/get_status?token=d6bdc406225bf6bb6ecf720e97e8927acfe52022&cameraId=182399567
+```
+
+Global JSON payload:
+```
+{
+	"data": {
+		"backgroundMode": true,
+		"cpuUsagePercents": 0,
+		"cpuFrequencyMhz": 2014,
+		"temperature": -1,
+		"memoryAvailable": 1089949696,
+		"memoryUsed": 490082304,
+		"threadsUsed": 73,
+		"threadsRunnableUsed": 20,
+		"processes": [{
+			"name": "UI",
+			"memoryUsed": 38047744
+		}, {
+			"name": "Watchdog",
+			"memoryUsed": 29640704
+		}, {
+			"name": "WebServer",
+			"memoryUsed": 231104512
+		}, {
+			"name": "Background",
+			"memoryUsed": 193558528
+		}],
+		"batteryLevel": 100,
+		"batteryStatus": "charging",
+		"uptime": 23160200,
+		"networkInBps": 76103,
+		"networkOutBps": 0,
+		"streamProfile": 0,
+		"powerSafeMode": false,
+		"notifications": true,
+		"rootAvailable": false,
+		"spaceUsed": 4094579744,
+		"spaceAvailable": 1849597952,
+		"liveConnections": 1,
+		"motionCameras": ["Front yard"]
+	}
+}
+```
+
+Camera JSON payload:
+```
+{
+	"data": {
+		"motion": true
+	}
+}
+```
+
+## Get MJPEG and JPEG video streams
+Access: guest, admin
+
+GET `/axis-cgi/mjpg/video.cgi`
+
+Used to request a Motion JPEG video stream with specified arguments.
+
+GET `/axis-cgi/jpg/image.cgi`
+
+Request for single JPEG.
+
+```
+http://<servername>/axis-cgi/mjpg/video.cgi[?<argument>=<value>[&<argument>=<value>...]]
+http://<servername>/axis-cgi/jpg/image.cgi[?<argument>=<value>[&<argument>=<value>...]]
+```
+
+Parameters:
+* `camera=<int>` (optional) - select video source. 1..n.
+* `fps=<int>` (optional) - image frame rate. 0 - unlimited.
+* `compression=<int>` (optional) - adjust image compression level, 0..100. Higher values correspond to higher compression, that is lower quality and smaller image size.
+* `resolution=<string>` (optional) - resolution [width]x[height] of the returned image, e.g. `640x480`.
+
+
+Examples:
+```
+http://192.168.0.3:8083/axis-cgi/mjpg/video.cgi
+http://192.168.0.3:8083/axis-cgi/jpg/image.cgi
+http://192.168.0.3:8083/axis-cgi/mjpg/video.cgi?camera=2&fps=1&compression=80&resolution=320x240
+http://192.168.0.3:8083/axis-cgi/jpg/image.cgi?camera=3&compression=50&resolution=480x640
+http://pastebin.com/NCWWSQxa (matrix 2x2)
+```
+
+## Get RTSP streams
+
+Access: guest, admin
+
+The RTSP server starts automatically with the web server and shares its configured port (8083 by default). It supports TCP/UDP/HTTP protocols.
+
+Stream URL:
+
+```text
+rtsp://<servername>:8083/axis-media/media.amp[?<argument>=<value>[&<argument>=<value>...]]
+```
+
+Parameters:
+
+* `camera=<int>` (optional) - select video source. 1..n.
+* `cameraId=<int>` (optional) - camera ID returned by `/api/v1/get_cam_list` request. If empty, events from all enabled cameras returned
+* `user=<string>&pwd=<string>` or `token=<string>` (optional) - authentication as described below.
+
+### Examples
+
+TCP:
+
+```bash
+ffplay -rtsp_transport tcp "rtsp://admin:mypassword@192.168.0.3:8083/axis-media/media.amp?camera=1"
+```
+
+UDP:
+
+```bash
+ffplay -rtsp_transport udp "rtsp://admin:mypassword@192.168.0.3:8083/axis-media/media.amp?camera=1"
+```
+
+
+Direct RTSP over TLS (enable **Use HTTPS**):
+
+```bash
+ffplay -rtsp_transport tcp "rtsps://admin:mypassword@192.168.0.3:8083/axis-media/media.amp?camera=1" -tls_verify 0
+```
+
+For testing with an untrusted or self-signed certificate, add `-tls_verify 0` to disable certificate verification; the connection remains encrypted.
+
+HTTP tunnel (disable **Use HTTPS**):
+
+```bash
+ffplay -rtsp_transport http "rtsp://admin:mypassword@192.168.0.3:8083/axis-media/media.amp?camera=1"
+```
+
+HTTPS tunnel (enable **Use HTTPS**):
+
+```bash
+ffplay -rtsp_transport https "rtsp://admin:mypassword@192.168.0.3:8083/axis-media/media.amp?camera=1" -tls_verify 0
+```
+
+Known client issue: the tested Homebrew ffplay 9.0 build applies `-tls_verify 0` to the HTTPS tunnel's GET connection but still verifies the certificate on its POST connection. With an untrusted certificate, GET can succeed and POST can fail with `certificate verify failed`. Direct RTSPS with `-rtsp_transport tcp -tls_verify 0` works around this tunnel-specific issue; alternatively, use a certificate trusted by the client or a client build that applies TLS options to both tunnel connections.
+
+
+## Get Audio stream
+Access: admin
+
+GET `/axis-cgi/audio/receive.wav`
+
+is used to request a WAV audio stream with specified arguments.
+ `http://<servername>/axis-cgi/audio/receive.wav[?<argument>=<value>[&<argument>=<value>...]]`
+
+Parameters:
+* `camera=<int>` (optional) - select audio source. 1..n.
+* `cameraId` (optional) - camera ID
+
+Examples:
+```
+http://192.168.0.3:8083/axis-cgi/audio/receive.wav
+http://192.168.0.3:8083/axis-cgi/audio/receive.wav?camera=2
+```
+
+## PTZ control
+Access: admin
+
+GET `/axis-cgi/com/ptz.cgi`
+
+Parameters:
+* `camera=<int>` (optional) - select video source. 1..n.
+* `continuouspantiltmove=<int>,<int>` (optional) - continuous pan/tilt motion. Positive values mean right (pan) and up (tilt), negative values mean left (pan) and down (tilt). "0,0" means stop. Values as <pan speed>,<tilt speed>.
+* `continuouszoommove=<int>` (optional) - continuous zoom motion. Positive values mean zoom in and negative values mean zoom out. "0" means stop.
+* `continuousfocusmmove=<int>` (optional) - continuous focus motion. Positive values focus near and negative values mean focus far. "0" means stop.
+* `continuousirismmove=<int>` (optional) - continuous iris motion. Positive values mean iris open and negative values mean iris close. "0" means stop.
+* `move=home` (optional) - moves home.
+* `gotoserverpresetno=<int>` (optional) - move to the position associated with the specified preset position number. 1..n.
+* `setserverpresetno=<int>` (optional) - save the current position with the specified preset position number. 1..n.
+
+Examples:
+```
+http://192.168.0.3:8083/axis-cgi/com/ptz.cgi?move=home
+http://192.168.0.3:8083/axis-cgi/com/ptz.cgi?camera=2&gotoserverpresetno=3
+http://192.168.0.3:8083/axis-cgi/com/ptz.cgi?camera=2&setserverpresetno=2
+http://192.168.0.3:8083/axis-cgi/com/ptz.cgi?continuouspantiltmove=0,0
+http://192.168.0.3:8083/axis-cgi/com/ptz.cgi?continuouspantiltmove=100,-100&continuouszoommove=100
+```
+
+## LED control
+Access: admin
+
+GET `/axis-cgi/io/lightcontrol.cgi`
+
+Parameters:
+* `camera=<int>` (optional) - select video source. 1..n.
+* `action=<string>` (mandatory) - specifies light source and value. Action `L1:-100` - LED on, `L1:-0` - LED off, `L1:-50` - LED auto.
+
+Examples:
+```
+http://192.168.0.3:8083/axis-cgi/io/lightcontrol.cgi?action=L1:-100
+http://192.168.0.3:8083/axis-cgi/io/lightcontrol.cgi?action=L1:-0
+http://192.168.0.3:8083/axis-cgi/io/lightcontrol.cgi?action=L1:-50
+```
+
+## Background mode
+Access: admin.
+
+The `root.BackgroundMode` parameter is used to switch on/off background mode in tinyCam Monitor.
+
+GET `/param.cgi?action=update&root.BackgroundMode=<string>`
+
+Parameters:
+* `root.BackgroundMode=<string>` (mandatory) - can be `on` or `off`.
+
+
+Examples:
+```
+http://192.168.0.3:8083/param.cgi?action=update&root.BackgroundMode=on
+http://192.168.0.3:8083/param.cgi?action=update&root.BackgroundMode=off
+```
+
+## Stream profile
+Access: admin
+
+The `root.StreamProfile` parameter is used to change stream profile in tinyCam Monitor.
+
+GET `/param.cgi?action=update&root.StreamProfile=<string>`
+
+Parameters:
+* `root.StreamProfile=<string>` (mandatory) - can be `main`, `sub` or `auto`.
+
+
+Examples:
+```
+http://192.168.0.3:8083/param.cgi?action=update&root.StreamProfile=main
+http://192.168.0.3:8083/param.cgi?action=update&root.StreamProfile=auto
+```
+
+## Notificaions
+Access: admin
+
+The `root.Notifications` parameter is used to switch on/off notifications in tinyCam Monitor.
+
+GET `/param.cgi?action=update&root.Notifications=<string>[&tag=<string>]`
+
+Parameters:
+* `root.Notifications=<string>` (mandatory) - can be `on` or `off`.
+* `tag=<string>` (optional) - tag name. If specified the app sends "Motion Detection On" or "Motion Detection Off" command to all cameras under the tag for changing on-camera motion detection.
+
+
+Examples:
+```
+http://192.168.0.3:8083/param.cgi?action=update&root.Notifications=on
+http://192.168.0.3:8083/param.cgi?action=update&root.Notifications=on&tag=Office
+http://192.168.0.3:8083/param.cgi?action=update&root.Notifications=off
+http://192.168.0.3:8083/param.cgi?action=update&root.Notifications=off&tag=Home
+```
+
+## Power safe mode
+Access: admin only
+
+The `root.PowerSafeMode` parameter is used to switch on/off power safe mode in tinyCam Monitor.
+
+GET `/param.cgi?action=update&root.PowerSafeMode=<string>`
+
+Parameters:
+* `root.PowerSafeMode=<string>` (mandatory) - can be `on` or `off`.
+
+
+Examples:
+```
+http://192.168.0.3:8083/param.cgi?action=update&root.PowerSafeMode=on
+http://192.168.0.3:8083/param.cgi?action=update&root.PowerSafeMode=off
+```
+
+## Delete file
+Access: admin 
+
+`action=delete` with `root.Filename` parameter used to delete recorded MP4 or JPEG files in tinyCam Monitor.
+
+GET `/param.cgi?action=delete&root.Filename=<string>`
+
+Parameters:
+* `root.Filename=<string>` (mandatory) - filename.
+
+Examples:
+```
+http://192.168.0.3:8083/param.cgi?action=delete&root.Filename=/IPV68P2P/2016-10-21%2010.03.33.mp4
+```
+
+## Pin file
+Access: admin
+
+`action=pin` with `root.Filename` parameter used to pin recorded MP4 or JPEG files in tinyCam Monitor.
+
+GET `/param.cgi?action=pin&root.Filename=<string>`
+
+Parameters:
+* `root.Filename=<string>` (mandatory) - filename.
+
+Examples:
+```
+http://192.168.0.3:8083/param.cgi?action=pin&root.Filename=/IPV68P2P/2016-10-21%2010.03.33.mp4
+```
+
+## Unpin file
+Access: admin
+
+`action=unpin` with `root.Filename` parameter used to unpin recorded MP4 or JPEG files in tinyCam Monitor.
+
+GET `/param.cgi?action=unpin&root.Filename=<string>`
+
+Parameters:
+* `root.Filename=<string>` (mandatory) - filename.
+
+Examples:
+```
+http://192.168.0.3:8083/param.cgi?action=unpin&root.Filename=/IPV68P2P/2016-10-21%2010.03.33_pin.mp4
+```
+
+## Reboot Android device
+Access: admin. Root required.
+
+GET `/axis-cgi/admin/restart.cgi`
+
+Examples:
+```
+http://192.168.0.3:8083/axis-cgi/admin/restart.cgi
+```
