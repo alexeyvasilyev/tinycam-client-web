@@ -23,7 +23,8 @@ $cloud-app-theme: mat.m2-define-light-theme((
     primary: $cloud-app-primary,
     accent: $cloud-app-accent,
     warn: $cloud-app-warn,
-  )
+  ),
+  typography: mat.m2-define-typography-config(),
 ));
 
 
@@ -40,3 +41,4 @@ $cloud-app-theme: map_merge($cloud-app-theme, (color: $cloud-app-color));
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
 @include mat.all-component-themes($cloud-app-theme);
+@include mat.typography-hierarchy($cloud-app-theme);
