@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Login } from '../models';
 import { LoginService } from '../services';
@@ -6,8 +6,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import StorageUtils from '../utils-storage';
 
 @Component({
-  selector: 'login',
-  styles: [ `
+    selector: 'login',
+    styles: [`
     .login-form {
       padding: 20px;
     }
@@ -27,58 +27,63 @@ import StorageUtils from '../utils-storage';
       width: 100%;
     }
   `],
-  template: `
+    template: `
     <div class="login-screen">
       <div class="app-text-center"><a href="https://tinycammonitor.com"><img src="assets/img/applogo.png"/><br/>
-      https://tinycammonitor.com</a> - <a href="https://github.com/alexeyvasilyev/tinycam-api">API</a></div>
-      <div class="app-text-center" style="padding:25px 0px"><h1>tinyCam Monitor Login</h1></div>
-      <mat-card>
-        <mat-card-content>
-          <form (ngSubmit)="doLogin()" #loginForm="ngForm" class="login-form">
-
-            <mat-form-field class="login-full-width">
-              <input
-                matInput
-                required
-                type="text"
-                placeholder="Username"
-                [(ngModel)]="login.username" name="Username">
-            </mat-form-field>
-
-            <mat-form-field class="login-full-width" style="padding-top:10px;">
-              <input
-                matInput
-                type="password"
-                placeholder="Password"
-                [(ngModel)]="password" name="Password">
-            </mat-form-field>
-
-            <div *ngIf="showServer">
+        https://tinycammonitor.com</a> - <a href="https://github.com/alexeyvasilyev/tinycam-api">API</a></div>
+        <div class="app-text-center" style="padding:25px 0px"><h1>tinyCam Monitor Login</h1></div>
+        <mat-card>
+          <mat-card-content>
+            <form (ngSubmit)="doLogin()" #loginForm="ngForm" class="login-form">
+    
+              <mat-form-field class="login-full-width">
+                <input
+                  matInput
+                  required
+                  type="text"
+                  placeholder="Username"
+                  [(ngModel)]="login.username" name="Username">
+              </mat-form-field>
+    
               <mat-form-field class="login-full-width" style="padding-top:10px;">
                 <input
                   matInput
-                  type="text"
-                  placeholder="Remote server, e.g. http://192.168.0.3:8083"
-                  [(ngModel)]="server" name="Server">
+                  type="password"
+                  placeholder="Password"
+                  [(ngModel)]="password" name="Password">
               </mat-form-field>
-            </div>
-
-            <div class="app-text-center">
-              <button type="submit" [disabled]="!loginForm.form.valid" mat-raised-button color="accent" class="login-button">LOGIN</button>
-              <mat-card *ngIf="error != null" class="app-card-warning" style="padding: 20px; margin-top:20px">
-                <mat-card-content>Failed to login.<br/>{{error}}</mat-card-content>
-              </mat-card>
-            </div>
-          </form>
-        </mat-card-content>
-      </mat-card>
-
-      <div style="padding-top: 20px; padding-bottom: 10px" class="mat-small app-text-center">
-        Want to have constant 24/7 recording? Check  <a href="https://cloud.tinycammonitor.com/">tinyCam Cloud</a> service.<br/>
-        <a href="https://tinysolutionsllc.com/">Tiny Solutions LLC., 2010–2023</a>
+    
+              @if (showServer) {
+                <div>
+                  <mat-form-field class="login-full-width" style="padding-top:10px;">
+                    <input
+                      matInput
+                      type="text"
+                      placeholder="Remote server, e.g. http://192.168.0.3:8083"
+                      [(ngModel)]="server" name="Server">
+                  </mat-form-field>
+                </div>
+              }
+    
+              <div class="app-text-center">
+                <button type="submit" [disabled]="!loginForm.form.valid" mat-raised-button color="accent" class="login-button">LOGIN</button>
+                @if (error != null) {
+                  <mat-card class="app-card-warning" style="padding: 20px; margin-top:20px">
+                    <mat-card-content>Failed to login.<br/>{{error}}</mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+    
+        <div style="padding-top: 20px; padding-bottom: 10px" class="mat-small app-text-center">
+          <a href="https://tinysolutionsllc.com/">Tiny Solutions LLC., 2010–2027</a>
+        </div>
       </div>
-    </div>
-  `,
+    `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class LoginComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { CamListSelectionComponent } from './cam-list-selection.component';
 import { CamListService, GenericService, LoginService, StatusService, WindowRefService } from '../services';
@@ -14,13 +14,13 @@ import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
 import { Observable } from 'rxjs';
 
 @Component({
-  selector: 'live-cam-list',
-  animations: [fadeInAnimation, fadeInOutAnimation],
-  host: {
-    '(document:keydown)': 'handleKeyDown($event)',
-    '(document:keyup)': 'handleKeyUp($event)'
-  },
-  styles: [ `
+    selector: 'live-cam-list',
+    animations: [fadeInAnimation, fadeInOutAnimation],
+    host: {
+        '(document:keydown)': 'handleKeyDown($event)',
+        '(document:keyup)': 'handleKeyUp($event)'
+    },
+    styles: [`
     .full-width {
       width: 100%;
     }
@@ -57,121 +57,135 @@ import { Observable } from 'rxjs';
         overflow: hidden;
     }
   `],
-  template: `
+    template: `
     <div>
-      <mat-card *ngIf="errorMessage != null" class="app-text-center app-card-warning" style="margin-bottom: 30px">
-        {{this.errorMessage}}
-      </mat-card>
-      <div *ngIf="cameras; else loading_content">
-        <div *ngIf="cameras.length > 0; else no_cams_content">
-
-          <div class="live-container">
-            <div class="live-left">
-              <div *ngIf="cameras.length > 1">
-                <div style="margin:0px 15px;">
-                  <mat-form-field color="accent">
-                    <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera view">
-                      <mat-option *ngFor="let camera of cameras" [value]="camera">
-                        {{getCameraName(camera)}}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
+      @if (errorMessage != null) {
+        <mat-card class="app-text-center app-card-warning" style="margin-bottom: 30px">
+          {{this.errorMessage}}
+        </mat-card>
+      }
+      @if (cameras) {
+        <div>
+          @if (cameras.length > 0) {
+            <div>
+              <div class="live-container">
+                <div class="live-left">
+                  @if (cameras.length > 1) {
+                    <div>
+                      <div style="margin:0px 15px;">
+                        <mat-form-field color="accent">
+                          <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera view">
+                            @for (camera of cameras; track camera) {
+                              <mat-option [value]="camera">
+                                {{getCameraName(camera)}}
+                              </mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                    </div>
+                  }
                 </div>
+                <div class="live-right">
+                  @if (status.motion !== undefined) {
+                    <span style="padding: 10px; margin-right:20px">
+                      @if (status.motion) {
+                        <span matTooltip="Motion detected"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
+                      } @else {
+                        <span matTooltip="No motion detected"><i class="fas fa-male fa-lg"></i></span>
+                      }
+                    </span>
+                  }
+                  @if (isAudioListeningSupported()) {
+                    <span style="margin-right:20px">
+                      @if (audioShown) {
+                        <span>
+                          @if (audioLoading) {
+                            <span [@fadeInOutAnimation] style="padding:2px; text-align: center; vertical-align: middle"><i class="fas fa-circle-notch fa-2x fa-spin"></i></span>
+                          }
+                          <audio preload="none" autoplay (canplay)="handleAudioCanPlay()" (error)="handleAudioError()" style="vertical-align: middle; margin-right:10px">
+                            <source src="{{getAudioUrl()}}" type="audio/wav">
+                          </audio>
+                          <button mat-flat-button class="live-button" (click)="showHideAudio()" matTooltip="Stop audio"><i class="fas fa-volume-up"></i></button>
+                        </span>
+                      } @else {
+                        <button mat-raised-button class="live-button" (click)="showHideAudio()" matTooltip="Play audio"><i class="fas fa-volume-mute"></i></button>
+                      }
+                    </span>
+                  }
+                  <span style="margin-right:20px;">
+                    @if (nippleShown) {
+                      <span>
+                        <button mat-flat-button class="live-button" (click)="showHideJoystick()" matTooltip="Hide joystick"><i class="far fa-dot-circle"></i></button>
+                      </span>
+                    } @else {
+                      <button mat-raised-button class="live-button" [disabled]="!isPtzPanTiltSupported()" (click)="showHideJoystick()" matTooltip="Show joystick"><i class="far fa-dot-circle"></i></button>
+                    }
+                  </span>
+                  <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(1)" matTooltip="Go to preset 1">1</button>
+                  <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(2)" matTooltip="Go to preset 2">2</button>
+                  <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(3)" matTooltip="Go to preset 3">3</button>
+                  <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(4)" matTooltip="Go to preset 4">4</button>
+                  <button mat-icon-button [matMenuTriggerFor]="menu"><i class="fas fa-ellipsis-v fa-lg" style="color:#111111;"></i></button>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="sendCameraMotionEvent()">
+                      <i class="fas fa-walking fa-lg"></i> &nbsp;
+                      <span>Trigger motion event</span>
+                    </button>
+                    <button mat-menu-item [matMenuTriggerFor]="led">
+                      <i class="far fa-lightbulb fa-lg"></i> &nbsp;
+                      <span>LED</span>
+                    </button>
+                    <mat-menu #led="matMenu">
+                      <button mat-menu-item (click)="ledOn()" [disabled]="!isLedOnSupported()" >
+                        <i class="far fa-lightbulb fa-lg"></i> &nbsp;
+                        <span>LED On</span>
+                      </button>
+                      <button mat-menu-item (click)="ledOff()" [disabled]="!isLedOffSupported()">
+                        <i class="far fa-lightbulb fa-lg"></i> &nbsp;
+                        <span>LED Off</span>
+                      </button>
+                      <button mat-menu-item (click)="ledAuto()" [disabled]="!isLedAutoSupported()">
+                        <i class="far fa-lightbulb fa-lg"></i> &nbsp;
+                        <span>LED Auto</span>
+                      </button>
+                    </mat-menu>
+                    <button mat-menu-item (click)="openSetPresetDialog()">
+                      <i class="fas fa-map-marker-alt"></i> &nbsp;
+                      <span>Save preset</span>
+                    </button>
+                    <button mat-menu-item (click)="openInfoDialog()">
+                      <i class="fas fa-info fa-lg"></i> &nbsp;
+                      <span>Info</span>
+                    </button>
+                  </mat-menu>
+                  <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Multiple cameras layout" (click)="showMultipleScreen()">
+                    <i class="fas fa-th-large"></i>
+                  </button>
+                  <!-- <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
+                  <i class="fas fa-expand-alt"></i>
+                </button> -->
               </div>
             </div>
-
-            <div class="live-right">
-
-              <span *ngIf="status.motion !== undefined" style="padding: 10px; margin-right:20px">
-                <span *ngIf="status.motion; else no_motion_content" matTooltip="Motion detected"><i class="fas fa-walking fa-lg faa-tada faa-slow animated" style="color:red"></i></span>
-              </span>
-
-              <span *ngIf="isAudioListeningSupported()" style="margin-right:20px">
-                <span *ngIf="audioShown; else notAudioShown">
-                  <span *ngIf="audioLoading" [@fadeInOutAnimation] style="padding:2px; text-align: center; vertical-align: middle"><i class="fas fa-circle-notch fa-2x fa-spin"></i></span>
-                  <audio preload="none" autoplay (canplay)="handleAudioCanPlay()" (error)="handleAudioError()" style="vertical-align: middle; margin-right:10px">
-                    <source src="{{getAudioUrl()}}" type="audio/wav">
-                  </audio>
-                  <button mat-flat-button class="live-button" (click)="showHideAudio()" matTooltip="Stop audio"><i class="fas fa-volume-up"></i></button>
-                </span>
-                <ng-template #notAudioShown>
-                  <button mat-raised-button class="live-button" (click)="showHideAudio()" matTooltip="Play audio"><i class="fas fa-volume-mute"></i></button>
-                </ng-template>
-              </span>
-
-              <span style="margin-right:20px;">
-                <span *ngIf="nippleShown; else notNippleShown">
-                  <button mat-flat-button class="live-button" (click)="showHideJoystick()" matTooltip="Hide joystick"><i class="far fa-dot-circle"></i></button>
-                </span>
-                <ng-template #notNippleShown>
-                  <button mat-raised-button class="live-button" [disabled]="!isPtzPanTiltSupported()" (click)="showHideJoystick()" matTooltip="Show joystick"><i class="far fa-dot-circle"></i></button>
-                </ng-template>
-              </span>
-
-              <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(1)" matTooltip="Go to preset 1">1</button>
-              <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(2)" matTooltip="Go to preset 2">2</button>
-              <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(3)" matTooltip="Go to preset 3">3</button>
-              <button mat-raised-button class="live-button" [disabled]="!isPtzPresetsSupported()" (click)="gotoPreset(4)" matTooltip="Go to preset 4">4</button>
-
-              <button mat-icon-button [matMenuTriggerFor]="menu"><i class="fas fa-ellipsis-v fa-lg" style="color:#111111;"></i></button>
-              <mat-menu #menu="matMenu">
-                <button mat-menu-item (click)="sendCameraMotionEvent()">
-                <i class="fas fa-walking fa-lg"></i> &nbsp;
-                  <span>Trigger motion event</span>
-                </button>
-
-                <button mat-menu-item [matMenuTriggerFor]="led">
-                  <i class="far fa-lightbulb fa-lg"></i> &nbsp;
-                  <span>LED</span>
-                </button>
-
-                <mat-menu #led="matMenu">
-                  <button mat-menu-item (click)="ledOn()" [disabled]="!isLedOnSupported()" >
-                    <i class="far fa-lightbulb fa-lg"></i> &nbsp;
-                    <span>LED On</span>
-                  </button>
-                  <button mat-menu-item (click)="ledOff()" [disabled]="!isLedOffSupported()">
-                    <i class="far fa-lightbulb fa-lg"></i> &nbsp;
-                    <span>LED Off</span>
-                  </button>
-                  <button mat-menu-item (click)="ledAuto()" [disabled]="!isLedAutoSupported()">
-                    <i class="far fa-lightbulb fa-lg"></i> &nbsp;
-                    <span>LED Auto</span>
-                  </button>
-                </mat-menu>
-
-                <button mat-menu-item (click)="openSetPresetDialog()">
-                  <i class="fas fa-map-marker-alt"></i> &nbsp;
-                  <span>Save preset</span>
-                </button>
-                <button mat-menu-item (click)="openInfoDialog()">
-                  <i class="fas fa-info fa-lg"></i> &nbsp;
-                  <span>Info</span>
-                </button>
-              </mat-menu>
-
-              <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Multiple cameras layout" (click)="showMultipleScreen()">
-                <i class="fas fa-th-large"></i>
-              </button>
-              <!-- <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
-                <i class="fas fa-expand-alt"></i>
-              </button> -->
+            <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="getLiveHeight()" [@fadeInAnimation]>
+              <live [cameraId]="cameraSelected.id" [viewHeightPx]="getLiveHeight()" (dblclick)="liveDoubleClick()" (click)="liveSingleClick()"></live>
             </div>
-
           </div>
-
-          <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="getLiveHeight()" [@fadeInAnimation]>
-            <live [cameraId]="cameraSelected.id" [viewHeightPx]="getLiveHeight()" (dblclick)="liveDoubleClick()" (click)="liveSingleClick()"></live>
-          </div>
-        </div>
+        } @else {
+          <mat-card>No cameras added. Please add cameras via <a routerLink="/account">Account</a> tab or via <a href="https://tinycammonitor.com/">tinyCam Monitor</a> Android app.</mat-card>
+        }
       </div>
-
-      <ng-template #no_cams_content><mat-card>No cameras added. Please add cameras via <a routerLink="/account">Account</a> tab or via <a href="https://tinycammonitor.com/">tinyCam Monitor</a> Android app.</mat-card></ng-template>
-      <ng-template #loading_content><mat-card>Loading cameras list...</mat-card></ng-template>
-      <ng-template #no_motion_content><span matTooltip="No motion detected"><i class="fas fa-male fa-lg"></i></span></ng-template>
+    } @else {
+      <mat-card>Loading cameras list...</mat-card>
+    }
+    
     </div>
-    <div *ngIf="isPtzPanTiltSupported()" #joystick style="position: absolute; right: 150px; bottom: 100px;" ></div>
-  `
+    @if (isPtzPanTiltSupported()) {
+      <div #joystick style="position: absolute; right: 150px; bottom: 100px;" ></div>
+    }
+    `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class LiveCamListComponent extends CamListSelectionComponent {
@@ -746,8 +760,10 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 }
 
 @Component({
-  template: `
+    template: `
   <span>Scroll down <i class="fas fa-arrow-down faa-falling animated"></i></span>
 `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ScrollDownComponent {}

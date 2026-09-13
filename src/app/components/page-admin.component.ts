@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { GenericService, IpAddressesService, IpLocateService, LoginService, StatusService } from '../services';
 import { IpAddress, ServerResponse, Status } from '../models'
 import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
@@ -9,7 +9,7 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
 
 @Component({
     animations: [fadeInAnimation],
-    styles: [ `
+    styles: [`
       .my-button {
         margin: 5px 6px;
         text-transform: uppercase;
@@ -36,19 +36,19 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
       <header [selected]="3" [isAdmin]=true></header>
       <div #component class="app-container">
         <h2 class="mat-h2" style="padding-top:20px">Admin information</h2>
-
+      
         <mat-card>
           <mat-card-content>
             <div class="mat-h3">Username: <b>{{this.loginService.login.username}}</b></div>
           </mat-card-content>
         </mat-card>
-
+      
         <mat-card>
           <mat-card-content style="display:table; width:100%;">
             <div style="float:left;width:55%;">
               <div class="mat-h3">Background mode: <b>{{status.backgroundMode === undefined ? '-' : (status.backgroundMode ? 'Started' : 'Stopped')}}</b></div>
-              <button mat-raised-button color="primary" class="my-button" (click)="setBackgroundMode(true)" [(disabled)]="status.backgroundMode === undefined || status.backgroundMode">Start</button>
-              <button mat-raised-button color="primary" class="my-button" (click)="setBackgroundMode(false)" [(disabled)]="status.backgroundMode === undefined || !status.backgroundMode">Stop</button>
+              <button mat-raised-button color="primary" class="my-button" (click)="setBackgroundMode(true)" [disabled]="status.backgroundMode === undefined || status.backgroundMode">Start</button>
+              <button mat-raised-button color="primary" class="my-button" (click)="setBackgroundMode(false)" [disabled]="status.backgroundMode === undefined || !status.backgroundMode">Stop</button>
               <div style="margin-top: 30px;" class="app-text-dark-hint">
                 <div>Recorded: {{humanReadableByteCount(status.spaceUsed)}}, Free: {{humanReadableByteCount(status.spaceAvailable)}}</div>
                 <div>Motion: <span class="app-text-warning"><b>{{status.motionCameras}}</b></span></div>
@@ -72,7 +72,9 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
                   </mat-select>
                 </mat-form-field>
               </div>
-              <div [@fadeInAnimation] *ngIf="status.powerSafeMode !== undefined && status.powerSafeMode" class="app-text-warning" style="padding-bottom:10px">Power safe mode is ON. Only keyframes are decoded (jerky live view).</div>
+              @if (status.powerSafeMode !== undefined && status.powerSafeMode) {
+                <div [@fadeInAnimation] class="app-text-warning" style="padding-bottom:10px">Power safe mode is ON. Only keyframes are decoded (jerky live view).</div>
+              }
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
                   <mat-select [(value)]="status.notifications" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.Notifications=' + ($event.value ? 'on' : 'off'))" placeholder="Notifications">
@@ -81,47 +83,51 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
                   </mat-select>
                 </mat-form-field>
               </div>
-              <div [@fadeInAnimation] *ngIf="status.notifications !== undefined && !status.notifications" class="app-text-warning">Notifications are OFF. The following features disabled:<br/>
- - Sound on motion<br/>
- - Vibration on motion<br/>
- - System notification on motion<br/>
- - Email on motion<br/>
- - Telegram on motion<br/>
- - Zoom and track on motion (live view)<br/>
- - Wake up on motion (background mode)<br/>
- - Webhook on motion<br/>
- - Record to local storage on motion<br/>
- - Record to cloud on motion<br/>
- - Record to FTP on motion<br/>
- - Record to Telegram on motion</div>
+              @if (status.notifications !== undefined && !status.notifications) {
+                <div [@fadeInAnimation] class="app-text-warning">Notifications are OFF. The following features disabled:<br/>
+                  - Sound on motion<br/>
+                  - Vibration on motion<br/>
+                  - System notification on motion<br/>
+                  - Email on motion<br/>
+                  - Telegram on motion<br/>
+                  - Zoom and track on motion (live view)<br/>
+                  - Wake up on motion (background mode)<br/>
+                  - Webhook on motion<br/>
+                  - Record to local storage on motion<br/>
+                  - Record to cloud on motion<br/>
+                  - Record to FTP on motion<br/>
+                - Record to Telegram on motion</div>
+              }
             </div>
           </mat-card-content>
         </mat-card>
-
+      
         <mat-card>
           <mat-card-content>
             <div class="app-text-dark-hint">
               <div>Live view connections: <b>{{status.liveConnections !== undefined ? status.liveConnections : '-'}}</b></div>
-              <div [@fadeInAnimation] *ngIf="status.threadsRunnableUsed !== undefined">Threads: <b>{{status.threadsRunnableUsed}}/{{status.threadsUsed}}</b></div>
+              @if (status.threadsRunnableUsed !== undefined) {
+                <div [@fadeInAnimation]>Threads: <b>{{status.threadsRunnableUsed}}/{{status.threadsUsed}}</b></div>
+              }
               <div>Memory Used: <b>{{humanReadableByteCount(status.memoryUsed)}}</b>, Free: <b>{{humanReadableByteCount(status.memoryAvailable)}}</b></div>
               <div>Processes: {{getProcessesWithUsage()}}</div>
               <div>Battery: <b>{{status.batteryLevel}}%</b> ({{status.batteryStatus}})</div>
-
+      
               <div style="padding-top:15px">Web server version: <b>{{this.server}}</b></div>
               <div>Web server uptime: <b>{{humanReadableTime(status.uptime)}}</b></div>
-
+      
               <div style="margin-top:15px">Network <span style="color:#EA4238">In</span>: <b>{{humanReadableKBs(status.networkInBps)}}</b>, <span style="color:#5DAEE4">Out</span>: <b>{{humanReadableKBs(status.networkOutBps)}}</b></div>
               <div><canvas #networkChart height="70"></canvas></div>
-
+      
               <div style="margin-top:15px">CPU usage: <b>{{status.cpuUsagePercents}}%</b></div>
               <div><canvas #cpuUsageChart height="70"></canvas></div>
-
+      
               <div style="margin-top:15px">CPU frequency: <b>{{status.cpuFrequencyMhz}} MHz</b></div>
               <div><canvas #cpuFreqChart height="70"></canvas></div>
             </div>
           </mat-card-content>
         </mat-card>
-
+      
         <mat-card>
           <mat-card-content>
             <div>
@@ -135,27 +141,31 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
             </div>
           </mat-card-content>
         </mat-card>
-
+      
         <mat-card>
           <mat-card-content>
             <div class="mat-h3">Access logs</div>
             <table class="app-text-dark-hint" style="width: 100%">
+              <tr>
+                <td class="ip-header">IP</td>
+                <td class="ip-header">Time</td>
+                <td class="ip-header">Country/City</td>
+                <td class="ip-header">User</td>
+              </tr>
+              @for (ipAddress of ipAddresses; track ipAddress) {
                 <tr>
-                    <td class="ip-header">IP</td>
-                    <td class="ip-header">Time</td>
-                    <td class="ip-header">Country/City</td>
-                    <td class="ip-header">User</td>
+                  <td class="ip-td">{{ipAddress.ip}}</td>
+                  <td class="ip-td">{{getLocalDateTimeFormatted(ipAddress.time)}}</td>
+                  <td class="ip-td">@if (ipAddress.country != null) {
+                    <div><a href="https://www.google.com/maps/search/{{ipAddress.latitude}}%2C{{ipAddress.longitude}}" target="_blank">{{ipAddress.country}}/{{ipAddress.city}}</a></div>
+                  }</td>
+                  <td class="ip-td">{{ipAddress.user}}</td>
                 </tr>
-                <tr *ngFor="let ipAddress of ipAddresses">
-                    <td class="ip-td">{{ipAddress.ip}}</td>
-                    <td class="ip-td">{{getLocalDateTimeFormatted(ipAddress.time)}}</td>
-                    <td class="ip-td"><div *ngIf="ipAddress.country != null"><a href="https://www.google.com/maps/search/{{ipAddress.latitude}}%2C{{ipAddress.longitude}}" target="_blank">{{ipAddress.country}}/{{ipAddress.city}}</a></div></td>
-                    <td class="ip-td">{{ipAddress.user}}</td>
-                </tr>
+              }
             </table>
           </mat-card-content>
         </mat-card>
-
+      
         <mat-card>
           <mat-card-content>
             <div>
@@ -163,13 +173,15 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
             </div>
           </mat-card-content>
         </mat-card>
-
+      
         <div style="padding:30px 0px;">
           <div class="mat-small app-text-right">tinyCam Monitor web client is <a href="https://github.com/alexeyvasilyev/tinycam-client-web">open sourced</a> under Apache License 2.0</div>
           <div class="mat-small app-text-right">tinyCam Monitor web server <a href="https://github.com/alexeyvasilyev/tinycam-api">API</a></div>
         </div>
       </div>
-    `
+      `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class PageAdminComponent implements OnInit {

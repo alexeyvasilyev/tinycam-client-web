@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, SimpleChanges, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CameraSettings, EventRecord } from '../models'
 import { EventListService, LoginService } from '../services';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -18,9 +18,9 @@ const INTERVAL_DAY_1   =  24 * 60 * 60 * 1000;
 const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
 
 @Component({
-  selector: 'timeline',
-  animations: [fadeInAnimation],
-  styles: [ `
+    selector: 'timeline',
+    animations: [fadeInAnimation],
+    styles: [`
     .middle {
       position: absolute;
       top: 50%;
@@ -75,27 +75,32 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
       position: relative;
     }
   `],
-  host: {
-    '(document:keydown)': 'handleKeyDown($event)'
-  },
-  template: `
+    host: {
+        '(document:keydown)': 'handleKeyDown($event)'
+    },
+    template: `
   <div #component>
-    <mat-card *ngIf="!isAllEventsLoaded()" style="margin:10px 0;">
-      Loading archive...
-    </mat-card>
-
-    <div *ngIf="isAllEventsLoaded()">
-      <div class="app-text-center" style="padding-bottom: 10px">
-        <div *ngIf="events.length > 0; else no_archives_content">
+    @if (!isAllEventsLoaded()) {
+      <mat-card style="margin:10px 0;">
+        Loading archive...
+      </mat-card>
+    }
+  
+    @if (isAllEventsLoaded()) {
+      <div>
+        <div class="app-text-center" style="padding-bottom: 10px">
+          @if (events.length > 0) {
+            <div>
+            </div>
+          } @else {
+            <mat-card>
+              <p>No archives found.</p> If you just added a camera, <b>please wait for 15 minutes</b> to get recordings available.
+            </mat-card>
+          }
         </div>
-        <ng-template #no_archives_content>
-          <mat-card>
-            <p>No archives found.</p> If you just added a camera, <b>please wait for 15 minutes</b> to get recordings available.
-          </mat-card>
-        </ng-template>
       </div>
-    </div>
-
+    }
+  
     <div [@fadeInAnimation] width="100%" style="background-color: #212121; cursor: pointer;" #mainComponent>
       <div class="app-video-container">
         <video class="video" preload="auto" #videoComponent playsinline autoplay
@@ -106,38 +111,46 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
           Your browser does not support the video tag.
         </video>
         <div style="padding:5px;"
-         (mousemove)="handleMouseMoveEvent($event)" (mouseup)="handleMouseUpEvent($event)"
-         (touchmove)="handleTouchMoveEvent($event)" (touchstart)="handleTouchStartEvent($event)">
+          (mousemove)="handleMouseMoveEvent($event)" (mouseup)="handleMouseUpEvent($event)"
+          (touchmove)="handleTouchMoveEvent($event)" (touchstart)="handleTouchStartEvent($event)">
           <canvas #canvasTimeline></canvas>
         </div>
-        <div class="middle circle" *ngIf="videoLoading"
-          style="opacity: 0.3;" (click)="handlePlayPauseClicked()"
-          [style.opacity]="videoLoading ? '0.3' : '0'" [style.visibility]="videoLoading ? 'visible' : 'hidden'">
-          <div class="middle">
-            <i class="fas fa-circle-notch fa-spin fa-3x fa-fw" style="color:white;"></i>
+        @if (videoLoading) {
+          <div class="middle circle"
+            style="opacity: 0.3;" (click)="handlePlayPauseClicked()"
+            [style.opacity]="videoLoading ? '0.3' : '0'" [style.visibility]="videoLoading ? 'visible' : 'hidden'">
+            <div class="middle">
+              <i class="fas fa-circle-notch fa-spin fa-3x fa-fw" style="color:white;"></i>
+            </div>
           </div>
-        </div>
-        <div class="middle circle" *ngIf="videoError"
-          style="opacity: 0.8;"
-          [style.opacity]="videoError ? '0.8' : '0'" [style.visibility]="videoError ? 'visible' : 'hidden'">
-          <div class="middle">
-            <i class="fas fa-video-slash fa-3x fa-fw" style="color:white;"></i>
+        }
+        @if (videoError) {
+          <div class="middle circle"
+            style="opacity: 0.8;"
+            [style.opacity]="videoError ? '0.8' : '0'" [style.visibility]="videoError ? 'visible' : 'hidden'">
+            <div class="middle">
+              <i class="fas fa-video-slash fa-3x fa-fw" style="color:white;"></i>
+            </div>
           </div>
-        </div>
-
+        }
+  
       </div>
     </div>
-
+  
     <div style="padding: 20px; text-align: center;">
       <button mat-raised-button class="button" (click)="handlePlayPauseClicked();">
-        <span *ngIf="!videoPlaying">
-          <i class="fas fa-play"></i>
-        </span>
-        <span mat-raised-button *ngIf="videoPlaying">
-          <i class="fas fa-pause"></i>
-        </span>
+        @if (!videoPlaying) {
+          <span>
+            <i class="fas fa-play"></i>
+          </span>
+        }
+        @if (videoPlaying) {
+          <span mat-raised-button>
+            <i class="fas fa-pause"></i>
+          </span>
+        }
       </button>
-
+  
       <button mat-raised-button class="button" (click)="gotoPrevEvent(true);" style="margin-left:30px;">
         <span>
           <i class="fas fa-backward"></i>
@@ -153,7 +166,7 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
           <i class="fas fa-fast-forward"></i>
         </span>
       </button>
-
+  
       <button mat-raised-button class="button" (click)="timeline.increaseInterval();" style="margin-left:30px;">
         <span>
           <i class="fas fa-minus"></i>
@@ -164,59 +177,69 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
           <i class="fas fa-plus"></i>
         </span>
       </button>
-
+  
       <button mat-raised-button class="button" (click)="toggleFullScreen();" style="margin-left:30px;">
         <span>
           <i class="fas fa-expand-alt"></i>
         </span>
       </button>
-
+  
       <button mat-raised-button class="button" (click)="handleMoreClicked();" style="margin-left:30px;">
-        <span *ngIf="!moreButtons">
-          <i class="fas fa-angle-down"></i>
-        </span>
-        <span mat-raised-button *ngIf="moreButtons">
-          <i class="fas fa-angle-up"></i>
-        </span>
+        @if (!moreButtons) {
+          <span>
+            <i class="fas fa-angle-down"></i>
+          </span>
+        }
+        @if (moreButtons) {
+          <span mat-raised-button>
+            <i class="fas fa-angle-up"></i>
+          </span>
+        }
       </button>
-
-      <div *ngIf="moreButtons" style="padding-top:20px;">
-        <button mat-raised-button class="button-selectable" (click)="setSpeed(0.1);" style="margin-left:30px;" [ngStyle]="{'opacity':playerSpeed==0.1?'0.5':'1.0'}">
-          <span>0.1x</span>
-        </button>
-        <button mat-raised-button class="button-selectable" (click)="setSpeed(0.5);" [ngStyle]="{'opacity':playerSpeed==0.5?'0.5':'1.0'}">
-          <span>0.5x</span>
-        </button>
-        <button mat-raised-button class="button-selectable" (click)="setSpeed(1.0);" [ngStyle]="{'opacity':playerSpeed==1.0?'0.5':'1.0'}">
-          <span>1x</span>
-        </button>
-        <button mat-raised-button class="button-selectable" (click)="setSpeed(2.0);" [ngStyle]="{'opacity':playerSpeed==2.0?'0.5':'1.0'}">
-          <span>2x</span>
-        </button>
-        <button mat-raised-button class="button-selectable" (click)="setSpeed(3.0);" [ngStyle]="{'opacity':playerSpeed==3.0?'0.5':'1.0'}">
-          <span>3x</span>
-        </button>
-        <!-- <a href="{{this.videoUrl}}" download class="button" style="margin-left:30px;" target="_blank">
+  
+      @if (moreButtons) {
+        <div style="padding-top:20px;">
+          <button mat-raised-button class="button-selectable" (click)="setSpeed(0.1);" style="margin-left:30px;" [ngStyle]="{'opacity':playerSpeed==0.1?'0.5':'1.0'}">
+            <span>0.1x</span>
+          </button>
+          <button mat-raised-button class="button-selectable" (click)="setSpeed(0.5);" [ngStyle]="{'opacity':playerSpeed==0.5?'0.5':'1.0'}">
+            <span>0.5x</span>
+          </button>
+          <button mat-raised-button class="button-selectable" (click)="setSpeed(1.0);" [ngStyle]="{'opacity':playerSpeed==1.0?'0.5':'1.0'}">
+            <span>1x</span>
+          </button>
+          <button mat-raised-button class="button-selectable" (click)="setSpeed(2.0);" [ngStyle]="{'opacity':playerSpeed==2.0?'0.5':'1.0'}">
+            <span>2x</span>
+          </button>
+          <button mat-raised-button class="button-selectable" (click)="setSpeed(3.0);" [ngStyle]="{'opacity':playerSpeed==3.0?'0.5':'1.0'}">
+            <span>3x</span>
+          </button>
+          <!-- <a href="{{this.videoUrl}}" download class="button" style="margin-left:30px;" target="_blank">
           <i class="fas fa-download"></i>
         </a> -->
       </div>
+    }
+  </div>
+  
+  <div style="padding:10px;">
+    <p>Keys <b>+</b>/<b>-</b> - increase/decrease timeline scale.<br/>
+    Keys <b>Left</b>/<b>Right</b>/<b>A</b>/<b>D</b> - previous/next events.<br/>
+    @if (multipleTimeline) {
+      <span>Keys <b>W</b>/<b>S</b> - change timelines.<br/></span>
+    }
+    <b>Space bar</b> - start/stop playback.<br/>
+    <div style="margin-top:20px;">
+      <span style="margin-right:25px;"><span style="background-color: #1de9b6; padding:3px; margin-right:8px;"></span>motion</span>
+      <span style="margin-right:25px;"><span style="background-color: #ae5a41; padding:3px; margin-right:8px;"></span>audio</span>
+      <span style="margin-right:25px;"><span style="background-color: #74559e; padding:3px; margin-right:8px;"></span>person</span>
+      <span style="margin-right:25px;"><span style="background-color: #1b85b8; padding:3px; margin-right:8px;"></span>vehicle</span>
+      <span style="margin-right:25px;"><span style="background-color: #827717; padding:3px; margin-right:8px;"></span>face</span>
+      <span style="margin-right:25px;"><span style="background-color: #784646; padding:3px; margin-right:8px;"></span>pet</span>
     </div>
-
-    <div style="padding:10px;">
-      <p>Keys <b>+</b>/<b>-</b> - increase/decrease timeline scale.<br/>
-      Keys <b>Left</b>/<b>Right</b>/<b>A</b>/<b>D</b> - previous/next events.<br/>
-      <span *ngIf="multipleTimeline">Keys <b>W</b>/<b>S</b> - change timelines.<br/></span>
-      <b>Space bar</b> - start/stop playback.<br/>
-      <div style="margin-top:20px;">
-        <span style="margin-right:25px;"><span style="background-color: #1de9b6; padding:3px; margin-right:8px;"></span>motion</span>
-        <span style="margin-right:25px;"><span style="background-color: #ae5a41; padding:3px; margin-right:8px;"></span>audio</span>
-        <span style="margin-right:25px;"><span style="background-color: #74559e; padding:3px; margin-right:8px;"></span>person</span>
-        <span style="margin-right:25px;"><span style="background-color: #1b85b8; padding:3px; margin-right:8px;"></span>vehicle</span>
-        <span style="margin-right:25px;"><span style="background-color: #827717; padding:3px; margin-right:8px;"></span>face</span>
-        <span style="margin-right:25px;"><span style="background-color: #784646; padding:3px; margin-right:8px;"></span>pet</span>
-      </div>
-    </div>
-  `
+  </div>
+  `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class TimelineComponent implements OnInit {

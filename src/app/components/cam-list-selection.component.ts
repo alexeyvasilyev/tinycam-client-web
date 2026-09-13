@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CameraSettings } from '../models';
 import { CamListService, LoginService } from '../services';
 import { Router } from '@angular/router';
@@ -6,7 +6,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import StorageUtils from '../utils-storage';
 
 @Component({
-    template: ``
+    template: ``,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class CamListSelectionComponent implements OnInit {

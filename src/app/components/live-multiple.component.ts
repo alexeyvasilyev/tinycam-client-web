@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, Params, ActivatedRoute } from '@angular/router';
 import { CameraSettings } from '../models';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -12,8 +12,8 @@ import StorageUtils from '../utils-storage';
     animations: [fadeInAnimation],
     host: {
         '(document:keydown)': 'handleKeyDown($event)',
-      },
-    styles: [ `
+    },
+    styles: [`
     .live-button {
         background-color: #212121;
         border: none;
@@ -52,59 +52,73 @@ import StorageUtils from '../utils-storage';
     `],
     template: `
     <div>
-      <mat-card *ngIf="errorMessage != null" class="app-text-center app-card-warning" style="margin-bottom: 30px">
-        {{this.errorMessage}}
-      </mat-card>
+      @if (errorMessage != null) {
+        <mat-card class="app-text-center app-card-warning" style="margin-bottom: 30px">
+          {{this.errorMessage}}
+        </mat-card>
+      }
       <div class="live-container">
         <div class="live-left" style="margin: 0px 10px">
-            <h3>Page: {{this.currentPage + 1}}/{{getTotalPages()}}</h3>
+          <h3>Page: {{this.currentPage + 1}}/{{getTotalPages()}}</h3>
         </div>
-
+    
         <div class="live-right">
-
-            <button mat-raised-button class="live-button" (click)="switchPrevPage(false)" matTooltip="Previos page" [disabled]="currentPage == 0">
-                <span>
-                    <i class="fas fa-chevron-left"></i>
-                </span>
-            </button>
-            <button mat-raised-button class="live-button" (click)="switchNextPage(false)" matTooltip="Next page" [disabled]="currentPage == getTotalPages() - 1">
-                <span>
-                    <i class="fas fa-chevron-right"></i>
-                </span>
-            </button>
-
-            <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Single camera layout" (click)="showSingleScreenLastSelected()">
-                <i class="fas fa-square"></i>
-            </button>
-            <!-- <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
-                <i class="fas fa-expand-alt"></i>
-            </button> -->
-
-        </div>
-      </div>
-
-      <div *ngIf="cameras !== null" #live style="background-color: #424242; overflow: auto;" [style.height.px]="getLiveHeight()" [@fadeInAnimation]>
-      <table #livem width="100%" height="100%" style="border-spacing:2px;border-collapse:separate;">
-        <tr>
-          <td class="cell">
-            <live [cameraId]="getCameraPage(0).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(0)" (click)="liveSingleClick()"></live>
-          </td>
-          <td class="cell">
-            <live *ngIf="getCameraPage(1) != null" [cameraId]="getCameraPage(1).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(1)" (click)="liveSingleClick()"></live>
-          </td>
-        </tr>
-        <tr *ngIf="getCamerasPerPage() >= 4">
-          <td class="cell">
-            <live *ngIf="getCameraPage(2) != null" [cameraId]="getCameraPage(2).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(2)" (click)="liveSingleClick()"></live>
-          </td>
-          <td class="cell">
-            <live *ngIf="getCameraPage(3) != null" [cameraId]="getCameraPage(3).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(3)" (click)="liveSingleClick()"></live>
-          </td>
-        </tr>
-      </table>
+    
+          <button mat-raised-button class="live-button" (click)="switchPrevPage(false)" matTooltip="Previos page" [disabled]="currentPage == 0">
+            <span>
+              <i class="fas fa-chevron-left"></i>
+            </span>
+          </button>
+          <button mat-raised-button class="live-button" (click)="switchNextPage(false)" matTooltip="Next page" [disabled]="currentPage == getTotalPages() - 1">
+            <span>
+              <i class="fas fa-chevron-right"></i>
+            </span>
+          </button>
+    
+          <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Single camera layout" (click)="showSingleScreenLastSelected()">
+            <i class="fas fa-square"></i>
+          </button>
+          <!-- <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
+          <i class="fas fa-expand-alt"></i>
+        </button> -->
+    
       </div>
     </div>
-    `
+    
+    @if (cameras !== null) {
+      <div #live style="background-color: #424242; overflow: auto;" [style.height.px]="getLiveHeight()" [@fadeInAnimation]>
+        <table #livem width="100%" height="100%" style="border-spacing:2px;border-collapse:separate;">
+          <tr>
+            <td class="cell">
+              <live [cameraId]="getCameraPage(0).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(0)" (click)="liveSingleClick()"></live>
+            </td>
+            <td class="cell">
+              @if (getCameraPage(1) != null) {
+                <live [cameraId]="getCameraPage(1).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(1)" (click)="liveSingleClick()"></live>
+              }
+            </td>
+          </tr>
+          @if (getCamerasPerPage() >= 4) {
+            <tr>
+              <td class="cell">
+                @if (getCameraPage(2) != null) {
+                  <live [cameraId]="getCameraPage(2).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(2)" (click)="liveSingleClick()"></live>
+                }
+              </td>
+              <td class="cell">
+                @if (getCameraPage(3) != null) {
+                  <live [cameraId]="getCameraPage(3).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(3)" (click)="liveSingleClick()"></live>
+                }
+              </td>
+            </tr>
+          }
+        </table>
+      </div>
+    }
+    </div>
+    `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class LiveMultipleComponent implements OnInit {

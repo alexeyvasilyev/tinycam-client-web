@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, ElementRef, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, ElementRef, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { LoginService } from '../services';
 import { fadeInAnimation } from '../animations/';
 import { WindowRefService } from '../services';
@@ -29,7 +29,9 @@ import { WindowRefService } from '../services';
       <!-- <div [@fadeInAnimation] class="live-view-loading" style="cursor: pointer;"> -->
       <!--  <div #cell class="live-view" [style.height.px]="viewHeightPx"></div> -->
       <!-- </div> -->
-    `
+    `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class LiveComponent implements AfterViewInit {

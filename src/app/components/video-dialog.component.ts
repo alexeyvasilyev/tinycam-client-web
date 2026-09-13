@@ -1,30 +1,34 @@
-import { Component, Input, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { fadeInAnimation } from '../animations/';
 
 import videojs from 'video.js';
 
 @Component({
-  selector: 'video-dialog',
-  animations: [fadeInAnimation],
-  template: `
+    selector: 'video-dialog',
+    animations: [fadeInAnimation],
+    template: `
     <table style="border-spacing:3px;border-collapse:separate;width:100%;">
       <tr>
         <td width="90%">
           <div mat-dialog-title style="margin: auto;">{{title}}
-          <span *ngIf="videoError" style="color:red">Video loading error!</span></div>
-        </td>
-        <td width="10%" style="text-align:right;">
-          <button mat-icon-button mat-dialog-close><i class="fas fa-times" aria-hidden="true"></i></button>
-        </td>
-      </tr>
-    </table>
-
-    <video [@fadeInAnimation] #component id='mp4video' class="video-js vjs-default-skin vjs-big-play-centered"
-       controls (error)="handleVideoError()" (playing)="handleVideoPlaying()" poster="{{imageUrl}}"
-       data-setup='{"playbackRates": [0.1, 0.5, 1, 2, 3]}'>
-    </video>
-  `
+            @if (videoError) {
+              <span style="color:red">Video loading error!</span>
+            }</div>
+          </td>
+          <td width="10%" style="text-align:right;">
+            <button mat-icon-button mat-dialog-close><i class="fas fa-times" aria-hidden="true"></i></button>
+          </td>
+        </tr>
+      </table>
+    
+      <video [@fadeInAnimation] #component id='mp4video' class="video-js vjs-default-skin vjs-big-play-centered"
+        controls (error)="handleVideoError()" (playing)="handleVideoPlaying()" poster="{{imageUrl}}"
+        data-setup='{"playbackRates": [0.1, 0.5, 1, 2, 3]}'>
+      </video>
+    `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class VideoDialogComponent implements OnInit, AfterViewInit {
     @Input() videoUrl: string;

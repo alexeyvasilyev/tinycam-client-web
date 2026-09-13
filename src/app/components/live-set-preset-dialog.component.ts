@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
@@ -29,8 +29,10 @@ import { MatDialogRef } from '@angular/material/dialog';
         color="accent"
         (click)="onSaveClicked()">Save</button>
     </mat-dialog-actions>
-    `
-  })
+    `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
+})
 export class LiveSetPresetDialogComponent {
 
     camPreset: string = "1";

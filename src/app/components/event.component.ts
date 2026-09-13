@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { LoginService, GenericService } from '../services';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -12,20 +12,20 @@ import { Observable } from 'rxjs';
 // For Chrome browser only first 5 events are shown as <video>,
 // the rest one are <image> (preventing too many active sockets issue).
 @Component({
-  selector: 'event',
-  animations: [fadeInAnimation],
-  // animations: [
-  //     trigger('animate', [
-  //         transition('* => fadeIn', [
-  //             animate(150, keyframes([
-  //                 style({opacity: 0, offset: 0}),
-  //                 style({opacity: 1, offset: 1})
-  //             ]))
-  //         ])
-  //   ])
-  // ],
-  // animations: [animateFactory(150, 0, 'ease-in')],
-  styles: [ `
+    selector: 'event',
+    animations: [fadeInAnimation],
+    // animations: [
+    //     trigger('animate', [
+    //         transition('* => fadeIn', [
+    //             animate(150, keyframes([
+    //                 style({opacity: 0, offset: 0}),
+    //                 style({opacity: 1, offset: 1})
+    //             ]))
+    //         ])
+    //   ])
+    // ],
+    // animations: [animateFactory(150, 0, 'ease-in')],
+    styles: [`
     .event-image {
       width: 400px;
       min-height: 224px;
@@ -89,82 +89,95 @@ import { Observable } from 'rxjs';
       margin-right: 20px;
     }
 `],
-  template: `
+    template: `
   <div [@fadeInAnimation]>
-    <mat-card *ngIf="!eventDeleted">
-      <mat-card-content [ngStyle]="{'background-color': eventPinned ? '#e3f0f7' : ''}">
-        <div class="container" >
-
-          <div (click)="openDialog()" class="left img" (mouseleave)="videoPlaying=false; videoLoading=false; loadedPercent=0;">
-
-            <div *ngIf="autoplayOnHover">
-              <div class="event-image-container" [hidden]="videoPlaying" (mouseleave)="stopProgressBar()">
-                <img class="event-image" alt="Video" src="{{getEventImageUrl()}}" (mouseover)="startPlayer($event)" />
-                <div class="middle circle" [ngStyle]="{'opacity': 0.5 - loadedPercent / 100}">
-                  <div class="middle">
-                    <i class="fas fa-play-circle fa-5x" style="color:white;"></i>
+    @if (!eventDeleted) {
+      <mat-card>
+        <mat-card-content [ngStyle]="{'background-color': eventPinned ? '#e3f0f7' : ''}">
+          <div class="container" >
+            <div (click)="openDialog()" class="left img" (mouseleave)="videoPlaying=false; videoLoading=false; loadedPercent=0;">
+              @if (autoplayOnHover) {
+                <div>
+                  <div class="event-image-container" [hidden]="videoPlaying" (mouseleave)="stopProgressBar()">
+                    <img class="event-image" alt="Video" src="{{getEventImageUrl()}}" (mouseover)="startPlayer($event)" />
+                    <div class="middle circle" [ngStyle]="{'opacity': 0.5 - loadedPercent / 100}">
+                      <div class="middle">
+                        <i class="fas fa-play-circle fa-5x" style="color:white;"></i>
+                      </div>
+                    </div>
+                  </div>
+                  @if (videoLoading) {
+                    <div class="preloadProgress" [ngStyle]="{'width': loadedPercent + 'px'}"></div>
+                  }
+                  <!-- <div class="marker-overlays">10</div> -->
+                  @if (videoPlaying || videoLoading) {
+                    <video [hidden]="!videoPlaying"
+                      class="event-video" autoplay preload="auto" (mouseleave)="stopPlayer($event)" poster="{{imageUrl}}" (canplaythrough)="videoLoaded($event)">
+                      <source src="{{getEventVideoUrl()}}" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  }
+                </div>
+              }
+              @if (!autoplayOnHover) {
+                <div>
+                  <div class="event-image-container">
+                    <img class="event-image" src="{{imageUrl}}"/>
+                    <div class="middle circle" style="opacity: 0.5;">
+                      <div class="middle">
+                        <i class="fas fa-play-circle fa-5x" style="color:white;"></i>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="preloadProgress" *ngIf="videoLoading" [ngStyle]="{'width': loadedPercent + 'px'}"></div>
-              <!-- <div class="marker-overlays">10</div> -->
-              <video *ngIf="videoPlaying || videoLoading" [hidden]="!videoPlaying"
-              class="event-video" autoplay preload="auto" (mouseleave)="stopPlayer($event)" poster="{{imageUrl}}" (canplaythrough)="videoLoaded($event)">
-                <source src="{{getEventVideoUrl()}}" type="video/mp4">
-                Your browser does not support the video tag.
-              </video>
+              }
             </div>
-
-            <div *ngIf="!autoplayOnHover">
-              <div class="event-image-container">
-                <img class="event-image" src="{{imageUrl}}"/>
-                <div class="middle circle" style="opacity: 0.5;">
-                  <div class="middle">
-                    <i class="fas fa-play-circle fa-5x" style="color:white;"></i>
-                  </div>
+            <div class="right">
+              <div>
+                <span style="color:#424242;font-weight:bold;">{{number + 1}}. {{getEventTitle()}}</span>
+                @if (eventPinned) {
+                  <span class="app-chip" style="margin-left:10px; background-color:#0D47A1">Pinned</span>
+                }
+                @if (getEventTitleHint() != null) {
+                  <span class="app-chip" style="margin-left:10px; background-color:{{getEventTitleHintColor()}}">{{getEventTitleHint()}}</span>
+                }
+                <div class="app-text-dark-secondary" style="padding-bottom: 10px">
+                  @if (isThisHour()) {
+                    <div >
+                      {{getLocalDateTime() | amTimeAgo}}
+                    </div>
+                  } @else {
+                    @if (isLessThenTwoDays()) {
+                      <div >
+                        {{getLocalDateTime() | amCalendar}}
+                      </div>
+                    } @else {
+                      {{getLocalDateTimeFormatted()}}
+                    }
+                  }
+                  @if (actionCommands) {
+                    <div style="padding: 20px">
+                      @if (eventPinned) {
+                        <span>
+                          <button mat-flat-button (click)="pinUnpinEvent(false)" matTooltip="Unpin event" style="margin-right:15px"><i class="fas fa-thumbtack fa-lg"></i></button>
+                        </span>
+                      } @else {
+                        <button mat-raised-button (click)="pinUnpinEvent(true)" matTooltip="Pin event" style="margin-right:15px"><i class="fas fa-thumbtack fa-lg"></i></button>
+                      }
+                      <button mat-raised-button (click)="deleteEvent()" matTooltip="Delete event"><i class="fas fa-trash fa-lg"></i></button>
+                    </div>
+                  }
                 </div>
               </div>
             </div>
-
           </div>
-
-
-          <div class="right">
-            <div>
-              <span style="color:#424242;font-weight:bold;">{{number + 1}}. {{getEventTitle()}}</span>
-              <span *ngIf="eventPinned" class="app-chip" style="margin-left:10px; background-color:#0D47A1">Pinned</span>
-              <span *ngIf="getEventTitleHint() != null" class="app-chip" style="margin-left:10px; background-color:{{getEventTitleHintColor()}}">{{getEventTitleHint()}}</span>
-              <div class="app-text-dark-secondary" style="padding-bottom: 10px">
-                <div *ngIf="isThisHour(); else notThisHour" >
-                  {{getLocalDateTime() | amTimeAgo}}
-                </div>
-                <div *ngIf="actionCommands" style="padding: 20px">
-                  <span *ngIf="eventPinned; else notEventPinned">
-                    <button mat-flat-button (click)="pinUnpinEvent(false)" matTooltip="Unpin event" style="margin-right:15px"><i class="fas fa-thumbtack fa-lg"></i></button>
-                  </span>
-                  <ng-template #notEventPinned>
-                    <button mat-raised-button (click)="pinUnpinEvent(true)" matTooltip="Pin event" style="margin-right:15px"><i class="fas fa-thumbtack fa-lg"></i></button>
-                  </ng-template>
-                  <button mat-raised-button (click)="deleteEvent()" matTooltip="Delete event"><i class="fas fa-trash fa-lg"></i></button>
-                </div>
-                <ng-template #notThisHour>
-                  <div *ngIf="isLessThenTwoDays(); else moreThanTwoDays" >
-                    {{getLocalDateTime() | amCalendar}}
-                  </div>
-                </ng-template>
-                <ng-template #moreThanTwoDays>
-                  {{getLocalDateTimeFormatted()}}
-                </ng-template>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-      </mat-card-content>
-    </mat-card>
+        </mat-card-content>
+      </mat-card>
+    }
   </div>
-  `
+  `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 //<mat-card-content [ngStyle]="{'background-color': (eventPinned ? '#112233' : 'none')}">
 

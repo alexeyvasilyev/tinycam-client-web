@@ -1,11 +1,11 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { LoginService, LogoutService } from '../services';
 import StorageUtils from '../utils-storage';
 
 @Component({
-  selector: 'header',
-  styles: [ `
+    selector: 'header',
+    styles: [`
     .header {
       padding: 20px;
       width: 100%;
@@ -18,7 +18,7 @@ import StorageUtils from '../utils-storage';
       letter-spacing: .03em;
     }
   `],
-  template: `
+    template: `
     <div class="app-container app-text-center header">
       <button
         mat-raised-button
@@ -27,43 +27,47 @@ import StorageUtils from '../utils-storage';
         routerLinkActive="active"
         color="accent"
         [disabled]="selected == 0"><i class="fas fa-square fa-lg"></i> &nbsp; Live</button>
-
-      <button
-        mat-raised-button
-        class="header-button"
-        routerLink="/events"
-        routerLinkActive="active"
-        color="accent"
-        [disabled]="selected == 1"><i class="fas fa-child fa-lg"></i> &nbsp; Events</button>
-
-      <button
-        mat-raised-button
-        class="header-button"
-        routerLink="/timeline"
-        routerLinkActive="active"
-        color="accent"
-        [disabled]="selected == 2"><i class="fas fa-barcode fa-lg"></i> &nbsp; Timeline</button>
-
-      <span *ngIf="isAdmin">
+    
         <button
           mat-raised-button
           class="header-button"
-          routerLink="/admin"
+          routerLink="/events"
           routerLinkActive="active"
           color="accent"
-          [disabled]="selected == 3">
-            <i class="fas fa-user fa-lg"></i> &nbsp; Admin</button>
-      </span>
-
-      <button
-        mat-raised-button
-        class="header-button"
-        style="margin-left:50px;"
-        (click)="doLogout()"
-        color="accent">Logout &nbsp;<i class="fas fa-sign-out-alt fa-lg" aria-hidden="true"></i></button>
-
-    </div>
-  `
+          [disabled]="selected == 1"><i class="fas fa-child fa-lg"></i> &nbsp; Events</button>
+    
+          <button
+            mat-raised-button
+            class="header-button"
+            routerLink="/timeline"
+            routerLinkActive="active"
+            color="accent"
+            [disabled]="selected == 2"><i class="fas fa-barcode fa-lg"></i> &nbsp; Timeline</button>
+    
+            @if (isAdmin) {
+              <span>
+                <button
+                  mat-raised-button
+                  class="header-button"
+                  routerLink="/admin"
+                  routerLinkActive="active"
+                  color="accent"
+                  [disabled]="selected == 3">
+                  <i class="fas fa-user fa-lg"></i> &nbsp; Admin</button>
+                </span>
+              }
+    
+              <button
+                mat-raised-button
+                class="header-button"
+                style="margin-left:50px;"
+                (click)="doLogout()"
+                color="accent">Logout &nbsp;<i class="fas fa-sign-out-alt fa-lg" aria-hidden="true"></i></button>
+    
+              </div>
+    `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class HeaderComponent {

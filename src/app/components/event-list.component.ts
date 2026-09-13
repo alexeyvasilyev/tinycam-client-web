@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, Input, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { EventRecord, CameraSettings, } from '../models';
 import { EventListService, LoginService } from '../services';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -9,9 +9,9 @@ import { fadeInAnimation } from '../animations/';
 // For Chrome browser only first 5 events are shown as <video>,
 // the rest one are <image> (preventing too many active sockets issue).
 @Component({
-  selector: 'event-list',
-  animations: [fadeInAnimation],
-  styles: [ `
+    selector: 'event-list',
+    animations: [fadeInAnimation],
+    styles: [`
     .recordings-date-class {
         background: #EEEEEE;
         border-radius: 100%;
@@ -32,10 +32,10 @@ import { fadeInAnimation } from '../animations/';
         overflow: hidden;
      }
   `],
-  encapsulation: ViewEncapsulation.None,
-  template: `
+    encapsulation: ViewEncapsulation.None,
+    template: `
   <div>
-
+  
     <div class="container-event-list" style="padding-top: 20px">
       <div class="left-event-list" style="min-width:250px">
         <mat-form-field style="padding:0px 15px">
@@ -59,41 +59,51 @@ import { fadeInAnimation } from '../animations/';
         </mat-form-field>
       </div>
     </div>
-
-    <mat-card *ngIf="!eventsLoaded">
-      Loading events...
-    </mat-card>
-    <div *ngIf="eventsLoaded">
-      <div *ngIf="events.length > 0; else no_events_content">
-        <p class="app-text-dark-secondary app-text-center" style="padding-top: 5px; padding-bottom: 5px">TIP: Hold mouse cursor on image for a couple seconds to show recorded video.</p>
-        <div
-            infinite-scroll
-            [infiniteScrollDistance]="2"
-            [infiniteScrollThrottle]="100"
-            (scrolled)="onScroll()">
-            <div *ngFor="let event of events; let i = index" style="margin-bottom:20px;">
-                <event
+  
+    @if (!eventsLoaded) {
+      <mat-card>
+        Loading events...
+      </mat-card>
+    }
+    @if (eventsLoaded) {
+      <div>
+        @if (events.length > 0) {
+          <div>
+            <p class="app-text-dark-secondary app-text-center" style="padding-top: 5px; padding-bottom: 5px">TIP: Hold mouse cursor on image for a couple seconds to show recorded video.</p>
+            <div
+              infinite-scroll
+              [infiniteScrollDistance]="2"
+              [infiniteScrollThrottle]="100"
+              (scrolled)="onScroll()">
+              @for (event of events; track event; let i = $index) {
+                <div style="margin-bottom:20px;">
+                  <event
                     [number]="i"
                     [event]="event"
-                    [actionCommands]="loginService.login.isAdmin()"></event>
-            </div>
-
-            <div *ngIf="isFabShown()" style="position: fixed;right: 50px; bottom: 50px;">
-                <div [@fadeInAnimation]>
-                    <button mat-mini-fab color="accent" (click)="goTop()">
-                        <span><i class="fas fa-angle-up"></i></span>
-                    </button>
+                  [actionCommands]="loginService.login.isAdmin()"></event>
                 </div>
+              }
+              @if (isFabShown()) {
+                <div style="position: fixed;right: 50px; bottom: 50px;">
+                  <div [@fadeInAnimation]>
+                    <button mat-mini-fab color="accent" (click)="goTop()">
+                      <span><i class="fas fa-angle-up"></i></span>
+                    </button>
+                  </div>
+                </div>
+              }
             </div>
-        </div>
+          </div>
+        } @else {
+          <mat-card class="app-text-center" style="padding-bottom: 20px">
+            <p class="app-text-dark">No events found.</p>
+          </mat-card>
+        }
       </div>
-      <ng-template #no_events_content>
-        <mat-card class="app-text-center" style="padding-bottom: 20px">
-          <p class="app-text-dark">No events found.</p>
-        </mat-card>
-      </ng-template>
-    </div>
-  `
+    }
+  `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class EventListComponent implements OnInit {

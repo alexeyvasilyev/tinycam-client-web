@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
     template: `
@@ -16,7 +16,9 @@ import { Component } from '@angular/core';
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Close</button>
     </mat-dialog-actions>
-    `
-  })
+    `,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
+})
   export class LiveInfoDialogComponent {}
   

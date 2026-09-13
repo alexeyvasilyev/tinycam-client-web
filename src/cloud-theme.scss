@@ -1,36 +1,42 @@
-@import '@angular/material/theming';
+@use '@angular/material' as mat;
 // Plus imports for other components in your app.
 
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
-@include mat-core();
+@include mat.elevation-classes();
+@include mat.app-background();
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
-// $candy-app-primary: mat-palette($mat-indigo);
-$cloud-app-primary: mat-palette($mat-blue, A200, A100, A400);
-$cloud-app-accent:  mat-palette($mat-blue, A200, A100, A400);
-// $background-color: map_get($mat-blue-grey, 50);
+$cloud-app-primary: mat.m2-define-palette(mat.$m2-blue-palette, A200, A100, A400);
+$cloud-app-accent:  mat.m2-define-palette(mat.$m2-blue-palette, A200, A100, A400);
 
 // The warn palette is optional (defaults to red).
-$cloud-app-warn:    mat-palette($mat-red);
+$cloud-app-warn:    mat.m2-define-palette(mat.$m2-red-palette);
 
 
 // Create the theme object (a Sass map containing all of the palettes).
-$cloud-app-theme: mat-light-theme($cloud-app-primary, $cloud-app-accent, $cloud-app-warn);
-// $cloud-app-theme: mat-dark-theme($cloud-app-primary, $cloud-app-accent, $cloud-app-warn);
+$cloud-app-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $cloud-app-primary,
+    accent: $cloud-app-accent,
+    warn: $cloud-app-warn,
+  )
+));
 
 
 // Change background color
 $custom-background-color: #E0E0E0;
-$background: map-get($cloud-app-theme, background);
+$cloud-app-color: map-get($cloud-app-theme, color);
+$background: map-get($cloud-app-color, background);
 $background: map_merge($background, (background: $custom-background-color));
-$cloud-app-theme: map_merge($cloud-app-theme, (background: $background));
+$cloud-app-color: map_merge($cloud-app-color, (background: $background));
+$cloud-app-theme: map_merge($cloud-app-theme, (color: $cloud-app-color));
 
 
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
-@include angular-material-theme($cloud-app-theme);
+@include mat.all-component-themes($cloud-app-theme);
