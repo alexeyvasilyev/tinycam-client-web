@@ -19,7 +19,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
     template: `
     <div>
       @if (errorMessage != null) {
-        <mat-card class="app-text-center app-card-warning" style="margin-bottom: 30px">
+        <mat-card class="app-text-center app-card-warning" style="margin-bottom: 30px; padding: 10px">
           {{this.errorMessage}}
         </mat-card>
       }
@@ -28,7 +28,6 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
           @if (cameras.length > 0) {
             <div>
               @if (cameras.length > 1) {
-                <mat-card style="margin-bottom:20px;">
                   <div class="right">
                     @if (cameraSelected !== null && cameraSelected.cloudAccess) {
                       <mat-button-toggle-group [(value)]="localCloudSelected">
@@ -38,7 +37,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
                     }
                   </div>
                   <div class="left">
-                    <mat-form-field color="accent" style="padding-top:10px;width:100%">
+                    <mat-form-field color="accent" style="width:100%">
                       <mat-select [(value)]="cameraSelected" (selectionChange)="onSelected($event.value)" placeholder="Camera events">
                         <mat-option [value]="-1" >All cameras</mat-option>
                         @for (camera of cameras; track camera) {
@@ -61,7 +60,6 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
                       </ng-container>
                     </span>
                   }
-                </mat-card>
               }
               <event-list [type]="localCloudSelected" [cameraId]="cameraSelected.id" [cameras]="cameras"></event-list>
             </div>
@@ -70,7 +68,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
           }
         </div>
       } @else {
-        <mat-card>Loading cameras list...</mat-card>
+        <mat-card style="padding: 10px">Loading cameras list...</mat-card>
       }
     
     </div>

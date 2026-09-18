@@ -95,7 +95,7 @@ import { fadeInAnimation } from '../animations/';
             </div>
           </div>
         } @else {
-          <mat-card class="app-text-center" style="padding-bottom: 20px">
+          <mat-card class="app-text-center" style="padding: 20px">
             <p class="app-text-dark">No events found.</p>
           </mat-card>
         }

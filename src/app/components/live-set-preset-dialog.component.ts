@@ -20,7 +20,7 @@ import { MatDialogRef } from '@angular/material/dialog';
           </mat-form-field>
         </div>
     </mat-dialog-content>
-    <mat-dialog-actions align="end">
+    <mat-dialog-actions align="end" style="margin:20px">
       <button
         mat-raised-button
         mat-dialog-close>Cancel</button>

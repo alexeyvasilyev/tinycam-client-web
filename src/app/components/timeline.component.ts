@@ -81,14 +81,14 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
     template: `
   <div #component>
     @if (!isAllEventsLoaded()) {
-      <mat-card style="margin:10px 0;">
+      <mat-card style="padding:10px">
         Loading archive...
       </mat-card>
     }
   
     @if (isAllEventsLoaded()) {
       <div>
-        <div class="app-text-center" style="padding-bottom: 10px">
+        <div class="app-text-center" style="padding-bottom: 10px; padding: 10px">
           @if (events.length > 0) {
             <div>
             </div>

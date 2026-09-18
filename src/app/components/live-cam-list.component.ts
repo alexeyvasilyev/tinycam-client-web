@@ -61,7 +61,7 @@ import { Observable } from 'rxjs';
     template: `
     <div>
       @if (errorMessage != null) {
-        <mat-card class="app-text-center app-card-warning" style="margin-bottom: 30px">
+        <mat-card class="app-text-center app-card-warning" style="margin-bottom: 30px; padding: 10px">
           {{this.errorMessage}}
         </mat-card>
       }
@@ -180,7 +180,7 @@ import { Observable } from 'rxjs';
         }
       </div>
     } @else {
-      <mat-card>Loading cameras list...</mat-card>
+      <mat-card style="padding: 10px">Loading cameras list...</mat-card>
     }
     
     </div>
