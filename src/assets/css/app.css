@@ -30,11 +30,11 @@
 } */
 
 .app-text-dark-hint {
-    color: #616161;
+    color: var(--app-hint);
 }
 
 .app-text-dark-secondary {
-  color: rgba(0, 0, 0, 0.54);
+  color: var(--app-secondary);
 }
 
 @media (min-width: 544px) {
@@ -70,7 +70,7 @@
 }
 
 .app-text-warning {
-  color: #b71c1c !important;
+  color: var(--app-warning) !important;
 }
 
 /* .app-text-danger {
@@ -78,8 +78,8 @@
 } */
 
 .app-card-warning {
-  color: #FFFFFF !important;
-  background-color: #b71c1c !important;
+  color: var(--app-on-warning) !important;
+  background-color: var(--app-warning) !important;
 }
 
 /* Create two equal columns that floats next to each other */
@@ -102,7 +102,7 @@
   color: #FFFFFF;
   line-height: 24px;
   border-radius: 10px;
-  background-color: #1E88E5;
+  background-color: #6442d6;
 }
 
 /* width */

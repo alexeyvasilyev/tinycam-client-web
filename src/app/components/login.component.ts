@@ -66,7 +66,7 @@ import StorageUtils from '../utils-storage';
               }
     
               <div class="app-text-center">
-                <button type="submit" [disabled]="!loginForm.form.valid" mat-raised-button color="accent" class="login-button">LOGIN</button>
+                <button type="submit" [disabled]="!loginForm.form.valid" mat-raised-button color="primary" class="login-button">LOGIN</button>
                 @if (error != null) {
                   <mat-card class="app-card-warning" style="padding: 20px; margin-top:20px">
                     <mat-card-content>Failed to login.<br/>{{error}}</mat-card-content>

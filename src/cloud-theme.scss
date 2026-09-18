@@ -1,44 +1,106 @@
 @use '@angular/material' as mat;
-// Plus imports for other components in your app.
+@use 'sass:map';
 
-// Include the common styles for Angular Material. We include this here so that you only
-// have to load a single css file for Angular Material in your app.
-// Be sure that you only ever include this mixin once!
 @include mat.elevation-classes();
 @include mat.app-background();
 
-// Define the palettes for your theme using the Material Design palettes available in palette.scss
-// (imported above). For each palette, you can optionally specify a default, lighter, and darker
-// hue. Available color palettes: https://material.io/design/color/
-$cloud-app-primary: mat.m2-define-palette(mat.$m2-blue-palette, A200, A100, A400);
-$cloud-app-accent:  mat.m2-define-palette(mat.$m2-blue-palette, A200, A100, A400);
+@function site-palette($color, $on-color) {
+  @return mat.m2-define-palette((
+    500: $color,
+    100: $color,
+    700: $color,
+    50: $color,
+    300: $color,
+    600: $color,
+    900: $color,
+    contrast: (500: $on-color, 100: $on-color, 700: $on-color),
+  ));
+}
 
-// The warn palette is optional (defaults to red).
-$cloud-app-warn:    mat.m2-define-palette(mat.$m2-red-palette);
+@function site-theme($dark, $primary, $on-primary, $secondary, $on-secondary,
+    $error, $background, $surface, $raised, $text, $hint, $outline) {
+  $config: (
+    color: (
+      primary: site-palette($primary, $on-primary),
+      accent: site-palette($secondary, $on-secondary),
+      warn: site-palette($error, #490909),
+    ),
+    typography: mat.m2-define-typography-config(),
+  );
+  $theme: null;
+  @if $dark {
+    $theme: mat.m2-define-dark-theme($config);
+  } @else {
+    $theme: mat.m2-define-light-theme($config);
+  }
+  // Angular Material 22's M2 components read precomputed system roles.
+  // Override these together so cards, menus, dialogs and form controls agree.
+  @return map.set($theme, _mat-system, map.merge(map.get($theme, _mat-system), (
+    background: $background,
+    on-background: $text,
+    surface: $surface,
+    on-surface: $text,
+    surface-variant: $raised,
+    on-surface-variant: $hint,
+    surface-container: $surface,
+    surface-container-low: $surface,
+    surface-container-lowest: $background,
+    surface-container-high: $raised,
+    surface-container-highest: $raised,
+    surface-bright: $raised,
+    surface-dim: $background,
+    surface-tint: $primary,
+    outline: rgba($outline, 0.3),
+    outline-variant: $outline,
+  )));
+}
 
+$cloud-app-dark-theme: site-theme(true, #ab9de0, #2e126d, #a1a1ba, #151629,
+  #ff6e4e, #141314, #1c1b1d, #2b292b, #e6e1e3, #cbc4cc, #928f94);
+$cloud-app-theme: site-theme(false, #4e58b2, #ffffff, #5d5d74, #ffffff,
+  #ff6240, #fefbff, #f8f1f6, #ece7e9, #1c1b1d, #4d4256, #787579);
 
-// Create the theme object (a Sass map containing all of the palettes).
-$cloud-app-theme: mat.m2-define-light-theme((
-  color: (
-    primary: $cloud-app-primary,
-    accent: $cloud-app-accent,
-    warn: $cloud-app-warn,
-  ),
-  typography: mat.m2-define-typography-config(),
-));
+@include mat.all-component-themes($cloud-app-dark-theme);
+@include mat.typography-hierarchy($cloud-app-dark-theme);
 
+html {
+  color-scheme: dark;
+  --app-background: #141314;
+  --app-text: #e6e1e3;
+  --app-hint: #cbc4cc;
+  --app-secondary: #cbc4cc;
+  --app-warning: #ff6e4e;
+  --app-on-warning: #490909;
+  --app-surface-muted: #3d3d3d;
+  --app-surface-raised: #2b292b;
+  --app-outline: #4c4c4c;
+  --app-pinned: #45455a;
+  --app-link: #9f86ff;
+  --app-on-primary: #1a0056;
+}
 
-// Change background color
-$custom-background-color: #E0E0E0;
-$cloud-app-color: map-get($cloud-app-theme, color);
-$background: map-get($cloud-app-color, background);
-$background: map_merge($background, (background: $custom-background-color));
-$cloud-app-color: map_merge($cloud-app-color, (background: $background));
-$cloud-app-theme: map_merge($cloud-app-theme, (color: $cloud-app-color));
+html.light-theme {
+  @include mat.all-component-colors($cloud-app-theme);
+  color-scheme: light;
+  --app-background: #fefbff;
+  --app-text: #1c1b1d;
+  --app-hint: #4d4256;
+  --app-secondary: #4d4256;
+  --app-warning: #ff6240;
+  --app-on-warning: #490909;
+  --app-surface-muted: #e1e1e1;
+  --app-surface-raised: #ece7e9;
+  --app-outline: #d4d3d5;
+  --app-pinned: #dcdaf5;
+  --app-link: #6442d6;
+  --app-on-primary: #ffffff;
+}
 
+body.mat-app-background {
+  background-color: var(--app-background);
+  color: var(--app-text);
+}
 
-// Include theme styles for core and each component used in your app.
-// Alternatively, you can import and @include the theme mixins for each component
-// that you are using.
-@include mat.all-component-themes($cloud-app-theme);
-@include mat.typography-hierarchy($cloud-app-theme);
+a:not([mat-raised-button]):not([mat-button]) {
+  color: var(--app-link);
+}

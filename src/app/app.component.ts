@@ -1,3 +1,4 @@
+import { ThemeService } from './services/theme.service';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
@@ -8,5 +9,7 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
     standalone: false
 })
 export class AppComponent {
+  constructor(public themeService: ThemeService) {}
+
   title = 'tinycam-client-web';
 }

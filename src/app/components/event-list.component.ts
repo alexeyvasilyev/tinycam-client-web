@@ -13,7 +13,7 @@ import { fadeInAnimation } from '../animations/';
     animations: [fadeInAnimation],
     styles: [`
     .recordings-date-class {
-        background: #EEEEEE;
+        background: var(--app-surface-muted);
         border-radius: 100%;
     }
     .container-event-list {

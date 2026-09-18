@@ -20,7 +20,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
         </mat-form-field>
         <button mat-button color="accent" (click)="copy(mjpegUrl)">Copy</button>
       </div>
-      <div class="mat-small" style="color: rgba(0,0,0,.54); margin-top:8px;">Note that token is not valid if web server restarted</div>
+      <div class="mat-small" style="color: var(--app-secondary); margin-top:8px;">Note that token is not valid if web server restarted</div>
       <div class="mat-small" style="margin-top:4px;"><a href="https://github.com/alexeyvasilyev/tinycam-api" target="_blank" rel="noopener">https://github.com/alexeyvasilyev/tinycam-api</a></div>
     </mat-dialog-content>
     <mat-dialog-actions align="end" style="margin:20px">

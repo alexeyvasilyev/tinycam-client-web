@@ -5,6 +5,7 @@ import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { fadeInAnimation } from '../animations/';
 import Utils from '../utils'
 import { ResizeObserver } from '@juggle/resize-observer';
+import { AppTheme, ThemeService } from '../services/theme.service';
 import { SmoothieChart, TimeSeries } from 'smoothie';
 
 @Component({
@@ -20,15 +21,15 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
         margin-top: 20px;
       }
       .warning {
-        color: red;
+        color: var(--app-warning);
       }
       .ip-header {
-        background-color: #757575;
-        color: white;
+        background-color: var(--app-surface-raised);
+        color: var(--app-text);
         padding: 7px;
       }
       .ip-td {
-        background-color: #EEEEEE;
+        background-color: var(--app-surface-muted);
         padding: 7px;
       }
     `],
@@ -38,8 +39,19 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
         <h2 class="mat-h2" style="padding-top:20px">Admin information</h2>
       
         <mat-card>
-          <mat-card-content>
-            <div class="mat-h3">Username: <b>{{this.loginService.login.username}}</b></div>
+          <mat-card-content style="display:table; width:100%;">
+            <div style="float:left;width:55%;overflow-wrap:anywhere;">
+              <div class="mat-h3">Admin: <b>{{this.loginService.login.username}}</b></div>
+            </div>
+            <div style="float:right;width:40%">
+              <mat-form-field color="accent" style="padding-top:10px;" class="full-width" subscriptSizing="dynamic">
+                <mat-label>Theme</mat-label>
+                <mat-select [value]="themeService.theme" (selectionChange)="setTheme($event.value)">
+                  <mat-option value="dark">Dark</mat-option>
+                  <mat-option value="light">Light</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
           </mat-card-content>
         </mat-card>
       
@@ -57,7 +69,8 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
             <div style="float:right;width:40%">
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                  <mat-select [(value)]="status.streamProfile" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.StreamProfile=' + ($event.value==0 ? 'main' : ($event.value==1 ? 'sub' : 'auto')))" placeholder="Stream profile">
+                  <mat-label>Stream profile</mat-label>
+                  <mat-select [(value)]="status.streamProfile" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.StreamProfile=' + ($event.value==0 ? 'main' : ($event.value==1 ? 'sub' : 'auto')))">
                     <mat-option [value]="0">Main</mat-option>
                     <mat-option [value]="1">Sub</mat-option>
                     <mat-option [value]="2">Auto</mat-option>
@@ -66,7 +79,8 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
               </div>
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                  <mat-select [(value)]="status.powerSafeMode" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.PowerSafeMode=' + ($event.value ? 'on' : 'off'))" placeholder="Power safe mode">
+                  <mat-label>Power safe mode</mat-label>
+                  <mat-select [(value)]="status.powerSafeMode" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.PowerSafeMode=' + ($event.value ? 'on' : 'off'))">
                     <mat-option [value]="true">On</mat-option>
                     <mat-option [value]="false">Off</mat-option>
                   </mat-select>
@@ -77,7 +91,8 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
               }
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
-                  <mat-select [(value)]="status.notifications" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.Notifications=' + ($event.value ? 'on' : 'off'))" placeholder="Notifications">
+                  <mat-label>Notifications</mat-label>
+                  <mat-select [(value)]="status.notifications" (selectionChange)="sendHttpGetRequest('/param.cgi?action=update&root.Notifications=' + ($event.value ? 'on' : 'off'))">
                     <mat-option [value]="true">On</mat-option>
                     <mat-option [value]="false">Off</mat-option>
                   </mat-select>
@@ -205,6 +220,7 @@ export class PageAdminComponent implements OnInit {
 
     constructor(
         public loginService: LoginService,
+        public themeService: ThemeService,
         private genericService: GenericService,
         private statusService: StatusService,
         private ipaddressesService: IpAddressesService,
@@ -300,17 +316,33 @@ export class PageAdminComponent implements OnInit {
 
     private initCharts() {
         this.networkChart = new SmoothieChart({millisPerPixel:100, grid:{fillStyle:'#EEEEEE', verticalSections:5, strokeStyle:'#E0E0E0'}, labels:{fillStyle:'#000000', precision:0}, minValue:0});
-        this.networkChart.addTimeSeries(this.networkInSeries, {lineWidth:2, strokeStyle:'#EA4238', fillStyle:'rgba(234,66,56,0.30)'});
-        this.networkChart.addTimeSeries(this.networkOutSeries, {lineWidth:2, strokeStyle:'#5DAEE4', fillStyle:'rgba(93,174,228,0.30)'});
+        this.networkChart.addTimeSeries(this.networkOutSeries, {lineWidth:2, strokeStyle:'#5DAEE4', fillStyle:'rgba(93,174,228,0.40)'});
+        this.networkChart.addTimeSeries(this.networkInSeries, {lineWidth:2, strokeStyle:'#EA4238', fillStyle:'rgba(234,66,56,0.40)'});
         this.networkChart.streamTo(this.networkChartEl.nativeElement, 3000);
 
         this.cpuUsageChart = new SmoothieChart({millisPerPixel:100, grid:{fillStyle:'#EEEEEE', verticalSections:5, strokeStyle:'#E0E0E0'}, labels:{fillStyle:'#000000', precision:0}, minValue:0});
-        this.cpuUsageChart.addTimeSeries(this.cpuUsageSeries, {lineWidth:2, strokeStyle:'#F57C00', fillStyle:'rgba(245,124,0,0.30)'});
+        this.cpuUsageChart.addTimeSeries(this.cpuUsageSeries, {lineWidth:2, strokeStyle:'#F57C00', fillStyle:'rgba(245,124,0,0.60)'});
         this.cpuUsageChart.streamTo(this.cpuUsageChartEl.nativeElement, 3000);
 
         this.cpuFreqChart = new SmoothieChart({millisPerPixel:100, grid:{fillStyle:'#EEEEEE', verticalSections:5, strokeStyle:'#E0E0E0'}, labels:{fillStyle:'#000000', precision:0}, minValue:0});
-        this.cpuFreqChart.addTimeSeries(this.cpuFreqSeries, {lineWidth:2, strokeStyle:'#8BC34A', fillStyle:'rgba(139,195,74,0.30)'});
+        this.cpuFreqChart.addTimeSeries(this.cpuFreqSeries, {lineWidth:2, strokeStyle:'#8BC34A', fillStyle:'rgba(139,195,74,0.60)'});
         this.cpuFreqChart.streamTo(this.cpuFreqChartEl.nativeElement, 3000);
+        this.updateChartTheme();
+    }
+
+    setTheme(theme: AppTheme) {
+        this.themeService.setTheme(theme);
+        this.updateChartTheme();
+    }
+
+    private updateChartTheme() {
+        const colors = getComputedStyle(this.componentEl.nativeElement);
+        for (const chart of [this.networkChart, this.cpuUsageChart, this.cpuFreqChart]) {
+            if (!chart) continue;
+            chart.options.grid.fillStyle = colors.getPropertyValue('--app-surface-muted').trim();
+            chart.options.grid.strokeStyle = colors.getPropertyValue('--app-outline').trim();
+            chart.options.labels.fillStyle = colors.getPropertyValue('--app-text').trim();
+        }
     }
 
     private resizeCanvas() {

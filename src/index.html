@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <script>
+    try {
+      document.documentElement.classList.toggle('light-theme', localStorage.getItem('tinycam-theme') === 'light');
+    } catch (e) { /* Use the default dark theme if storage is unavailable. */ }
+  </script>
   <title>tinyCam Client</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">

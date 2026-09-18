@@ -93,7 +93,7 @@ import { Observable } from 'rxjs';
   <div [@fadeInAnimation]>
     @if (!eventDeleted) {
       <mat-card>
-        <mat-card-content [ngStyle]="{'background-color': eventPinned ? '#e3f0f7' : ''}">
+        <mat-card-content [ngStyle]="{'background-color': eventPinned ? 'var(--app-pinned)' : ''}">
           <div class="container" >
             <div (click)="openDialog()" class="left img" (mouseleave)="videoPlaying=false; videoLoading=false; loadedPercent=0;">
               @if (autoplayOnHover) {
@@ -134,7 +134,7 @@ import { Observable } from 'rxjs';
             </div>
             <div class="right">
               <div>
-                <span style="color:#424242;font-weight:bold;">{{number + 1}}. {{getEventTitle()}}</span>
+                <span style="color:var(--app-text);font-weight:bold;">{{number + 1}}. {{getEventTitle()}}</span>
                 @if (eventPinned) {
                   <span class="app-chip" style="margin-left:10px; background-color:#0D47A1">Pinned</span>
                 }

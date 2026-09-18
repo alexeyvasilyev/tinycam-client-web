@@ -130,7 +130,7 @@ import { Observable } from 'rxjs';
                   <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Share livestream" (click)="shareRtspLiveStream()">
                     <i class="fas fa-link"></i>
                   </button>
-                  <button mat-icon-button [matMenuTriggerFor]="menu"><i class="fas fa-ellipsis-v fa-lg" style="color:#111111;"></i></button>
+                  <button mat-icon-button [matMenuTriggerFor]="menu"><i class="fas fa-ellipsis-v fa-lg" style="color:var(--app-text);"></i></button>
                   <mat-menu #menu="matMenu">
                     <button mat-menu-item (click)="sendCameraMotionEvent()">
                       <i class="fas fa-walking fa-lg"></i> &nbsp;
