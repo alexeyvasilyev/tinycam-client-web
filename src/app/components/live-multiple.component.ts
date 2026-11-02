@@ -1,19 +1,25 @@
-import { Component, OnInit, ElementRef, ChangeDetectionStrategy, viewChild, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ChangeDetectionStrategy, viewChild, ChangeDetectorRef, inject, signal } from '@angular/core';
 import { Router, Params, ActivatedRoute } from '@angular/router';
 import { CameraSettings } from '../models';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoginService, CamListService, WindowRefService } from '../services';
 import { HttpErrorResponse } from '@angular/common/http';
 import StorageUtils from '../utils-storage';
+import { NgTemplateOutlet } from '@angular/common';
 import { MatCard } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
 import { LiveComponent } from './live.component';
+import { LIVE_LAYOUTS, LiveLayout, LiveLayoutCell, MAX_MJPEG_STREAMS, getLiveLayout } from '../live-layouts';
+import { LiveMux } from '../live-mux';
+import { MsePlayer } from '../mse-player';
 
 @Component({
     selector: 'live-multiple',
     host: {
         '(document:keydown)': 'handleKeyDown($event)',
+        '(window:resize)': 'windowHeight.set(windowRef.nativeWindow.innerHeight)',
     },
     styles: [`
     .live-button {
@@ -48,10 +54,26 @@ import { LiveComponent } from './live.component';
         width: auto;
         overflow: hidden;
     }
+    .live-grid {
+        display: grid;
+        gap: 2px;
+        padding: 2px;
+        box-sizing: border-box;
+        background-color: #424242;
+    }
     .cell {
         background-color: #212121;
-        width: 50%;
+        /* Cell size must not depend on loaded video intrinsic size */
+        min-width: 0;
         overflow: hidden;
+    }
+    .layout-icon {
+        width: 24px;
+        height: 18px;
+        vertical-align: middle;
+    }
+    .layout-menu-icon {
+        margin-right: 12px;
     }
     `],
     template: `
@@ -82,6 +104,21 @@ import { LiveComponent } from './live.component';
           <button mat-raised-button class="live-button" style="margin-left:20px;" matTooltip="Single camera layout" (click)="showSingleScreenLastSelected()">
             <i class="fas fa-square"></i>
           </button>
+          <button mat-raised-button class="live-button" matTooltip="Multiple cameras layout" [matMenuTriggerFor]="layoutMenu">
+            <ng-container *ngTemplateOutlet="layoutIcon; context: { $implicit: layout }"></ng-container>
+          </button>
+          <mat-menu #layoutMenu="matMenu">
+            @for (l of layouts; track l.id) {
+              <button mat-menu-item (click)="selectLayout(l)">
+                <ng-container *ngTemplateOutlet="layoutIcon; context: { $implicit: l, menu: true }"></ng-container>
+                <span>{{l.name}}</span>
+                @if (l === layout) {
+                  <!-- Wrapper is needed since Font Awesome replaces <i> with <svg>, which Angular cannot remove -->
+                  <span style="margin-left: 12px"><i class="fas fa-check"></i></span>
+                }
+              </button>
+            }
+          </mat-menu>
           <!-- <button mat-raised-button class="live-button" (click)="toggleFullScreen()" style="margin-left:20px;" matTooltip="Full screen">
           <i class="fas fa-expand-alt"></i>
         </button> -->
@@ -90,53 +127,52 @@ import { LiveComponent } from './live.component';
     </div>
     
     @if (cameras !== null) {
-      <div #live style="background-color: #424242; overflow: auto;" [style.height.px]="getLiveHeight()" animate.enter="app-fade-in">
-        <!-- Fixed layout: column widths must not depend on loaded video intrinsic size -->
-        <table #livem width="100%" height="100%" style="table-layout:fixed;border-spacing:2px;border-collapse:separate;">
-          <tr>
-            <td class="cell">
-              <live [cameraId]="getCameraPage(0).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(0)" (click)="liveSingleClick()"></live>
-            </td>
-            <td class="cell">
-              @if (getCameraPage(1) != null) {
-                <live [cameraId]="getCameraPage(1).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(1)" (click)="liveSingleClick()"></live>
-              }
-            </td>
-          </tr>
-          @if (getCamerasPerPage() >= 4) {
-            <tr>
-              <td class="cell">
-                @if (getCameraPage(2) != null) {
-                  <live [cameraId]="getCameraPage(2).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(2)" (click)="liveSingleClick()"></live>
-                }
-              </td>
-              <td class="cell">
-                @if (getCameraPage(3) != null) {
-                  <live [cameraId]="getCameraPage(3).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(3)" (click)="liveSingleClick()"></live>
-                }
-              </td>
-            </tr>
-          }
-        </table>
+      <div #live class="live-grid" [style.height.px]="windowHeight()" animate.enter="app-fade-in"
+        [style.grid-template-columns]="'repeat(' + layout.cols + ', minmax(0, 1fr))'"
+        [style.grid-template-rows]="'repeat(' + layout.rows + ', ' + getRowHeight() + 'px)'">
+        @for (cell of layout.cells; track $index) {
+          <div class="cell"
+            [style.grid-column]="(cell.col + 1) + ' / span ' + cell.colSpan"
+            [style.grid-row]="(cell.row + 1) + ' / span ' + cell.rowSpan">
+            @if (getCameraPage($index); as camera) {
+              <live [cameraId]="camera.id" [viewHeightPx]="getCellHeight(cell)" [mux]="mux" [snapshotMode]="isSnapshotMode()"
+                (dblclick)="liveDoubleClick($index)" (click)="liveSingleClick()"></live>
+            }
+          </div>
+        }
       </div>
     }
+
+    <ng-template #layoutIcon let-l let-menu="menu">
+      <svg class="layout-icon" [class.layout-menu-icon]="menu" [attr.viewBox]="'0 0 ' + l.cols + ' ' + l.rows" preserveAspectRatio="none">
+        @for (c of l.cells; track $index) {
+          <rect [attr.x]="c.col + 0.1" [attr.y]="c.row + 0.1" [attr.width]="c.colSpan - 0.2" [attr.height]="c.rowSpan - 0.2" fill="currentColor"/>
+        }
+      </svg>
+    </ng-template>
     </div>
     `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatCard, MatButton, MatTooltip, LiveComponent]
+    imports: [MatCard, MatButton, MatTooltip, MatMenuTrigger, MatMenu, MatMenuItem, NgTemplateOutlet, LiveComponent]
 })
 
-export class LiveMultipleComponent implements OnInit {
+export class LiveMultipleComponent implements OnInit, OnDestroy {
 
     // Zoneless: async updates must mark the view for check
     private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
     readonly livemEl = viewChild<ElementRef>('livem');
 
+    readonly layouts = LIVE_LAYOUTS;
+    readonly windowHeight = signal(0);
+
     cameras: CameraSettings[] = null;
     errorMessage: string = null;
     currentPage: number = 0;
-    private CAMS_PER_LAYOUT: number = 4; // Utils.isBrowserFirefox() ? 4 : 2;
+    layout: LiveLayout = getLiveLayout(StorageUtils.getLiveLayout());
+    // Single connection with MP4 streams of all cameras on the current page
+    mux: LiveMux | null = null;
+    private readonly useMp4 = !StorageUtils.getUseMjpegLiveView() && MsePlayer.getMediaSourceImpl() != null;
     private timerClick;
 
     constructor (
@@ -145,7 +181,8 @@ export class LiveMultipleComponent implements OnInit {
         private snackBar: MatSnackBar,
         private loginService: LoginService,
         private camListService: CamListService,
-        private windowRef: WindowRefService) {
+        public windowRef: WindowRefService) {
+        this.windowHeight.set(windowRef.nativeWindow.innerHeight);
     }
 
     ngOnInit() {
@@ -170,6 +207,33 @@ export class LiveMultipleComponent implements OnInit {
         });
     }
 
+    ngOnDestroy() {
+        this.mux?.stop();
+        this.mux = null;
+    }
+
+    // MJPEG is preferred, but too many cameras on the page for MJPEG streams
+    isSnapshotMode(): boolean {
+        return !this.useMp4 && this.getCamerasPerPage() > MAX_MJPEG_STREAMS;
+    }
+
+    // Recreates multiplexed stream if cameras on the page changed
+    private updateMux() {
+        if (!this.useMp4 || this.cameras == null)
+            return;
+        const ids: number[] = [];
+        for (let i = 0; i < this.getCamerasPerPage(); i++) {
+            const camera = this.getCameraPage(i);
+            if (camera != null)
+                ids.push(camera.id);
+        }
+        if (this.mux != null && this.mux.cameraIds.join(',') === ids.join(','))
+            return;
+        this.mux?.stop();
+        this.mux = new LiveMux(LiveMux.createUrl(this.loginService.server.url, this.loginService.login.token, ids), ids);
+        this.mux.start();
+    }
+
     liveSingleClick() {
         console.log('liveSingleClick()');
         if (this.timerClick)
@@ -190,13 +254,25 @@ export class LiveMultipleComponent implements OnInit {
     //    Utils.toggleFullScreen(this.livemEl.nativeElement);
     // }
 
-    getCellHeight(): number {
-        const rows = this.getCamerasPerPage() == 2 ? 1 : 2;
-        return Math.floor(this.windowRef.nativeWindow.innerHeight / rows) - 2 /*size of border-spacing*/ * (rows + 2);
+    // Grid gap and padding
+    private static readonly GAP_PX = 2;
+
+    getRowHeight(): number {
+        const rows = this.layout.rows;
+        return Math.floor((this.windowHeight() - LiveMultipleComponent.GAP_PX * (rows + 1)) / rows);
     }
 
-    getLiveHeight(): number {
-        return this.windowRef.nativeWindow.innerHeight;
+    getCellHeight(cell: LiveLayoutCell): number {
+        return this.getRowHeight() * cell.rowSpan + LiveMultipleComponent.GAP_PX * (cell.rowSpan - 1);
+    }
+
+    selectLayout(layout: LiveLayout) {
+        // Keep the first camera of the current page visible
+        const firstCamera = this.currentPage * this.getCamerasPerPage();
+        this.layout = layout;
+        StorageUtils.setLiveLayout(layout.id);
+        this.currentPage = Math.floor(firstCamera / this.getCamerasPerPage());
+        this.updateMux();
     }
 
     getCameraPage(index: number): CameraSettings {
@@ -213,12 +289,11 @@ export class LiveMultipleComponent implements OnInit {
     getTotalPages(): number {
         if (this.cameras == null)
             return 0;
-        return Math.floor(this.cameras.length / this.CAMS_PER_LAYOUT) + (this.cameras.length % this.CAMS_PER_LAYOUT > 0 ? 1 : 0);
+        return Math.ceil(this.cameras.length / this.getCamerasPerPage());
     }
 
     getCamerasPerPage(): number {
-        // console.log('getCamerasPerPage()=' + this.CAMS_PER_LAYOUT);
-        return this.CAMS_PER_LAYOUT;
+        return this.layout.cells.length;
     }
 
     showCurrentPage() {
@@ -233,6 +308,7 @@ export class LiveMultipleComponent implements OnInit {
         } else if (showTip) {
             this.showCurrentPage();
         }
+        this.updateMux();
     }
 
     switchNextPage(showTip: boolean) {
@@ -243,6 +319,7 @@ export class LiveMultipleComponent implements OnInit {
         } else if (showTip) {
             this.showCurrentPage();
         }
+        this.updateMux();
     }
 
     showSingleScreenLastSelected() {
@@ -270,6 +347,7 @@ export class LiveMultipleComponent implements OnInit {
         if (cameras) {
             this.cameras = cameras;
             console.log('Total cameras: ' + cameras.length);
+            this.updateMux();
         } else {
             console.log('No cameras found.');
         }

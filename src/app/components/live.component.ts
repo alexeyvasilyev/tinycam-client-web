@@ -2,19 +2,19 @@ import { AfterViewInit, Component, ElementRef, SimpleChanges, ChangeDetectionStr
 import { LoginService } from '../services';
 import { WindowRefService } from '../services';
 import StorageUtils from '../utils-storage';
+import { MsePlayer } from '../mse-player';
+import { LiveMux } from '../live-mux';
 
 // Live view plays progressive (fragmented) MP4 stream via Media Source Extensions.
 // MJPEG is used if selected in Admin settings ("Use MJPEG codec for live view").
 // Falls back to MJPEG if MSE or camera codec (e.g. H.265) is not supported by the browser,
 // or if the camera does not provide H.264/H.265 (server responds with 415).
+// Multiple cameras layouts provide mux, single connection with MP4 streams of all cameras on the page
+// (browsers allow only ~6 simultaneous connections per server). JPEG snapshots are used instead
+// of MJPEG there (snapshotMode or fallback), since each MJPEG stream keeps a connection open.
 
-// Keep playback this close to the live edge (sec)
-const MAX_LATENCY_SEC = 1.5;
-const TARGET_LATENCY_SEC = 0.3;
-// Keep this much already played video in SourceBuffer (sec)
-const MAX_BUFFER_SEC = 30;
-const KEEP_BUFFER_SEC = 10;
 const RECONNECT_DELAY_MSEC = 2000;
+const SNAPSHOT_INTERVAL_MSEC = 500;
 
 @Component({
     selector: 'live',
@@ -23,11 +23,11 @@ const RECONNECT_DELAY_MSEC = 2000;
       <div animate.enter="app-fade-in" style="cursor: pointer; background-repeat: no-repeat; background-position: center; background-size: contain; background-image: url('assets/img/loading.png');">
         <video #video muted autoplay playsinline disablepictureinpicture
           style="display: block; width: 100%; object-fit: contain; background: transparent;"
-          [style.display]="mjpegMode() ? 'none' : 'block'"
+          [style.display]="imageMode() ? 'none' : 'block'"
           [style.visibility]="playing() ? 'visible' : 'hidden'"
           [style.height.px]="viewHeightPx()"></video>
         <div #cell style="background-repeat: no-repeat; background-position: center; background-size: contain;"
-          [style.display]="mjpegMode() ? 'block' : 'none'"
+          [style.display]="imageMode() ? 'block' : 'none'"
           [style.height.px]="viewHeightPx()"></div>
       </div>
     `,
@@ -38,20 +38,25 @@ export class LiveComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     readonly viewHeightPx = input<number>(100); // Hack for Safari
     readonly cameraId = input<number>(undefined);
+    readonly snapshotMode = input(false);
+    readonly mux = input<LiveMux | null>(null);
     readonly cellEl = viewChild<ElementRef>('cell');
     readonly videoEl = viewChild<ElementRef<HTMLVideoElement>>('video');
 
     // Signals, since they are changed from fetch() and MSE callbacks (zoneless)
-    readonly mjpegMode = signal(false);
+    // MJPEG or JPEG snapshots are shown in cell instead of video
+    readonly imageMode = signal(false);
     readonly playing = signal(false);
 
     private viewInitialized = false;
     // Incremented on each (re)start. Stale async callbacks check it and exit.
     private session = 0;
     private abortController: AbortController | null = null;
-    private mediaSource: MediaSource | null = null;
-    private objectUrl: string | null = null;
+    private player: MsePlayer | null = null;
+    private unsubscribeMux: (() => void) | null = null;
     private reconnectTimer: any = null;
+    private mjpegStarted = false;
+    private snapshotUrl: string | null = null;
 
     constructor(
         public loginService: LoginService,
@@ -65,7 +70,7 @@ export class LiveComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     ngOnChanges(changes: SimpleChanges) {
         // Height changes do not require reconnection
-        if (!this.viewInitialized || !changes['cameraId'])
+        if (!this.viewInitialized || (!changes['cameraId'] && !changes['snapshotMode'] && !changes['mux']))
             return;
         this.stop();
         this.start();
@@ -77,14 +82,24 @@ export class LiveComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     private start() {
         this.stop();
-        const MediaSourceImpl = LiveComponent.getMediaSourceImpl();
-        // MJPEG selected in Admin settings or MSE not supported
-        if (StorageUtils.getUseMjpegLiveView() || MediaSourceImpl == null) {
-            this.startMjpeg(MediaSourceImpl == null ? 'Media Source Extensions not supported by the browser' : 'selected in Admin settings');
+        if (this.snapshotMode()) {
+            this.startSnapshots(++this.session);
             return;
         }
-        this.mjpegMode.set(false);
-        this.startMp4(MediaSourceImpl, ++this.session);
+        const mux = this.mux();
+        if (mux != null) {
+            this.imageMode.set(false);
+            this.startMux(mux, ++this.session);
+            return;
+        }
+        const mseSupported = MsePlayer.getMediaSourceImpl() != null;
+        // MJPEG selected in Admin settings or MSE not supported
+        if (StorageUtils.getUseMjpegLiveView() || !mseSupported) {
+            this.startMjpeg(!mseSupported ? 'Media Source Extensions not supported by the browser' : 'selected in Admin settings');
+            return;
+        }
+        this.imageMode.set(false);
+        this.startMp4(++this.session);
     }
 
     private stop() {
@@ -95,7 +110,12 @@ export class LiveComponent implements AfterViewInit, OnChanges, OnDestroy {
             this.reconnectTimer = null;
         }
         this.stopMp4();
-        if (this.mjpegMode())
+        if (this.unsubscribeMux != null) {
+            this.unsubscribeMux();
+            this.unsubscribeMux = null;
+        }
+        this.stopSnapshots();
+        if (this.mjpegStarted)
             this.stopMjpeg();
     }
 
@@ -103,13 +123,7 @@ export class LiveComponent implements AfterViewInit, OnChanges, OnDestroy {
     // MP4
     // -------------------------------------------------------------------------
 
-    private static getMediaSourceImpl(): typeof MediaSource | null {
-        const w = window as any;
-        // ManagedMediaSource is the only MSE implementation available on iOS 17.1+
-        return w.ManagedMediaSource || w.MediaSource || null;
-    }
-
-    private async startMp4(MediaSourceImpl: typeof MediaSource, session: number) {
+    private async startMp4(session: number) {
         const abortController = new AbortController();
         this.abortController = abortController;
         try {
@@ -126,21 +140,24 @@ export class LiveComponent implements AfterViewInit, OnChanges, OnDestroy {
                 throw new Error(`HTTP ${response.status}`);
 
             const mimeType = response.headers.get('Content-Type') || 'video/mp4';
-            if (!MediaSourceImpl.isTypeSupported(mimeType)) {
+            if (!MsePlayer.isTypeSupported(mimeType)) {
                 abortController.abort();
                 this.startMjpeg(`'${mimeType}' is not supported by the browser`);
                 return;
             }
 
-            const sourceBuffer = await this.openMediaSource(MediaSourceImpl, mimeType, session);
-            if (sourceBuffer == null)
-                return;
-            const video = this.videoEl().nativeElement;
-            video.addEventListener('loadedmetadata', () => {
-                if (session === this.session)
-                    console.info(`Camera ${this.cameraId()}: live view MP4 ${LiveComponent.getCodecName(mimeType)} ${video.videoWidth}x${video.videoHeight} (${mimeType})`);
-            }, { once: true });
-            await this.pump(response.body.getReader(), sourceBuffer, session);
+            let failed: any = null;
+            this.createPlayer(mimeType, session, e => failed = e);
+            const reader = response.body.getReader();
+            while (session === this.session) {
+                const { done, value } = await reader.read();
+                if (done)
+                    break;
+                if (failed != null)
+                    throw failed;
+                this.player?.append(value);
+            }
+            reader.cancel().catch(() => { });
             // Stream ended by server (e.g. camera resolution changed). Reconnect.
         } catch (e) {
             if (session !== this.session)
@@ -150,96 +167,20 @@ export class LiveComponent implements AfterViewInit, OnChanges, OnDestroy {
         this.scheduleReconnect(session);
     }
 
-    private openMediaSource(MediaSourceImpl: typeof MediaSource, mimeType: string, session: number): Promise<SourceBuffer | null> {
-        return new Promise((resolve, reject) => {
-            const video = this.videoEl().nativeElement;
-            const mediaSource = new MediaSourceImpl();
-            this.mediaSource = mediaSource;
-            mediaSource.addEventListener('sourceopen', () => {
-                if (session !== this.session) {
-                    resolve(null);
-                    return;
-                }
-                try {
-                    resolve(mediaSource.addSourceBuffer(mimeType));
-                } catch (e) {
-                    reject(e);
-                }
-            }, { once: true });
-            // Required by ManagedMediaSource
-            (video as any).disableRemotePlayback = true;
-            this.objectUrl = URL.createObjectURL(mediaSource);
-            video.src = this.objectUrl;
-            video.play().catch(() => { /* autoplay will start once data available */ });
-        });
-    }
-
-    private async pump(reader: ReadableStreamDefaultReader<Uint8Array<ArrayBuffer>>, sourceBuffer: SourceBuffer, session: number) {
+    private createPlayer(mimeType: string, session: number, onError: (e: any) => void) {
+        this.player?.dispose();
         const video = this.videoEl().nativeElement;
-        const queue: Uint8Array<ArrayBuffer>[] = [];
-        let failed: any = null;
-
-        const appendNext = () => {
-            if (session !== this.session || sourceBuffer.updating || queue.length === 0)
-                return;
-            try {
-                if (!this.trimBuffer(sourceBuffer, video)) {
-                    sourceBuffer.appendBuffer(LiveComponent.concat(queue.splice(0, queue.length)));
-                }
-            } catch (e) {
-                failed = e;
-            }
-        };
-        sourceBuffer.addEventListener('updateend', () => {
-            if (session !== this.session)
-                return;
-            this.keepUpWithLiveEdge(sourceBuffer, video);
-            appendNext();
+        video.addEventListener('loadedmetadata', () => {
+            if (session === this.session)
+                console.info(`Camera ${this.cameraId()}: live view MP4 ${MsePlayer.getCodecName(mimeType)} ${video.videoWidth}x${video.videoHeight} (${mimeType})`);
+        }, { once: true });
+        this.player = new MsePlayer(video, mimeType, () => {
+            if (session === this.session)
+                this.playing.set(true);
+        }, e => {
+            if (session === this.session)
+                onError(e);
         });
-        sourceBuffer.addEventListener('error', () => failed = new Error('SourceBuffer error'));
-
-        while (session === this.session) {
-            const { done, value } = await reader.read();
-            if (done)
-                break;
-            if (failed != null)
-                throw failed;
-            if (value && value.length > 0) {
-                queue.push(value);
-                appendNext();
-            }
-        }
-        reader.cancel().catch(() => { });
-    }
-
-    // Removes already played video. Returns true if removal started.
-    private trimBuffer(sourceBuffer: SourceBuffer, video: HTMLVideoElement): boolean {
-        const buffered = sourceBuffer.buffered;
-        if (buffered.length === 0)
-            return false;
-        const start = buffered.start(0);
-        if (video.currentTime - start > MAX_BUFFER_SEC) {
-            sourceBuffer.remove(start, video.currentTime - KEEP_BUFFER_SEC);
-            return true;
-        }
-        return false;
-    }
-
-    private keepUpWithLiveEdge(sourceBuffer: SourceBuffer, video: HTMLVideoElement) {
-        const buffered = sourceBuffer.buffered;
-        if (buffered.length === 0)
-            return;
-        const end = buffered.end(buffered.length - 1);
-        if (!this.playing()) {
-            this.playing.set(true);
-            video.currentTime = Math.max(buffered.start(buffered.length - 1), end - TARGET_LATENCY_SEC);
-            video.play().catch(() => { });
-        } else if (end - video.currentTime > MAX_LATENCY_SEC) {
-            // Browser tab was in background or network stalled. Jump to live.
-            video.currentTime = end - TARGET_LATENCY_SEC;
-        }
-        if (video.paused)
-            video.play().catch(() => { });
     }
 
     private scheduleReconnect(session: number) {
@@ -258,44 +199,60 @@ export class LiveComponent implements AfterViewInit, OnChanges, OnDestroy {
             this.abortController.abort();
             this.abortController = null;
         }
-        const video = this.videoEl()?.nativeElement;
-        if (video != null && this.objectUrl != null) {
-            video.removeAttribute('src');
-            video.load();
-        }
-        if (this.mediaSource != null && this.mediaSource.readyState === 'open') {
-            try {
-                this.mediaSource.endOfStream();
-            } catch (e) { }
-        }
-        this.mediaSource = null;
-        if (this.objectUrl != null) {
-            URL.revokeObjectURL(this.objectUrl);
-            this.objectUrl = null;
-        }
+        this.player?.dispose();
+        this.player = null;
     }
 
-    // E.g. 'video/mp4; codecs="avc1.64001F"' -> 'H.264'
-    private static getCodecName(mimeType: string): string {
-        const codecs = /codecs="?([^",;]+)/i.exec(mimeType)?.[1] ?? '';
-        if (/^avc[13]\./i.test(codecs))
-            return 'H.264';
-        if (/^(hvc1|hev1)\./i.test(codecs))
-            return 'H.265';
-        return codecs || 'unknown codec';
+    // -------------------------------------------------------------------------
+    // MP4 from multiplexed stream of several cameras
+    // -------------------------------------------------------------------------
+
+    private startMux(mux: LiveMux, session: number) {
+        let lastInit: { mimeType: string, data: Uint8Array<ArrayBuffer> } | null = null;
+        const onPlayerError = (e: any) => {
+            console.warn(`Camera ${this.cameraId()}: MP4 live view error`, e);
+            this.playing.set(false);
+            // Recreate decoder. Frames before the next key frame are skipped by browser.
+            if (lastInit != null)
+                this.createMuxPlayer(lastInit.mimeType, lastInit.data, session, onPlayerError);
+        };
+        this.unsubscribeMux = mux.subscribe(this.cameraId(), {
+            onInit: (mimeType, data) => {
+                if (session !== this.session)
+                    return;
+                if (!MsePlayer.isTypeSupported(mimeType)) {
+                    this.startMuxFallback(`'${mimeType}' is not supported by the browser`);
+                    return;
+                }
+                lastInit = { mimeType, data };
+                this.createMuxPlayer(mimeType, data, session, onPlayerError);
+            },
+            onMedia: data => {
+                if (session === this.session)
+                    this.player?.append(data);
+            },
+            onError: (status, message) => {
+                if (session !== this.session)
+                    return;
+                if (status === 503) {
+                    // No video yet. INIT is sent when camera video is available.
+                    console.warn(`Camera ${this.cameraId()}: ${message}`);
+                } else {
+                    this.startMuxFallback(status === 415 ? 'camera video codec is not H.264/H.265' : `${status} ${message}`);
+                }
+            }
+        });
     }
 
-    private static concat(chunks: Uint8Array<ArrayBuffer>[]): Uint8Array<ArrayBuffer> {
-        if (chunks.length === 1)
-            return chunks[0];
-        const total = chunks.reduce((sum, c) => sum + c.length, 0);
-        const result = new Uint8Array(total);
-        let offset = 0;
-        for (const c of chunks) {
-            result.set(c, offset);
-            offset += c.length;
-        }
-        return result;
+    private createMuxPlayer(mimeType: string, initSegment: Uint8Array<ArrayBuffer>, session: number, onError: (e: any) => void) {
+        this.createPlayer(mimeType, session, onError);
+        this.player.append(initSegment);
+    }
+
+    private startMuxFallback(reason: string) {
+        console.info(`Camera ${this.cameraId()}: live view JPEG snapshots (${reason})`);
+        this.stop();
+        this.startSnapshots(++this.session);
     }
 
     getLiveMp4Url(): string {
@@ -308,12 +265,14 @@ export class LiveComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     private startMjpeg(reason: string) {
         console.info(`Camera ${this.cameraId()}: live view MJPEG (${reason})`);
-        this.mjpegMode.set(true);
+        this.mjpegStarted = true;
+        this.imageMode.set(true);
         this.playing.set(true);
         this.cellEl().nativeElement.style.backgroundImage = "url('" + this.getLiveImage() + "')";
     }
 
     private stopMjpeg() {
+        this.mjpegStarted = false;
         this.cellEl().nativeElement.style.backgroundImage = 'none';
         // HACK: Preventing Chrome keeping/leaking connection for MJPEG stream.
         // http://stackoverflow.com/questions/16137381/html5-video-element-request-stay-pending-forever-on-chrome
@@ -323,6 +282,75 @@ export class LiveComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     getLiveImage(): string {
         return `${this.loginService.server.url}/axis-cgi/mjpg/video.cgi?cameraId=${this.cameraId()}&token=${this.loginService.login.token}`;
+    }
+
+    // -------------------------------------------------------------------------
+    // JPEG snapshots
+    // -------------------------------------------------------------------------
+
+    private async startSnapshots(session: number) {
+        this.imageMode.set(true);
+        while (session === this.session) {
+            const started = Date.now();
+            // Do not load images for the browser tab in background
+            if (!document.hidden) {
+                try {
+                    const abortController = new AbortController();
+                    this.abortController = abortController;
+                    const response = await fetch(this.getSnapshotUrl(), { signal: abortController.signal, cache: 'no-store' });
+                    if (!response.ok)
+                        throw new Error(`HTTP ${response.status}`);
+                    const url = URL.createObjectURL(await response.blob());
+                    // Decode before showing. Otherwise cell is empty while new image is decoded (flickering).
+                    const image = new Image();
+                    image.src = url;
+                    try {
+                        await image.decode();
+                    } catch (e) {
+                        URL.revokeObjectURL(url);
+                        throw e;
+                    }
+                    if (session !== this.session) {
+                        URL.revokeObjectURL(url);
+                        return;
+                    }
+                    this.showSnapshot(url);
+                    this.playing.set(true);
+                } catch (e) {
+                    if (session !== this.session)
+                        return;
+                    console.warn(`Camera ${this.cameraId()}: JPEG snapshot error`, e);
+                    await LiveComponent.delay(RECONNECT_DELAY_MSEC);
+                    continue;
+                }
+            }
+            await LiveComponent.delay(Math.max(0, SNAPSHOT_INTERVAL_MSEC - (Date.now() - started)));
+        }
+    }
+
+    private showSnapshot(url: string) {
+        this.cellEl().nativeElement.style.backgroundImage = `url('${url}')`;
+        if (this.snapshotUrl != null)
+            URL.revokeObjectURL(this.snapshotUrl);
+        this.snapshotUrl = url;
+    }
+
+    private stopSnapshots() {
+        if (this.snapshotUrl == null)
+            return;
+        const cell = this.cellEl()?.nativeElement;
+        if (cell != null)
+            cell.style.backgroundImage = 'none';
+        URL.revokeObjectURL(this.snapshotUrl);
+        this.snapshotUrl = null;
+    }
+
+    private static delay(msec: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, msec));
+    }
+
+    getSnapshotUrl(): string {
+        return `${this.loginService.server.url}/axis-cgi/jpg/image.cgi?cameraId=${this.cameraId()}&token=${this.loginService.login.token}`;
     }
 
 }

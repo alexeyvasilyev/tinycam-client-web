@@ -80,4 +80,21 @@ export default class StorageUtils {
         }
     }
 
+    // Multiple cameras layout id (see live-layouts.ts)
+    static getLiveLayout(): string | null {
+        try {
+            return localStorage.getItem('liveLayout');
+        } catch {
+            return null;
+        }
+    }
+
+    static setLiveLayout(layoutId: string) {
+        try {
+            localStorage.setItem('liveLayout', layoutId);
+        } catch {
+            // Layout still works for the current page when storage is unavailable.
+        }
+    }
+
 }
