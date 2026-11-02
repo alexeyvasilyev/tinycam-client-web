@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { CamListSelectionComponent } from './cam-list-selection.component';
 import { CamListService, GenericService, LoginService, StatusService, WindowRefService } from '../services';
@@ -6,17 +6,22 @@ import { PtzCapability, CameraSettings, Status } from '../models'
 import { LiveInfoDialogComponent } from './live-info-dialog.component';
 import { LiveSetPresetDialogComponent } from './live-set-preset-dialog.component';
 import { LiveShareRtspDialogComponent } from './live-share-rtsp-dialog.component';
-import { Router, Params, ActivatedRoute } from '@angular/router';
+import { Router, Params, ActivatedRoute, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import Utils from '../utils';
 import * as nipplejs from 'nipplejs';
-import { fadeInAnimation, fadeInOutAnimation } from '../animations/';
 import { Observable } from 'rxjs';
+import { MatCard } from '@angular/material/card';
+import { MatFormField } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
+import { LiveComponent } from './live.component';
 
 @Component({
     selector: 'live-cam-list',
-    animations: [fadeInAnimation, fadeInOutAnimation],
     host: {
         '(document:keydown)': 'handleKeyDown($event)',
         '(document:keyup)': 'handleKeyUp($event)'
@@ -102,7 +107,7 @@ import { Observable } from 'rxjs';
                       @if (audioShown) {
                         <span>
                           @if (audioLoading) {
-                            <span [@fadeInOutAnimation] style="padding:2px; text-align: center; vertical-align: middle"><i class="fas fa-circle-notch fa-2x fa-spin"></i></span>
+                            <span animate.enter="app-fade-in" animate.leave="app-fade-out" style="padding:2px; text-align: center; vertical-align: middle"><i class="fas fa-circle-notch fa-2x fa-spin"></i></span>
                           }
                           <audio preload="none" autoplay (canplay)="handleAudioCanPlay()" (error)="handleAudioError()" style="vertical-align: middle; margin-right:10px">
                             <source src="{{getAudioUrl()}}" type="audio/wav">
@@ -171,7 +176,7 @@ import { Observable } from 'rxjs';
                 </button> -->
               </div>
             </div>
-            <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="getLiveHeight()" [@fadeInAnimation]>
+            <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="getLiveHeight()" animate.enter="app-fade-in">
               <live [cameraId]="cameraSelected.id" [viewHeightPx]="getLiveHeight()" (dblclick)="liveDoubleClick()" (click)="liveSingleClick()"></live>
             </div>
           </div>
@@ -189,13 +194,13 @@ import { Observable } from 'rxjs';
     }
     `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatCard, MatFormField, MatSelect, MatOption, MatTooltip, MatButton, MatIconButton, MatMenuTrigger, MatMenu, MatMenuItem, LiveComponent, RouterLink]
 })
 
 export class LiveCamListComponent extends CamListSelectionComponent {
 
-    @ViewChild('live') liveEl: ElementRef;
-    @ViewChild('joystick') joystickEl: ElementRef;
+    readonly liveEl = viewChild<ElementRef>('live');
+    readonly joystickEl = viewChild<ElementRef>('joystick');
 
     windowInnerHeight = this.windowRef.nativeWindow.innerHeight;
     private timerSubscription;
@@ -306,7 +311,9 @@ export class LiveCamListComponent extends CamListSelectionComponent {
         if (this.nippleShown) {
             this.initJoystick();
         } else {
+            // nipplejs 1.x breaks its listeners on second destroy()
             this.nipple.destroy();
+            this.nipple = null;
         }
     }
 
@@ -319,30 +326,30 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 
     initJoystick() {
         this.nipple = nipplejs.create({
-            zone: this.joystickEl.nativeElement,
+            zone: this.joystickEl().nativeElement,
             size: 150,
             mode: 'static',
             restOpacity: 0.7,
             position: {right: '20%', bottom: '20%'}
         });
   
-        this.nipple.on('dir:up', function (evt, nipple) {
+        this.nipple.on('dir:up', function () {
             this.moveUp(false);
         }.bind(this))
 
-        this.nipple.on('dir:down', function (evt, nipple) {
+        this.nipple.on('dir:down', function () {
             this.moveDown(false);
         }.bind(this))
 
-        this.nipple.on('dir:left', function (evt, nipple) {
+        this.nipple.on('dir:left', function () {
             this.moveLeft(false);
         }.bind(this))
 
-        this.nipple.on('dir:right', function (evt, nipple) {
+        this.nipple.on('dir:right', function () {
             this.moveRight(false);
         }.bind(this))
 
-        this.nipple.on('end', function (evt, nipple) {
+        this.nipple.on('end', function () {
             this.moveStop();
         }.bind(this));
     }
@@ -741,6 +748,7 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 
     processStatus(status: Status) {
         this.status = status;
+        this.changeDetectorRef.markForCheck();
         // this.backgroundMode = status.backgroundMode;
         // this.streamProfile = status.streamProfile;
         // this.powerSafeMode = status.powerSafeMode;
@@ -786,7 +794,6 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     template: `
   <span>Scroll down <i class="fas fa-arrow-down faa-falling animated"></i></span>
 `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class ScrollDownComponent {}

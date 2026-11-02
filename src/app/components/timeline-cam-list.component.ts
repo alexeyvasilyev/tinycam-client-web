@@ -1,5 +1,11 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CamListSelectionComponent } from './cam-list-selection.component';
+import { MatCard } from '@angular/material/card';
+import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
+import { MatFormField } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { TimelineComponent } from './timeline.component';
+import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'timeline-cam-list',
@@ -64,7 +70,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
     </div>
     `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatCard, MatButtonToggleGroup, MatButtonToggle, MatFormField, MatSelect, MatOption, TimelineComponent, RouterLink]
 })
 
 export class TimelineCamListComponent extends CamListSelectionComponent {

@@ -1,7 +1,8 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { LoginService, LogoutService } from '../services';
 import StorageUtils from '../utils-storage';
+import { MatButton } from '@angular/material/button';
 
 @Component({
     selector: 'header',
@@ -26,7 +27,7 @@ import StorageUtils from '../utils-storage';
         routerLink="/live"
         routerLinkActive="active"
         color="primary"
-        [disabled]="selected == 0"><i class="fas fa-square fa-lg"></i> &nbsp; Live</button>
+        [disabled]="selected() == 0"><i class="fas fa-square fa-lg"></i> &nbsp; Live</button>
     
         <button
           mat-raised-button
@@ -34,7 +35,7 @@ import StorageUtils from '../utils-storage';
           routerLink="/events"
           routerLinkActive="active"
           color="primary"
-          [disabled]="selected == 1"><i class="fas fa-child fa-lg"></i> &nbsp; Events</button>
+          [disabled]="selected() == 1"><i class="fas fa-child fa-lg"></i> &nbsp; Events</button>
     
           <button
             mat-raised-button
@@ -42,9 +43,9 @@ import StorageUtils from '../utils-storage';
             routerLink="/timeline"
             routerLinkActive="active"
             color="primary"
-            [disabled]="selected == 2"><i class="fas fa-barcode fa-lg"></i> &nbsp; Timeline</button>
+            [disabled]="selected() == 2"><i class="fas fa-barcode fa-lg"></i> &nbsp; Timeline</button>
     
-            @if (isAdmin) {
+            @if (isAdmin()) {
               <span>
                 <button
                   mat-raised-button
@@ -52,7 +53,7 @@ import StorageUtils from '../utils-storage';
                   routerLink="/admin"
                   routerLinkActive="active"
                   color="primary"
-                  [disabled]="selected == 3">
+                  [disabled]="selected() == 3">
                   <i class="fas fa-user fa-lg"></i> &nbsp; Admin</button>
                 </span>
               }
@@ -67,13 +68,13 @@ import StorageUtils from '../utils-storage';
               </div>
     `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatButton, RouterLink, RouterLinkActive]
 })
 
 export class HeaderComponent {
 
-    @Input() public selected: number;
-    @Input() public isAdmin: boolean;
+    public readonly selected = input<number>(undefined);
+    public readonly isAdmin = input<boolean>(undefined);
 
     constructor(
         private router: Router,

@@ -1,15 +1,17 @@
-import { Component, OnInit, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ElementRef, ChangeDetectionStrategy, viewChild, ChangeDetectorRef, inject } from '@angular/core';
 import { Router, Params, ActivatedRoute } from '@angular/router';
 import { CameraSettings } from '../models';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoginService, CamListService, WindowRefService } from '../services';
 import { HttpErrorResponse } from '@angular/common/http';
-import { fadeInAnimation } from '../animations/';
 import StorageUtils from '../utils-storage';
+import { MatCard } from '@angular/material/card';
+import { MatButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { LiveComponent } from './live.component';
 
 @Component({
     selector: 'live-multiple',
-    animations: [fadeInAnimation],
     host: {
         '(document:keydown)': 'handleKeyDown($event)',
     },
@@ -48,6 +50,8 @@ import StorageUtils from '../utils-storage';
     }
     .cell {
         background-color: #212121;
+        width: 50%;
+        overflow: hidden;
     }
     `],
     template: `
@@ -86,8 +90,9 @@ import StorageUtils from '../utils-storage';
     </div>
     
     @if (cameras !== null) {
-      <div #live style="background-color: #424242; overflow: auto;" [style.height.px]="getLiveHeight()" [@fadeInAnimation]>
-        <table #livem width="100%" height="100%" style="border-spacing:2px;border-collapse:separate;">
+      <div #live style="background-color: #424242; overflow: auto;" [style.height.px]="getLiveHeight()" animate.enter="app-fade-in">
+        <!-- Fixed layout: column widths must not depend on loaded video intrinsic size -->
+        <table #livem width="100%" height="100%" style="table-layout:fixed;border-spacing:2px;border-collapse:separate;">
           <tr>
             <td class="cell">
               <live [cameraId]="getCameraPage(0).id" [viewHeightPx]="getCellHeight()" (dblclick)="liveDoubleClick(0)" (click)="liveSingleClick()"></live>
@@ -118,12 +123,15 @@ import StorageUtils from '../utils-storage';
     </div>
     `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatCard, MatButton, MatTooltip, LiveComponent]
 })
 
 export class LiveMultipleComponent implements OnInit {
 
-    @ViewChild('livem') livemEl: ElementRef;
+    // Zoneless: async updates must mark the view for check
+    private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+    readonly livemEl = viewChild<ElementRef>('livem');
 
     cameras: CameraSettings[] = null;
     errorMessage: string = null;
@@ -144,8 +152,14 @@ export class LiveMultipleComponent implements OnInit {
         console.log('ngOnInit()');
         this.camListService.getCamList(this.loginService.server, this.loginService.login)
             .subscribe({
-                next: (events) => this.processCamList(events),
-                error: (e) => this.processCamListError(e)
+                next: (events) => {
+                    this.processCamList(events);
+                    this.changeDetectorRef.markForCheck();
+                },
+                error: (e) => {
+                    this.processCamListError(e);
+                    this.changeDetectorRef.markForCheck();
+                }
             });
         // Check if '/livem?bottom'
         this.activatedRoute.queryParams.subscribe((params: Params) => {

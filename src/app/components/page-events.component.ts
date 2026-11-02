@@ -1,5 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { LoginService } from '../services';
+import { HeaderComponent } from './header.component';
+import { EventCamListComponent } from './event-cam-list.component';
 
 @Component({
     styles: [``
@@ -11,7 +13,7 @@ import { LoginService } from '../services';
     </div>
   `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [HeaderComponent, EventCamListComponent]
 })
 
 export class PageEventsComponent {

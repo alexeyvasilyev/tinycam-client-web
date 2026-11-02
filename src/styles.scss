@@ -1,1 +1,20 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Enter/leave animations used with animate.enter / animate.leave */
+@keyframes app-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes app-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.app-fade-in {
+  animation: app-fade-in .3s;
+}
+
+.app-fade-out {
+  animation: app-fade-out .3s;
+}

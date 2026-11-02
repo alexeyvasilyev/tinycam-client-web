@@ -1,10 +1,12 @@
-import { Component, OnInit, Input, SimpleChanges, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, SimpleChanges, ElementRef, ChangeDetectionStrategy, input, viewChild, ChangeDetectorRef, inject } from '@angular/core';
 import { CameraSettings, EventRecord } from '../models'
 import { EventListService, LoginService } from '../services';
 import { HttpErrorResponse } from '@angular/common/http';
 import Utils from '../utils';
 import { ResizeObserver } from '@juggle/resize-observer';
-import { fadeInAnimation } from '../animations/';
+import { MatCard } from '@angular/material/card';
+import { MatButton } from '@angular/material/button';
+import { NgStyle } from '@angular/common';
 
 declare const Timeline: any;
 declare const TimeRecord: any;
@@ -19,7 +21,6 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
 
 @Component({
     selector: 'timeline',
-    animations: [fadeInAnimation],
     styles: [`
     .middle {
       position: absolute;
@@ -101,7 +102,7 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
       </div>
     }
   
-    <div [@fadeInAnimation] width="100%" style="background-color: #212121; cursor: pointer;" #mainComponent>
+    <div animate.enter="app-fade-in" width="100%" style="background-color: #212121; cursor: pointer;" #mainComponent>
       <div class="app-video-container">
         <video class="video" preload="auto" #videoComponent playsinline autoplay
           (error)="handleVideoError()" (playing)="handleVideoPlaying()"
@@ -224,7 +225,7 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
   <div style="padding:10px;">
     <p>Keys <b>+</b>/<b>-</b> - increase/decrease timeline scale.<br/>
     Keys <b>Left</b>/<b>Right</b>/<b>A</b>/<b>D</b> - previous/next events.<br/>
-    @if (multipleTimeline) {
+    @if (multipleTimeline()) {
       <span>Keys <b>W</b>/<b>S</b> - change timelines.<br/></span>
     }
     <b>Space bar</b> - start/stop playback.<br/>
@@ -239,10 +240,13 @@ const INTERVAL_HOUR_12 =  12 * 60 * 60 * 1000;
   </div>
   `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatCard, MatButton, NgStyle]
 })
 
 export class TimelineComponent implements OnInit {
+
+    // Zoneless: async updates must mark the view for check
+    private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
     private MIN_DURATION_EVENT_MSEC = 3000;
     private EVENT_OFFSET_MSEC = 3000;
@@ -272,25 +276,25 @@ export class TimelineComponent implements OnInit {
         private eventListService: EventListService) {
     }
 
-    @Input() cameras: CameraSettings[];
-    @Input() selectedCameraId: number;
-    @Input() multipleTimeline: boolean;
-    @Input() type: string; // 'local' or 'cloud'
-    @ViewChild('component', { static: true }) componentEl: ElementRef;
-    @ViewChild('canvasTimeline', { static: true }) canvasTimelineEl: ElementRef;
-    @ViewChild('videoComponent', { static: true }) videoEl: ElementRef;
-    @ViewChild('mainComponent', { static: true }) mainEl: ElementRef;
+    readonly cameras = input<CameraSettings[]>(undefined);
+    readonly selectedCameraId = input<number>(undefined);
+    readonly multipleTimeline = input<boolean>(undefined);
+    readonly type = input<string>(undefined); // 'local' or 'cloud'
+    readonly componentEl = viewChild<ElementRef>('component');
+    readonly canvasTimelineEl = viewChild<ElementRef>('canvasTimeline');
+    readonly videoEl = viewChild<ElementRef>('videoComponent');
+    readonly mainEl = viewChild<ElementRef>('mainComponent');
 
     ngOnInit() {
         // console.log('ngOnInit()');
         let names = [];
-        for (let camera of this.cameras) {
+        for (let camera of this.cameras()) {
             names.push(CameraSettings.getName(camera));
         }
         // console.log('archive-timeline init');
         const options = {
-            timelines: (this.multipleTimeline ? this.cameras.length : 1),
-            timelineNames: (this.multipleTimeline ? names : []),
+            timelines: (this.multipleTimeline() ? this.cameras().length : 1),
+            timelineNames: (this.multipleTimeline() ? names : []),
             colorTimeBackground: "#c62828",
             colorTimeText: "#ffffff",
             colorTimelineSelected: "#00838F",
@@ -305,7 +309,7 @@ export class TimelineComponent implements OnInit {
         };
         this.timeline = new Timeline(options);
         this.timeline.setIntervalWithAnimation(INTERVAL_DAY_1);
-        this.timeline.setCanvas(this.canvasTimelineEl.nativeElement);
+        this.timeline.setCanvas(this.canvasTimelineEl().nativeElement);
         this.timeline.setTimeSelectedCallback(this.timeSelectedCallback.bind(this));
         // this.timeline.setRequestMoreBackgroundDataCallback(this.requestMoreBackgroundData.bind(this));
         this.timeline.setRequestMoreMajor1DataCallback(this.requestMoreVideoEvents.bind(this));
@@ -327,26 +331,26 @@ export class TimelineComponent implements OnInit {
         const ro = new ResizeObserver((entries, observer) => {
             this.resizeCanvas();
         });
-        ro.observe(this.componentEl.nativeElement);
+        ro.observe(this.componentEl().nativeElement);
 
         // this.loadLastArchives();
         this.loadLastEvents();
 
-        document.onfullscreenchange = function(event) {
+        document.onfullscreenchange = () => {
             let height: number;
             if (document.fullscreenElement) {
-                height = this.mainEl.nativeElement.offsetHeight - this.canvasTimelineEl.nativeElement.offsetHeight;
+                height = this.mainEl().nativeElement.offsetHeight - this.canvasTimelineEl().nativeElement.offsetHeight;
             } else {
                 height = 500;
             }
-            this.videoEl.nativeElement.style.height = height + 'px';
-        }.bind(this);
+            this.videoEl().nativeElement.style.height = height + 'px';
+        };
     }
 
     ngOnChanges(changes: SimpleChanges) {
         // console.log('ngOnChanges()');
         // Stop previous camera playback
-        const video = this.videoEl.nativeElement;
+        const video = this.videoEl().nativeElement;
         if (video) {
           video.poster = "";
           video.pause();
@@ -484,10 +488,10 @@ export class TimelineComponent implements OnInit {
     handlePlayPauseClicked() {
         console.log('Play/pause clicked');
         //playing = !playing;
-        let video = this.videoEl.nativeElement;
+        let video = this.videoEl().nativeElement;
         if (video) {
             if (!this.videoPlaying) {
-                video.play();
+                video.play().catch(() => { /* autoplay blocked until user interaction */ });
                 this.startLoadingDelayTimer();
             } else {
                 video.pause();
@@ -502,8 +506,9 @@ export class TimelineComponent implements OnInit {
 
     setSpeed(speed: number) {
         this.playerSpeed = speed;
-        this.videoEl.nativeElement.defaultPlaybackRate = speed;
-        this.videoEl.nativeElement.playbackRate = speed;
+        const videoEl = this.videoEl();
+        videoEl.nativeElement.defaultPlaybackRate = speed;
+        videoEl.nativeElement.playbackRate = speed;
         if (this.timerSubscription) {
             this.stopUpdateTimer();
             this.startUpdateTimer();
@@ -511,9 +516,10 @@ export class TimelineComponent implements OnInit {
     }
 
     toggleFullScreen() {
-      Utils.toggleFullScreen(this.mainEl.nativeElement);
-      const height = this.mainEl.nativeElement.offsetHeight - this.canvasTimelineEl.nativeElement.offsetHeight;
-      this.videoEl.nativeElement.style.height = height + 'px';
+      const mainEl = this.mainEl();
+      Utils.toggleFullScreen(mainEl.nativeElement);
+      const height = mainEl.nativeElement.offsetHeight - this.canvasTimelineEl().nativeElement.offsetHeight;
+      this.videoEl().nativeElement.style.height = height + 'px';
     }
 
     private updateTimeline() {
@@ -541,7 +547,7 @@ export class TimelineComponent implements OnInit {
 
     private resizeCanvas() {
         // console.log('resizeCanvas()');
-        this.fitToContainerWidth(this.canvasTimelineEl.nativeElement);
+        this.fitToContainerWidth(this.canvasTimelineEl().nativeElement);
         this.timeline.updateResize();
         this.timeline.draw();
     }
@@ -552,6 +558,8 @@ export class TimelineComponent implements OnInit {
 
     private timeSelectedCallback(timelineIndex: number, timestampMsec: number, record) {
         console.log("timeSelectedCallback(timelineIndex=" + timelineIndex + ", timestampMsec=" + timestampMsec + ")");
+        // Called by timeline canvas (not Angular) event handlers
+        this.changeDetectorRef.markForCheck();
         if (record) {
             const playerPosition = Math.floor(Math.max(timestampMsec - record.timestampMsec, 0) / 1000);
             this.playRecord(record, playerPosition);
@@ -648,7 +656,7 @@ export class TimelineComponent implements OnInit {
 
     private stopPlay() {
         console.log('Stop play');
-        const video = this.videoEl.nativeElement;
+        const video = this.videoEl().nativeElement;
         if (video) {
             video.pause();
         }
@@ -660,7 +668,7 @@ export class TimelineComponent implements OnInit {
             console.error('Failed to play empty record.');
             return;
         }
-        const video = this.videoEl.nativeElement;
+        const video = this.videoEl().nativeElement;
         let needRefresh = true;
         if (video) {
             const newUrl = this.getEventVideo(record.object);
@@ -686,7 +694,7 @@ export class TimelineComponent implements OnInit {
                 // Load video
                 video.load();
                 // video.currentTime = positionSec;
-                video.play();
+                video.play().catch(() => { /* autoplay blocked until user interaction */ });
             }
         }
     }
@@ -713,10 +721,10 @@ export class TimelineComponent implements OnInit {
             this.eventListService.getEventList(
                 this.loginService.server,
                 this.loginService.login,
-                timelines > 1 ? this.cameras[i].id : this.selectedCameraId,
+                timelines > 1 ? this.cameras()[i].id : this.selectedCameraId(),
                 -1,
                 this.getEventsToLoad(),
-                this.type,
+                this.type(),
                 '') // all events
                 .subscribe({
                     next: (events) => {
@@ -732,11 +740,12 @@ export class TimelineComponent implements OnInit {
 
     private processEventListError(timelineIndex: number, error: HttpErrorResponse) {
         console.error(`Error while getting events list for timeline ${timelineIndex}`, error.message);
-        if (this.multipleTimeline && error.status == 400 && this.type === 'cloud') {
+        if (this.multipleTimeline() && error.status == 400 && this.type() === 'cloud') {
             // 400 (Bad Request) is OK for some timelines
             this.eventsLoaded[timelineIndex] = true;
             this.noOldEventsAvailable[timelineIndex] = true;
         }
+        this.changeDetectorRef.markForCheck();
     }
 
     private processEventList(timelineIndex: number, events: EventRecord[], firstLoad: boolean) {
@@ -768,6 +777,7 @@ export class TimelineComponent implements OnInit {
 
         this.eventsLoaded[timelineIndex] = true;
         this.updateTimeline();
+        this.changeDetectorRef.markForCheck();
 
         // Check that all timelines have at least one archive loaded
         if (firstLoad) {
@@ -900,10 +910,10 @@ export class TimelineComponent implements OnInit {
             this.eventListService.getEventList(
                 this.loginService.server,
                 this.loginService.login,
-                timelines > 1 ? this.cameras[timelineIndex].id : this.selectedCameraId,
+                timelines > 1 ? this.cameras()[timelineIndex].id : this.selectedCameraId(),
                 event.time,
                 eventsToLoad,
-                this.type,
+                this.type(),
                 '') // all events
                 .subscribe({
                     next: (events) => {
@@ -1006,6 +1016,7 @@ export class TimelineComponent implements OnInit {
             clearTimeout(this.loadingDelayTimer);
         this.loadingDelayTimer = setTimeout(()=> {
             this.videoLoading = true;
+            this.changeDetectorRef.markForCheck();
         }, 3000);
     }
 

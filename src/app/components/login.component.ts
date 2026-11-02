@@ -1,9 +1,13 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Login } from '../models';
 import { LoginService } from '../services';
 import { HttpErrorResponse } from '@angular/common/http';
 import StorageUtils from '../utils-storage';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import { FormsModule } from '@angular/forms';
+import { MatFormField, MatInput } from '@angular/material/input';
+import { MatButton } from '@angular/material/button';
 
 @Component({
     selector: 'login',
@@ -83,10 +87,13 @@ import StorageUtils from '../utils-storage';
       </div>
     `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatCard, MatCardContent, FormsModule, MatFormField, MatInput, MatButton]
 })
 
 export class LoginComponent implements OnInit {
+
+    // Zoneless: async updates must mark the view for check
+    private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
     login = this.loginService.login;
     error: string = null;
@@ -140,10 +147,10 @@ export class LoginComponent implements OnInit {
             });
     }
 
-    private handleError(error: HttpErrorResponse): Promise<any> {
+    private handleError(error: HttpErrorResponse) {
         this.error = error.message;
+        this.changeDetectorRef.markForCheck();
         console.error('Failed to login.', error.message);
-        return Promise.reject(error.message || error);
     }
 
 }

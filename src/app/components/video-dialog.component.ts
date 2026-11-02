@@ -1,17 +1,22 @@
-import { Component, Input, OnInit, AfterViewInit, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { fadeInAnimation } from '../animations/';
+import { Component, OnInit, AfterViewInit, ElementRef, ChangeDetectionStrategy, inject, viewChild } from '@angular/core';
+import { MatDialog, MatDialogTitle, MatDialogClose, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 import videojs from 'video.js';
+import { MatIconButton } from '@angular/material/button';
+
+export interface VideoDialogData {
+    title: string;
+    videoUrl: string;
+    imageUrl?: string;
+}
 
 @Component({
     selector: 'video-dialog',
-    animations: [fadeInAnimation],
     template: `
     <table style="border-spacing:3px;border-collapse:separate;width:100%;">
       <tr>
         <td width="90%">
-          <div mat-dialog-title style="margin: auto;">{{title}}
+          <div mat-dialog-title style="margin: auto;">{{data.title}}
             @if (videoError) {
               <span style="color:red">Video loading error!</span>
             }</div>
@@ -22,19 +27,17 @@ import videojs from 'video.js';
         </tr>
       </table>
     
-      <video [@fadeInAnimation] #component id='mp4video' class="video-js vjs-default-skin vjs-big-play-centered"
-        controls (error)="handleVideoError()" (playing)="handleVideoPlaying()" poster="{{imageUrl}}"
+      <video animate.enter="app-fade-in" #component id='mp4video' class="video-js vjs-default-skin vjs-big-play-centered"
+        controls (error)="handleVideoError()" (playing)="handleVideoPlaying()" poster="{{data.imageUrl}}"
         data-setup='{"playbackRates": [0.1, 0.5, 1, 2, 3]}'>
       </video>
     `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatDialogTitle, MatIconButton, MatDialogClose]
 })
 export class VideoDialogComponent implements OnInit, AfterViewInit {
-    @Input() videoUrl: string;
-    @Input() imageUrl: string;
-    @Input() title: string;
-    @ViewChild('component', { static: true }) componentEl: ElementRef;
+    readonly data: VideoDialogData = inject(MAT_DIALOG_DATA);
+    readonly componentEl = viewChild<ElementRef>('component');
 
     player: any;
     videoError = false;
@@ -53,7 +56,7 @@ export class VideoDialogComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit() {
-        this.fitToContainerWidth(this.componentEl.nativeElement);
+        this.fitToContainerWidth(this.componentEl().nativeElement);
     }
 
     private fitToContainerWidth(element) {
@@ -68,7 +71,7 @@ export class VideoDialogComponent implements OnInit, AfterViewInit {
         // console.log(this.player);
         this.player.muted(true);
         this.player.src({
-            src: this.videoUrl,
+            src: this.data.videoUrl,
             type: "video/mp4"
         });
         this.player.play();

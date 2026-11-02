@@ -1,15 +1,20 @@
-import { Component, OnInit, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ElementRef, ChangeDetectionStrategy, viewChild, ChangeDetectorRef, inject } from '@angular/core';
 import { GenericService, IpAddressesService, IpLocateService, LoginService, StatusService } from '../services';
 import { IpAddress, ServerResponse, Status } from '../models'
 import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { fadeInAnimation } from '../animations/';
 import Utils from '../utils'
+import StorageUtils from '../utils-storage';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { AppTheme, ThemeService } from '../services/theme.service';
 import { SmoothieChart, TimeSeries } from 'smoothie';
+import { HeaderComponent } from './header.component';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatFormField, MatLabel } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatButton } from '@angular/material/button';
 
 @Component({
-    animations: [fadeInAnimation],
     styles: [`
       .my-button {
         margin: 5px 6px;
@@ -51,6 +56,7 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
                   <mat-option value="light">Light</mat-option>
                 </mat-select>
               </mat-form-field>
+              <mat-checkbox style="padding-top:10px; display:block;" [checked]="useMjpegLiveView" (change)="setUseMjpegLiveView($event.checked)">Use MJPEG codec for live view</mat-checkbox>
             </div>
           </mat-card-content>
         </mat-card>
@@ -87,7 +93,7 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
                 </mat-form-field>
               </div>
               @if (status.powerSafeMode !== undefined && status.powerSafeMode) {
-                <div [@fadeInAnimation] class="app-text-warning" style="padding-bottom:10px">Power safe mode is ON. Only keyframes are decoded (jerky live view).</div>
+                <div animate.enter="app-fade-in" class="app-text-warning" style="padding-bottom:10px">Power safe mode is ON. Only keyframes are decoded (jerky live view).</div>
               }
               <div>
                 <mat-form-field color="accent" style="padding-top:10px;" class="full-width">
@@ -99,7 +105,7 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
                 </mat-form-field>
               </div>
               @if (status.notifications !== undefined && !status.notifications) {
-                <div [@fadeInAnimation] class="app-text-warning">Notifications are OFF. The following features disabled:<br/>
+                <div animate.enter="app-fade-in" class="app-text-warning">Notifications are OFF. The following features disabled:<br/>
                   - Sound on motion<br/>
                   - Vibration on motion<br/>
                   - System notification on motion<br/>
@@ -122,7 +128,7 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
             <div class="app-text-dark-hint">
               <div>Live view connections: <b>{{status.liveConnections !== undefined ? status.liveConnections : '-'}}</b></div>
               @if (status.threadsRunnableUsed !== undefined) {
-                <div [@fadeInAnimation]>Threads: <b>{{status.threadsRunnableUsed}}/{{status.threadsUsed}}</b></div>
+                <div animate.enter="app-fade-in">Threads: <b>{{status.threadsRunnableUsed}}/{{status.threadsUsed}}</b></div>
               }
               <div>Memory Used: <b>{{humanReadableByteCount(status.memoryUsed)}}</b>, Free: <b>{{humanReadableByteCount(status.memoryAvailable)}}</b></div>
               <div>Processes: {{getProcessesWithUsage()}}</div>
@@ -196,15 +202,18 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
       </div>
       `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [HeaderComponent, MatCard, MatCardContent, MatFormField, MatLabel, MatSelect, MatOption, MatCheckbox, MatButton]
 })
 
 export class PageAdminComponent implements OnInit {
 
-    @ViewChild('component', { static: true }) componentEl: ElementRef;
-    @ViewChild('networkChart', { static: true }) networkChartEl: ElementRef;
-    @ViewChild('cpuUsageChart', { static: true }) cpuUsageChartEl: ElementRef;
-    @ViewChild('cpuFreqChart', { static: true }) cpuFreqChartEl: ElementRef;
+    // Zoneless: async updates must mark the view for check
+    private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+    readonly componentEl = viewChild<ElementRef>('component');
+    readonly networkChartEl = viewChild<ElementRef>('networkChart');
+    readonly cpuUsageChartEl = viewChild<ElementRef>('cpuUsageChart');
+    readonly cpuFreqChartEl = viewChild<ElementRef>('cpuFreqChart');
 
     status: Status = new Status();
     server: string = '';
@@ -252,6 +261,7 @@ export class PageAdminComponent implements OnInit {
                     ipAddress.country = data.country;
                     ipAddress.latitude = data.latitude;
                     ipAddress.longitude = data.longitude;
+                    this.changeDetectorRef.markForCheck();
                 }
             });
             // .then(data => { 
@@ -266,7 +276,7 @@ export class PageAdminComponent implements OnInit {
         const ro = new ResizeObserver((entries, observer) => {
             this.resizeCanvas();
         });
-        ro.observe(this.componentEl.nativeElement);
+        ro.observe(this.componentEl().nativeElement);
 
         this.startUpdateTimer(100);
         this.initCharts();
@@ -283,6 +293,7 @@ export class PageAdminComponent implements OnInit {
             .subscribe({
                 next: (ipAddresses) => {
                     this.ipAddresses = ipAddresses;
+                    this.changeDetectorRef.markForCheck();
                     for (let ipAddress of this.ipAddresses) {
                         this.updateIpLocate(ipAddress);
                     }
@@ -318,16 +329,23 @@ export class PageAdminComponent implements OnInit {
         this.networkChart = new SmoothieChart({millisPerPixel:100, grid:{fillStyle:'#EEEEEE', verticalSections:5, strokeStyle:'#E0E0E0'}, labels:{fillStyle:'#000000', precision:0}, minValue:0});
         this.networkChart.addTimeSeries(this.networkOutSeries, {lineWidth:2, strokeStyle:'#5DAEE4', fillStyle:'rgba(93,174,228,0.40)'});
         this.networkChart.addTimeSeries(this.networkInSeries, {lineWidth:2, strokeStyle:'#EA4238', fillStyle:'rgba(234,66,56,0.40)'});
-        this.networkChart.streamTo(this.networkChartEl.nativeElement, 3000);
+        this.networkChart.streamTo(this.networkChartEl().nativeElement, 3000);
 
         this.cpuUsageChart = new SmoothieChart({millisPerPixel:100, grid:{fillStyle:'#EEEEEE', verticalSections:5, strokeStyle:'#E0E0E0'}, labels:{fillStyle:'#000000', precision:0}, minValue:0});
         this.cpuUsageChart.addTimeSeries(this.cpuUsageSeries, {lineWidth:2, strokeStyle:'#F57C00', fillStyle:'rgba(245,124,0,0.60)'});
-        this.cpuUsageChart.streamTo(this.cpuUsageChartEl.nativeElement, 3000);
+        this.cpuUsageChart.streamTo(this.cpuUsageChartEl().nativeElement, 3000);
 
         this.cpuFreqChart = new SmoothieChart({millisPerPixel:100, grid:{fillStyle:'#EEEEEE', verticalSections:5, strokeStyle:'#E0E0E0'}, labels:{fillStyle:'#000000', precision:0}, minValue:0});
         this.cpuFreqChart.addTimeSeries(this.cpuFreqSeries, {lineWidth:2, strokeStyle:'#8BC34A', fillStyle:'rgba(139,195,74,0.60)'});
-        this.cpuFreqChart.streamTo(this.cpuFreqChartEl.nativeElement, 3000);
+        this.cpuFreqChart.streamTo(this.cpuFreqChartEl().nativeElement, 3000);
         this.updateChartTheme();
+    }
+
+    useMjpegLiveView = StorageUtils.getUseMjpegLiveView();
+
+    setUseMjpegLiveView(useMjpeg: boolean) {
+        this.useMjpegLiveView = useMjpeg;
+        StorageUtils.setUseMjpegLiveView(useMjpeg);
     }
 
     setTheme(theme: AppTheme) {
@@ -336,7 +354,7 @@ export class PageAdminComponent implements OnInit {
     }
 
     private updateChartTheme() {
-        const colors = getComputedStyle(this.componentEl.nativeElement);
+        const colors = getComputedStyle(this.componentEl().nativeElement);
         for (const chart of [this.networkChart, this.cpuUsageChart, this.cpuFreqChart]) {
             if (!chart) continue;
             chart.options.grid.fillStyle = colors.getPropertyValue('--app-surface-muted').trim();
@@ -346,9 +364,9 @@ export class PageAdminComponent implements OnInit {
     }
 
     private resizeCanvas() {
-        this.fitToContainerWidth(this.networkChartEl.nativeElement);
-        this.fitToContainerWidth(this.cpuUsageChartEl.nativeElement);
-        this.fitToContainerWidth(this.cpuFreqChartEl.nativeElement);
+        this.fitToContainerWidth(this.networkChartEl().nativeElement);
+        this.fitToContainerWidth(this.cpuUsageChartEl().nativeElement);
+        this.fitToContainerWidth(this.cpuFreqChartEl().nativeElement);
     }
 
     setBackgroundMode(start: boolean) {
@@ -360,6 +378,7 @@ export class PageAdminComponent implements OnInit {
     processStatus(status: Status, headers: HttpHeaders) {
         this.status = status;
         this.server = headers.get('Server');
+        this.changeDetectorRef.markForCheck();
 
         const currentTime = new Date().getTime();
         this.networkInSeries.append(currentTime, Math.round(status.networkInBps / 1024));

@@ -1,16 +1,20 @@
-import { Component, OnInit, Input, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy, input, ChangeDetectorRef, inject } from '@angular/core';
 import { EventRecord, CameraSettings, } from '../models';
 import { EventListService, LoginService } from '../services';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { fadeInAnimation } from '../animations/';
+import { MatDatepickerInputEvent, MatDatepickerInput, MatDatepickerToggle, MatDatepicker } from '@angular/material/datepicker';
+import { MatFormField, MatInput, MatSuffix } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatCard } from '@angular/material/card';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { EventComponent } from './event.component';
+import { MatMiniFabButton } from '@angular/material/button';
 
 // <video> tag is shown only for Chrome/Firefox/Safari browsers. Not shown for IE.
 // For Chrome browser only first 5 events are shown as <video>,
 // the rest one are <image> (preventing too many active sockets issue).
 @Component({
     selector: 'event-list',
-    animations: [fadeInAnimation],
     styles: [`
     .recordings-date-class {
         background: var(--app-surface-muted);
@@ -46,7 +50,7 @@ import { fadeInAnimation } from '../animations/';
       </div>
       <div class="right-event-list" style="min-width:250px">
         <mat-form-field style="padding:0px 15px">
-          <mat-select [(value)]="filterSelected" [disabled]="type === 'cloud'" (selectionChange)="onFilterSelected($event.value)" placeholder="Filter">
+          <mat-select [(value)]="filterSelected" [disabled]="type() === 'cloud'" (selectionChange)="onFilterSelected($event.value)" placeholder="Filter">
             <mat-option>All events</mat-option>
             <mat-option [value]="'pin'">📌 Pinned</mat-option>
             <mat-option [value]="'motion'">🍃 Motion</mat-option>
@@ -85,7 +89,7 @@ import { fadeInAnimation } from '../animations/';
               }
               @if (isFabShown()) {
                 <div style="position: fixed;right: 50px; bottom: 50px;">
-                  <div [@fadeInAnimation]>
+                  <div animate.enter="app-fade-in">
                     <button mat-mini-fab color="accent" (click)="goTop()">
                       <span><i class="fas fa-angle-up"></i></span>
                     </button>
@@ -103,10 +107,13 @@ import { fadeInAnimation } from '../animations/';
     }
   `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatFormField, MatInput, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MatSelect, MatOption, MatCard, InfiniteScrollDirective, EventComponent, MatMiniFabButton]
 })
 
 export class EventListComponent implements OnInit {
+
+    // Zoneless: async updates must mark the view for check
+    private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
     private EVENTS_TO_LOAD = 15;
 
@@ -121,9 +128,9 @@ export class EventListComponent implements OnInit {
         private eventListService: EventListService) {
     }
 
-    @Input() cameraId: number; // can be -1 for all cameras events
-    @Input() cameras: CameraSettings[];
-    @Input() type: string = 'local'; // 'local' or 'cloud'
+    readonly cameraId = input<number>(undefined); // can be -1 for all cameras events
+    readonly cameras = input<CameraSettings[]>(undefined);
+    readonly type = input<string>('local'); // 'local' or 'cloud'
 
             today: Date = new Date(); // today
     private minus7days: Date = new Date(this.today.getTime() - 604800000 /*7 days*/);
@@ -183,10 +190,10 @@ export class EventListComponent implements OnInit {
         this.eventListService.getEventList(
             this.loginService.server,
             this.loginService.login,
-            this.cameraId,
+            this.cameraId(),
             -1,
             this.EVENTS_TO_LOAD,
-            this.type,
+            this.type(),
             this.filterSelected)
                 .subscribe({
                     next: (events) => this.processEventList(events),
@@ -200,10 +207,10 @@ export class EventListComponent implements OnInit {
         this.eventListService.getEventList(
             this.loginService.server,
             this.loginService.login,
-            this.cameraId,
+            this.cameraId(),
             event.time,
             this.EVENTS_TO_LOAD,
-            this.type,
+            this.type(),
             this.filterSelected)
                 .subscribe({
                     next: (events) => this.processEventList(events),
@@ -215,6 +222,7 @@ export class EventListComponent implements OnInit {
 
     private processEventListError(error: HttpErrorResponse) {
         console.error('Error in getCamList()', error.message);
+        this.changeDetectorRef.markForCheck();
         // Token expired
         // if (error.status == 401 || error.status == 403)
         //     this.router.navigate(['/login']);
@@ -246,6 +254,7 @@ export class EventListComponent implements OnInit {
         }
 
         this.eventsLoaded = true;
+        this.changeDetectorRef.markForCheck();
     }
 
 
@@ -268,10 +277,10 @@ export class EventListComponent implements OnInit {
             this.eventListService.getEventList(
                 this.loginService.server,
                 this.loginService.login,
-                this.cameraId,
+                this.cameraId(),
                 selectedDate.getTime(),
                 this.EVENTS_TO_LOAD,
-                this.type,
+                this.type(),
                 this.filterSelected)
                     .subscribe({
                         next: (events) => this.processEventList(events),

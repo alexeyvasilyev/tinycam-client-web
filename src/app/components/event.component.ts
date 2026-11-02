@@ -1,19 +1,22 @@
-import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, input, ChangeDetectorRef, inject } from '@angular/core';
 import { LoginService, GenericService } from '../services';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { VideoDialogComponent } from './video-dialog.component';
-import { fadeInAnimation } from '../animations/';
+import { VideoDialogComponent, VideoDialogData } from './video-dialog.component';
 import { EventRecord } from '../models';
 import Utils from "../utils";
 import { Observable } from 'rxjs';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import { NgStyle } from '@angular/common';
+import { MatButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { TimeAgoPipe, CalendarTimePipe } from '../pipes/time.pipes';
 
 // <video> tag is shown only for Chrome/Firefox/Safari browsers. Not shown for IE.
 // For Chrome browser only first 5 events are shown as <video>,
 // the rest one are <image> (preventing too many active sockets issue).
 @Component({
     selector: 'event',
-    animations: [fadeInAnimation],
     // animations: [
     //     trigger('animate', [
     //         transition('* => fadeIn', [
@@ -90,7 +93,7 @@ import { Observable } from 'rxjs';
     }
 `],
     template: `
-  <div [@fadeInAnimation]>
+  <div animate.enter="app-fade-in">
     @if (!eventDeleted) {
       <mat-card>
         <mat-card-content [ngStyle]="{'background-color': eventPinned ? 'var(--app-pinned)' : ''}">
@@ -134,7 +137,7 @@ import { Observable } from 'rxjs';
             </div>
             <div class="right">
               <div>
-                <span style="color:var(--app-text);font-weight:bold;">{{number + 1}}. {{getEventTitle()}}</span>
+                <span style="color:var(--app-text);font-weight:bold;">{{number() + 1}}. {{getEventTitle()}}</span>
                 @if (eventPinned) {
                   <span class="app-chip" style="margin-left:10px; background-color:#0D47A1">Pinned</span>
                 }
@@ -144,18 +147,18 @@ import { Observable } from 'rxjs';
                 <div class="app-text-dark-secondary" style="padding-bottom: 10px">
                   @if (isThisHour()) {
                     <div >
-                      {{getLocalDateTime() | amTimeAgo}}
+                      {{getLocalDateTime() | timeAgo}}
                     </div>
                   } @else {
                     @if (isLessThenTwoDays()) {
                       <div >
-                        {{getLocalDateTime() | amCalendar}}
+                        {{getLocalDateTime() | calendarTime}}
                       </div>
                     } @else {
                       {{getLocalDateTimeFormatted()}}
                     }
                   }
-                  @if (actionCommands) {
+                  @if (actionCommands()) {
                     <div style="padding: 20px">
                       @if (eventPinned) {
                         <span>
@@ -177,11 +180,14 @@ import { Observable } from 'rxjs';
   </div>
   `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatCard, MatCardContent, NgStyle, MatButton, MatTooltip, TimeAgoPipe, CalendarTimePipe]
 })
 //<mat-card-content [ngStyle]="{'background-color': (eventPinned ? '#112233' : 'none')}">
 
 export class EventComponent implements OnInit {
+
+    // Zoneless: async updates must mark the view for check
+    private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
     autoplayOnHover = false;
     videoPlaying = false;
@@ -200,9 +206,9 @@ export class EventComponent implements OnInit {
         public dialog: MatDialog) {
     }
 
-    @Input() event: EventRecord;
-    @Input() number: number;
-    @Input() actionCommands: boolean;
+    readonly event = input<EventRecord>(undefined);
+    readonly number = input<number>(undefined);
+    readonly actionCommands = input<boolean>(undefined);
 
     ngOnInit() {
         this.autoplayOnHover = true;//Utils.isBrowserFirefox();
@@ -212,7 +218,7 @@ export class EventComponent implements OnInit {
 
     private updateEventPinned() {
         // /api/v1/get_file?file=/Terrace/2020-09-20%2014.38.56%20613sec%20person_pin.mp4
-        this.eventPinned = this.event.video.indexOf('_pin.mp4') > -1;
+        this.eventPinned = this.event().video.indexOf('_pin.mp4') > -1;
     }
 
     ngOnDestroy() {
@@ -220,31 +226,34 @@ export class EventComponent implements OnInit {
     }
 
     getEventTitle(): string {
-        if (this.event.motion === undefined) {
-            return 'Recording - ' + (this.event.duration / 1000).toFixed() + ' sec';
+        const event = this.event();
+        if (event.motion === undefined) {
+            return 'Recording - ' + (event.duration / 1000).toFixed() + ' sec';
         } else {
-            return 'Motion - ' + (this.event.duration / 1000).toFixed() + ' sec';
+            return 'Motion - ' + (event.duration / 1000).toFixed() + ' sec';
         }
     }
 
     getEventTitleHint(): string {
-        if (this.event.motion === undefined)
+        const event = this.event();
+        if (event.motion === undefined)
             return null;
         // Capitalize first letter
-        return this.event.motion.charAt(0).toUpperCase() + this.event.motion.slice(1);
+        return event.motion.charAt(0).toUpperCase() + event.motion.slice(1);
     }
 
     getEventTitleHintColor(): string {
-        return Utils.getEventColor(this.event);
+        return Utils.getEventColor(this.event());
     }
 
     getEventImageUrl(): string {
-        if (this.event.image !== undefined) {
-            if (this.event.image.startsWith('http')) {
-                return this.event.image;
+        const event = this.event();
+        if (event.image !== undefined) {
+            if (event.image.startsWith('http')) {
+                return event.image;
             } else {
-                const char = this.event.image.indexOf('?') == -1 ? '?' : '&';
-                return `${this.loginService.server.url}${this.event.image}${char}token=${this.loginService.login.token}`;
+                const char = event.image.indexOf('?') == -1 ? '?' : '&';
+                return `${this.loginService.server.url}${event.image}${char}token=${this.loginService.login.token}`;
             }
         } else {
             return `assets/img/placeholder.png`;
@@ -252,23 +261,24 @@ export class EventComponent implements OnInit {
     }
 
     getEventVideoUrl(): string {
-        if (this.event.video !== undefined) {
-            if (this.event.video.startsWith("http")) {
-                return `${this.event.video}`;
+        const event = this.event();
+        if (event.video !== undefined) {
+            if (event.video.startsWith("http")) {
+                return `${event.video}`;
             } else {
-                const char = this.event.video.indexOf('?') == -1 ? '?' : '&';
-                return `${this.loginService.server.url}${this.event.video}${char}token=${this.loginService.login.token}`;
+                const char = event.video.indexOf('?') == -1 ? '?' : '&';
+                return `${this.loginService.server.url}${event.video}${char}token=${this.loginService.login.token}`;
             }
         }
     }
 
     getLocalDateTime(): Date {
-        return new Date(this.event.time);
+        return new Date(this.event().time);
         // return new Date(this.date).toLocaleString();
     }
 
     getLocalDateTimeFormatted(): string {
-        return new Date(this.event.time).toLocaleString();
+        return new Date(this.event().time).toLocaleString();
     }
 
     getUtcNow(): Date {
@@ -302,6 +312,7 @@ export class EventComponent implements OnInit {
         //this.loadedPercent = 500;
           let t = (Date.now() - this.timerSubscriptionStartedTime) / 1000;
           this.loadedPercent = Math.min(t * 40, 400);
+          this.changeDetectorRef.markForCheck();
           // console.log('Time: ' + t);
           if (this.timerSubscriptionStartedTime > 0 && this.loadedPercent < 400)
               this.startProgressBarTimer();
@@ -359,11 +370,11 @@ export class EventComponent implements OnInit {
     // };
 
     isThisHour() {
-        return this.initTime - new Date(this.event.time).getTime() < 1800000;
+        return this.initTime - new Date(this.event().time).getTime() < 1800000;
     }
 
     isLessThenTwoDays() {
-        return this.initTime - new Date(this.event.time).getTime() < 86400000; // 2 days in msec
+        return this.initTime - new Date(this.event().time).getTime() < 86400000; // 2 days in msec
     }
 
     // From '/api/v1/get_file?file=/Doorbell/2020-09-20%2017.15.55%2043sec%20person.mp4'
@@ -374,11 +385,12 @@ export class EventComponent implements OnInit {
 
     deleteEvent() {
         // console.log("deleteEvent()");
-        const url = `/param.cgi?action=delete&root.Filename=${this.getPlainFilename(this.event.video)}`;
+        const url = `/param.cgi?action=delete&root.Filename=${this.getPlainFilename(this.event().video)}`;
         this.sendHttpGetRequest(url)
             .subscribe({
                 next: () => {
                     this.eventDeleted = true;
+                    this.changeDetectorRef.markForCheck();
                     this.snackBar.open('Event deleted', null, {
                         duration: 4000
                     })
@@ -389,18 +401,21 @@ export class EventComponent implements OnInit {
     pinUnpinEvent(pin: boolean) {
         console.log(`pinEvent(pin=${pin})`);
         const ch = pin ? 'pin' : 'unpin';
-        const url = `/param.cgi?action=${ch}&root.Filename=${this.getPlainFilename(this.event.video)}`;
+        const url = `/param.cgi?action=${ch}&root.Filename=${this.getPlainFilename(this.event().video)}`;
         this.sendHttpGetRequest(url)
             .subscribe({
                 next: () => {
                     if (pin) {
-                        this.event.video = this.event.video.replace('.mp4', '_pin.mp4');
-                        this.event.image = this.event.image.replace('.mp4', '_pin.mp4');
+                        const event = this.event();
+                        event.video = event.video.replace('.mp4', '_pin.mp4');
+                        event.image = event.image.replace('.mp4', '_pin.mp4');
                     } else {
-                        this.event.video = this.event.video.replace('_pin.mp4', '.mp4');
-                        this.event.image = this.event.image.replace('_pin.mp4', '.mp4');
+                        const event = this.event();
+                        event.video = event.video.replace('_pin.mp4', '.mp4');
+                        event.image = event.image.replace('_pin.mp4', '.mp4');
                     }
                     this.eventPinned = pin;
+                    this.changeDetectorRef.markForCheck();
                     this.snackBar.open(`Event ${ch}ned`, null, {
                         duration: 4000,
                     })
@@ -419,14 +434,14 @@ export class EventComponent implements OnInit {
         // const config = {
         //   width: '100%',
         // };
-        const dialog = this.dialog.open(VideoDialogComponent);//, config);
         const title = this.getEventTitle();
-        dialog.componentInstance.title =
-            (title == null ? "" : title) +
-            " (" + this.getLocalDateTimeFormatted() + ")";//'Duration - ' + (this.duration / 1000).toFixed() + ' sec';
-        //this.getLocalDateTime();
-        dialog.componentInstance.videoUrl = this.getEventVideoUrl();
-        //dialog.componentInstance.imageUrl = this.getEventImageUrl();
+        const data: VideoDialogData = {
+            title: (title == null ? "" : title) +
+                " (" + this.getLocalDateTimeFormatted() + ")",//'Duration - ' + (this.duration / 1000).toFixed() + ' sec';
+            videoUrl: this.getEventVideoUrl(),
+            //imageUrl: this.getEventImageUrl(),
+        };
+        this.dialog.open(VideoDialogComponent, { data });//, config);
     }
 
 }

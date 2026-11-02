@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { CameraSettings } from '../models';
 import { CamListService, LoginService } from '../services';
 import { Router } from '@angular/router';
@@ -7,11 +7,14 @@ import StorageUtils from '../utils-storage';
 
 @Component({
     template: ``,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 
 export class CamListSelectionComponent implements OnInit {
+
+    // Zoneless: async updates must mark the view for check
+    protected readonly changeDetectorRef = inject(ChangeDetectorRef);
+
 
     cameras: CameraSettings[] = null;
     cameraSelected: CameraSettings | number = null; // CameraSettings or number (-1)
@@ -29,8 +32,14 @@ export class CamListSelectionComponent implements OnInit {
         // console.log('ngOnInit()');
         this.camListService.getCamList(this.loginService.server, this.loginService.login)
             .subscribe({
-                next: (data) => this.processCamList(data),
-                error: (e) => this.processCamListError(e)
+                next: (data) => {
+                    this.processCamList(data);
+                    this.changeDetectorRef.markForCheck();
+                },
+                error: (e) => {
+                    this.processCamListError(e);
+                    this.changeDetectorRef.markForCheck();
+                }
             })
     }
 

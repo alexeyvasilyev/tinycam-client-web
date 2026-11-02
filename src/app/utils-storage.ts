@@ -63,4 +63,21 @@ export default class StorageUtils {
         localStorage.setItem('lastCameraSelected', camId.toString());
     }
 
+    // Live view uses MJPEG instead of MP4
+    static getUseMjpegLiveView(): boolean {
+        try {
+            return localStorage.getItem('useMjpegLiveView') === 'true';
+        } catch {
+            return false;
+        }
+    }
+
+    static setUseMjpegLiveView(useMjpeg: boolean) {
+        try {
+            localStorage.setItem('useMjpegLiveView', useMjpeg ? 'true' : 'false');
+        } catch {
+            // Setting still works for the current page when storage is unavailable.
+        }
+    }
+
 }

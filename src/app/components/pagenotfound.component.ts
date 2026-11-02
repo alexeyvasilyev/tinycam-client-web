@@ -9,7 +9,6 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
       <!-- </mat-card> -->
     </div>
   `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class PageNotFoundComponent { }

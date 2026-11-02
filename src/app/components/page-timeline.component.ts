@@ -1,5 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { LoginService } from '../services';
+import { HeaderComponent } from './header.component';
+import { TimelineCamListComponent } from './timeline-cam-list.component';
 
 @Component({
     template: `
@@ -9,7 +11,7 @@ import { LoginService } from '../services';
     </div>
   `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [HeaderComponent, TimelineCamListComponent]
 })
 
 export class PageTimelineComponent {

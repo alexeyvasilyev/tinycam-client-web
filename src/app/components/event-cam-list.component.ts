@@ -1,5 +1,11 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CamListSelectionComponent } from './cam-list-selection.component';
+import { MatCard } from '@angular/material/card';
+import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
+import { MatFormField } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { NgTemplateOutlet } from '@angular/common';
+import { EventListComponent } from './event-list.component';
 
 @Component({
     selector: 'event-cam-list',
@@ -74,7 +80,7 @@ import { CamListSelectionComponent } from './cam-list-selection.component';
     </div>
     `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatCard, MatButtonToggleGroup, MatButtonToggle, MatFormField, MatSelect, MatOption, NgTemplateOutlet, EventListComponent]
 })
 
 export class EventCamListComponent extends CamListSelectionComponent {

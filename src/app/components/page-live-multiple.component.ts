@@ -1,5 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { LoginService } from '../services';
+import { HeaderComponent } from './header.component';
+import { LiveMultipleComponent } from './live-multiple.component';
 
 @Component({
     styles: [`
@@ -11,7 +13,7 @@ import { LoginService } from '../services';
     </div>
     `,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [HeaderComponent, LiveMultipleComponent]
 })
 
 export class PageLiveMultipleComponent {

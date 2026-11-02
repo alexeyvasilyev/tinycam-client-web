@@ -1,12 +1,31 @@
-import { enableProdMode, provideZoneChangeDetection } from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { provideZonelessChangeDetection } from '@angular/core';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient, withXhr, withInterceptorsFromDi } from '@angular/common/http';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
-import { AppModule } from './app/app.module';
-import { environment } from './environments/environment';
+import { AppComponent } from './app/app.component';
+import { routes } from './app/app.routes';
+import { AuthGuard } from './app/guards';
+import { CamListService, EventListService, GenericService, IpAddressesService, IpLocateService, LoginService, LogoutService, StatusService, WindowRefService } from './app/services';
 
-if (environment.production) {
-  enableProdMode();
-}
-
-platformBrowserDynamic().bootstrapModule(AppModule, { applicationProviders: [provideZoneChangeDetection()], })
+bootstrapApplication(AppComponent, {
+    providers: [
+        provideZonelessChangeDetection(),
+        provideRouter(routes),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        // Used by event list date picker
+        provideNativeDateAdapter(),
+        AuthGuard,
+        CamListService,
+        EventListService,
+        GenericService,
+        IpAddressesService,
+        IpLocateService,
+        LoginService,
+        LogoutService,
+        StatusService,
+        WindowRefService,
+    ]
+})
   .catch(err => console.error(err));
