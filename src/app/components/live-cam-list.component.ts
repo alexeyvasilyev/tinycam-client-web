@@ -104,16 +104,9 @@ import { LiveComponent } from './live.component';
                   }
                   @if (isAudioListeningSupported()) {
                     <span style="margin-right:20px">
+                      <!-- Audio is played by live view (MP4 audio track or WAV for MJPEG) -->
                       @if (audioShown) {
-                        <span>
-                          @if (audioLoading) {
-                            <span animate.enter="app-fade-in" animate.leave="app-fade-out" style="padding:2px; text-align: center; vertical-align: middle"><i class="fas fa-circle-notch fa-2x fa-spin"></i></span>
-                          }
-                          <audio preload="none" autoplay (canplay)="handleAudioCanPlay()" (error)="handleAudioError()" style="vertical-align: middle; margin-right:10px">
-                            <source src="{{getAudioUrl()}}" type="audio/wav">
-                          </audio>
-                          <button mat-flat-button class="live-button" (click)="showHideAudio()" matTooltip="Stop audio"><i class="fas fa-volume-up"></i></button>
-                        </span>
+                        <button mat-flat-button class="live-button" (click)="showHideAudio()" matTooltip="Stop audio"><i class="fas fa-volume-up"></i></button>
                       } @else {
                         <button mat-raised-button class="live-button" (click)="showHideAudio()" matTooltip="Play audio"><i class="fas fa-volume-mute"></i></button>
                       }
@@ -177,7 +170,7 @@ import { LiveComponent } from './live.component';
               </div>
             </div>
             <div #live style="background-color: #212121; overflow: auto;" [style.height.px]="getLiveHeight()" animate.enter="app-fade-in">
-              <live [cameraId]="cameraSelected.id" [viewHeightPx]="getLiveHeight()" (dblclick)="liveDoubleClick()" (click)="liveSingleClick()"></live>
+              <live [cameraId]="cameraSelected.id" [cameraName]="cameraSelected.name" [audio]="audioShown" [viewHeightPx]="getLiveHeight()" (dblclick)="liveDoubleClick()" (click)="liveSingleClick()"></live>
             </div>
           </div>
         } @else {
@@ -207,7 +200,6 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     private nipple = null;
     nippleShown = false;
     audioShown = false;
-    audioLoading = false;
     status: Status = new Status();
     private timerClick;
     private showSnackBarOnStart = true;
@@ -252,14 +244,6 @@ export class LiveCamListComponent extends CamListSelectionComponent {
 
     getLiveHeight(): number {
         return this.windowRef.nativeWindow.innerHeight;
-    }
-
-    handleAudioCanPlay() {
-        this.audioLoading = false;
-    }
-
-    handleAudioError() {
-        this.audioShown = false;
     }
 
     isAudioListeningSupported(): boolean {
@@ -320,8 +304,6 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     showHideAudio() {
         // console.log('showHideJoystick()');
         this.audioShown = !this.audioShown;
-        if (this.audioShown)
-            this.audioLoading = true;
     }
 
     initJoystick() {
@@ -387,11 +369,6 @@ export class LiveCamListComponent extends CamListSelectionComponent {
     // toggleFullScreen() {
     //    Utils.toggleFullScreen(this.liveEl.nativeElement);
     // }
-
-    getAudioUrl() {
-        console.log(`Audio: ${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${(this.cameraSelected as CameraSettings).id}&token=${this.loginService.login.token}`);
-        return `${this.loginService.server.url}/axis-cgi/audio/receive.wav?cameraId=${(this.cameraSelected as CameraSettings).id}&token=${this.loginService.login.token}`;
-    }
 
     getRtspUrl() {
         const httpBase = this.loginService.server.url || window.location.origin;

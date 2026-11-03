@@ -16,8 +16,16 @@ export class MsePlayer {
     private readonly queue: Uint8Array<ArrayBuffer>[] = [];
     private playing = false;
     private disposed = false;
+    // Stopped on error, but video element still shows the last frame until dispose()
+    private failed = false;
+    // Decoding errors are reported by video element, not by SourceBuffer
+    private readonly onVideoError = () => {
+        const error = this.video.error;
+        this.fail(new Error(`Video error ${error?.code ?? '?'}: ${error?.message || 'unknown'}`));
+    };
 
     // onPlaying is called when the first frame is shown, onError on any MSE error (once).
+    // After error player stops, but keeps the last frame shown. Owner must call dispose().
     constructor(
         private readonly video: HTMLVideoElement,
         private readonly mimeType: string,
@@ -27,13 +35,13 @@ export class MsePlayer {
         const mediaSource = new MediaSourceImpl();
         this.mediaSource = mediaSource;
         mediaSource.addEventListener('sourceopen', () => {
-            if (this.disposed)
+            if (this.disposed || this.failed)
                 return;
             try {
                 const sourceBuffer = mediaSource.addSourceBuffer(mimeType);
                 this.sourceBuffer = sourceBuffer;
                 sourceBuffer.addEventListener('updateend', () => {
-                    if (this.disposed)
+                    if (this.disposed || this.failed)
                         return;
                     this.keepUpWithLiveEdge();
                     this.appendNext();
@@ -46,9 +54,10 @@ export class MsePlayer {
         }, { once: true });
         // Required by ManagedMediaSource
         (video as any).disableRemotePlayback = true;
+        video.addEventListener('error', this.onVideoError);
         this.objectUrl = URL.createObjectURL(mediaSource);
         video.src = this.objectUrl;
-        video.play().catch(() => { /* autoplay will start once data available */ });
+        this.play();
     }
 
     static getMediaSourceImpl(): typeof MediaSource | null {
@@ -72,7 +81,7 @@ export class MsePlayer {
     }
 
     append(chunk: Uint8Array<ArrayBuffer>) {
-        if (this.disposed || chunk.length === 0)
+        if (this.disposed || this.failed || chunk.length === 0)
             return;
         this.queue.push(chunk);
         this.appendNext();
@@ -83,6 +92,7 @@ export class MsePlayer {
             return;
         this.disposed = true;
         this.queue.length = 0;
+        this.video.removeEventListener('error', this.onVideoError);
         if (this.objectUrl != null) {
             this.video.removeAttribute('src');
             this.video.load();
@@ -101,16 +111,23 @@ export class MsePlayer {
     }
 
     private fail(e: any) {
-        if (this.disposed)
+        if (this.disposed || this.failed)
             return;
-        this.dispose();
+        this.failed = true;
+        this.queue.length = 0;
+        this.video.removeEventListener('error', this.onVideoError);
         this.onError(e);
     }
 
     private appendNext() {
         const sourceBuffer = this.sourceBuffer;
-        if (this.disposed || sourceBuffer == null || sourceBuffer.updating || this.queue.length === 0)
+        if (this.disposed || this.failed || sourceBuffer == null || sourceBuffer.updating || this.queue.length === 0)
             return;
+        // 'error' event is dispatched asynchronously, appendBuffer() would throw InvalidStateError
+        if (this.video.error != null) {
+            this.onVideoError();
+            return;
+        }
         try {
             if (!this.trimBuffer(sourceBuffer))
                 sourceBuffer.appendBuffer(MsePlayer.concat(this.queue.splice(0, this.queue.length)));
@@ -141,14 +158,27 @@ export class MsePlayer {
         if (!this.playing) {
             this.playing = true;
             video.currentTime = Math.max(buffered.start(buffered.length - 1), end - TARGET_LATENCY_SEC);
-            video.play().catch(() => { });
+            this.play();
             this.onPlaying();
         } else if (end - video.currentTime > MAX_LATENCY_SEC) {
             // Browser tab was in background or network stalled. Jump to live.
             video.currentTime = end - TARGET_LATENCY_SEC;
         }
         if (video.paused)
-            video.play().catch(() => { });
+            this.play();
+    }
+
+    // Autoplay with sound may be blocked by browser (no user interaction yet). Play muted then.
+    private play() {
+        const video = this.video;
+        video.play().catch(e => {
+            if (e?.name === 'NotAllowedError' && !video.muted && !this.disposed) {
+                console.warn('Autoplay with sound is not allowed by browser. Playing muted.');
+                video.muted = true;
+                video.play().catch(() => { });
+            }
+            // Otherwise autoplay will start once data available
+        });
     }
 
     private static concat(chunks: Uint8Array<ArrayBuffer>[]): Uint8Array<ArrayBuffer> {

@@ -135,7 +135,7 @@ import { MsePlayer } from '../mse-player';
             [style.grid-column]="(cell.col + 1) + ' / span ' + cell.colSpan"
             [style.grid-row]="(cell.row + 1) + ' / span ' + cell.rowSpan">
             @if (getCameraPage($index); as camera) {
-              <live [cameraId]="camera.id" [viewHeightPx]="getCellHeight(cell)" [mux]="mux" [snapshotMode]="isSnapshotMode()"
+              <live [cameraId]="camera.id" [cameraName]="camera.name" [viewHeightPx]="getCellHeight(cell)" [mux]="mux" [snapshotMode]="isSnapshotMode()"
                 (dblclick)="liveDoubleClick($index)" (click)="liveSingleClick()"></live>
             }
           </div>
@@ -303,10 +303,10 @@ export class LiveMultipleComponent implements OnInit, OnDestroy {
     }
 
     switchPrevPage(showTip: boolean) {
-        if (--this.currentPage < 0) {
-            this.currentPage = 0;
-        } else if (showTip) {
-            this.showCurrentPage();
+        if (this.currentPage > 0) {
+            this.currentPage--;
+            if (showTip)
+                this.showCurrentPage();
         }
         this.updateMux();
     }
@@ -314,10 +314,10 @@ export class LiveMultipleComponent implements OnInit, OnDestroy {
     switchNextPage(showTip: boolean) {
         const totalPages = this.getTotalPages();
         console.log(`total: ${totalPages}`);
-        if (++this.currentPage >= totalPages) {
-            this.currentPage--;
-        } else if (showTip) {
-            this.showCurrentPage();
+        if (this.currentPage < totalPages - 1) {
+            this.currentPage++;
+            if (showTip)
+                this.showCurrentPage();
         }
         this.updateMux();
     }
@@ -347,6 +347,9 @@ export class LiveMultipleComponent implements OnInit, OnDestroy {
         if (cameras) {
             this.cameras = cameras;
             console.log('Total cameras: ' + cameras.length);
+            // Show page with camera selected in single camera layout, e.g. camera 5 in 2x2 -> page 2
+            const index = cameras.findIndex(c => c.id === StorageUtils.getLastCameraSelected());
+            this.currentPage = index < 0 ? 0 : Math.floor(index / this.getCamerasPerPage());
             this.updateMux();
         } else {
             console.log('No cameras found.');

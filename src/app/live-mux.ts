@@ -4,7 +4,8 @@
 //
 // Body is a sequence of packets: type (1 byte), stream index (1 byte, camera position in list),
 // payload length (4 bytes, big endian), payload.
-//   INIT  - mime type length (2 bytes), mime type, fMP4 init segment. Decoder should be reset.
+//   INIT  - mime type length (2 bytes), mime type, fMP4 init segment. Sent again on resolution
+//           change with continuous timeline, so it can be appended into the same SourceBuffer.
 //   MEDIA - fMP4 media segment.
 //   ERROR - status (2 bytes, HTTP status code), message.
 
@@ -13,9 +14,14 @@ const TYPE_MEDIA = 2;
 const TYPE_ERROR = 3;
 const PACKET_HEADER_SIZE = 6;
 const RECONNECT_DELAY_MSEC = 2000;
+// Connection is reconnected if no packets received during (e.g. phone Wi-Fi reconnected,
+// TCP connection is not closed and read() would wait for TCP timeout ~1 min)
+const STALL_TIMEOUT_MSEC = 10000;
 
 export interface LiveMuxListener {
-    onInit(mimeType: string, initSegment: Uint8Array<ArrayBuffer>): void;
+    // continuous - media timeline continues the previous INIT of this stream (e.g. resolution changed).
+    // Otherwise timeline restarted (first INIT, reconnect, video restarted after 503) and decoder should be reset.
+    onInit(mimeType: string, initSegment: Uint8Array<ArrayBuffer>, continuous: boolean): void;
     onMedia(mediaSegment: Uint8Array<ArrayBuffer>): void;
     // 404 - camera not found, 415 - video codec is not H.264/H.265, 503 - no video from camera,
     // other - whole multiplexed stream failed (e.g. 400 from old server not supporting it).
@@ -66,7 +72,7 @@ export class LiveMux {
         this.listeners.set(index, listener);
         const init = this.lastInit.get(index);
         if (init != null)
-            listener.onInit(init.mimeType, init.data);
+            listener.onInit(init.mimeType, init.data, false);
         return () => {
             if (this.listeners.get(index) === listener)
                 this.listeners.delete(index);
@@ -91,7 +97,7 @@ export class LiveMux {
                 throw new Error(`HTTP ${response.status}`);
             }
             console.info(`Live view MP4 mux: cameras ${this.cameraIds.join(',')}`);
-            await this.read(response.body.getReader(), session);
+            await this.read(response.body.getReader(), session, abortController);
         } catch (e) {
             if (session !== this.session)
                 return;
@@ -108,12 +114,28 @@ export class LiveMux {
         }, RECONNECT_DELAY_MSEC);
     }
 
-    private async read(reader: ReadableStreamDefaultReader<Uint8Array<ArrayBuffer>>, session: number) {
+    private async read(reader: ReadableStreamDefaultReader<Uint8Array<ArrayBuffer>>, session: number, abortController: AbortController) {
+        let lastDataMs = Date.now();
+        const stallTimer = setInterval(() => {
+            if (Date.now() - lastDataMs > STALL_TIMEOUT_MSEC) {
+                console.warn(`Live view MP4 mux: no data during ${STALL_TIMEOUT_MSEC / 1000} sec. Reconnecting.`);
+                abortController.abort();
+            }
+        }, 1000);
+        try {
+            await this.readPackets(reader, session, () => lastDataMs = Date.now());
+        } finally {
+            clearInterval(stallTimer);
+        }
+    }
+
+    private async readPackets(reader: ReadableStreamDefaultReader<Uint8Array<ArrayBuffer>>, session: number, onData: () => void) {
         let buffer = new Uint8Array(0);
         while (session === this.session) {
             const { done, value } = await reader.read();
             if (done)
                 break;
+            onData();
             if (value == null || value.length === 0)
                 continue;
             buffer = LiveMux.concat(buffer, value);
@@ -143,8 +165,9 @@ export class LiveMux {
                 const mimeLength = (payload[0] << 8) | payload[1];
                 const mimeType = this.textDecoder.decode(payload.subarray(2, 2 + mimeLength));
                 const data = payload.subarray(2 + mimeLength);
+                const continuous = this.lastInit.has(index);
                 this.lastInit.set(index, { mimeType, data });
-                listener?.onInit(mimeType, data);
+                listener?.onInit(mimeType, data, continuous);
                 break;
             }
             case TYPE_MEDIA:
@@ -152,6 +175,8 @@ export class LiveMux {
                 break;
             case TYPE_ERROR: {
                 const status = (payload[0] << 8) | payload[1];
+                // Server restarts timeline with the next INIT
+                this.lastInit.delete(index);
                 listener?.onError(status, this.textDecoder.decode(payload.subarray(2)));
                 break;
             }
