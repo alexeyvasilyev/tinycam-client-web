@@ -1,6 +1,9 @@
 import { Login } from './models';
 import { LoginService } from './services';
 
+// Pages remembered to be opened again on start and after login
+const REMEMBERED_PAGES = ['live', 'livem', 'events', 'timeline', 'admin'];
+
 export default class StorageUtils {
 
     static loadStorage(loginService: LoginService) {
@@ -78,6 +81,35 @@ export default class StorageUtils {
         } catch {
             // Setting still works for the current page when storage is unavailable.
         }
+    }
+
+    // Last opened page (live, livem, events, timeline, admin), opened again after login
+    static getLastPage(): string | null {
+        try {
+            return localStorage.getItem('lastPage');
+        } catch {
+            return null;
+        }
+    }
+
+    static setLastPage(page: string) {
+        if (!REMEMBERED_PAGES.includes(page)) return;
+        try {
+            localStorage.setItem('lastPage', page);
+        } catch {
+            // Login opens the default page when storage is unavailable.
+        }
+    }
+
+    // Last opened page if still allowed, admin page is for admins only
+    static getStartPage(loginService: LoginService): string {
+        if (!loginService.login.succeeded)
+            StorageUtils.loadStorage(loginService);
+        const page = StorageUtils.getLastPage();
+        if (page == null || !REMEMBERED_PAGES.includes(page) ||
+            (page === 'admin' && !loginService.login.isAdmin()))
+            return 'events';
+        return page;
     }
 
     // Multiple cameras layout id (see live-layouts.ts)

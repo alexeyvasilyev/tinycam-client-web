@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Login } from '../models';
 import { LoginService } from '../services';
@@ -90,7 +90,7 @@ import { MatButton } from '@angular/material/button';
     imports: [MatCard, MatCardContent, FormsModule, MatFormField, MatInput, MatButton]
 })
 
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
 
     // Zoneless: async updates must mark the view for check
     private readonly changeDetectorRef = inject(ChangeDetectorRef);
@@ -100,6 +100,7 @@ export class LoginComponent implements OnInit {
     password: string = '';
     server: string = '';
     showServer: boolean = false;
+    private retryTimer: ReturnType<typeof setInterval> = null;
 
     constructor(
         private router: Router,
@@ -122,6 +123,10 @@ export class LoginComponent implements OnInit {
         this.showServer = true;
     }
 
+    ngOnDestroy() {
+      this.stopRetryCountdown();
+    }
+
     processLogin(newLogin: Login) {
         console.log('New login token acquired: ' + newLogin.token);
         this.loginService.login.succeeded = true;
@@ -130,11 +135,12 @@ export class LoginComponent implements OnInit {
         this.loginService.server.url = this.server;
 
         StorageUtils.saveStorage(this.loginService);
-        this.router.navigate(['/events']);
+        this.router.navigate(['/' + StorageUtils.getStartPage(this.loginService)]);
     }
 
     doLogin() {
         console.log('Trying to login...');
+        this.stopRetryCountdown();
         this.error = null;
         this.loginService.login.username = this.loginService.login.username.trim();
         this.loginService.server.url = this.server;
@@ -148,9 +154,53 @@ export class LoginComponent implements OnInit {
     }
 
     private handleError(error: HttpErrorResponse) {
-        this.error = error.message;
-        this.changeDetectorRef.markForCheck();
+        const retryAfter = error.status === 429 ? this.getRetryAfterSeconds(error) : null;
+        if (retryAfter != null) {
+            this.startRetryCountdown(retryAfter);
+        } else {
+            this.error = error.message;
+            this.changeDetectorRef.markForCheck();
+        }
         console.error('Failed to login.', error.message);
+    }
+
+    // Server blocks IP after failed logins, remaining time is in Retry-After header and in the text body
+    private getRetryAfterSeconds(error: HttpErrorResponse): number {
+        const header = parseInt(error.headers?.get('Retry-After'), 10);
+        if (!isNaN(header)) return header;
+        const match = typeof error.error === 'string' ? error.error.match(/in (\d+) seconds/) : null;
+        return match ? parseInt(match[1], 10) : null;
+    }
+
+    private startRetryCountdown(seconds: number) {
+        this.stopRetryCountdown();
+        const retryAt = Date.now() + seconds * 1000;
+        const update = () => {
+            const left = Math.ceil((retryAt - Date.now()) / 1000);
+            if (left > 0) {
+                this.error = `Too many failed login attempts. Try again in ${this.formatDuration(left)}.`;
+            } else {
+                this.stopRetryCountdown();
+                this.error = 'You can try to login again.';
+            }
+            this.changeDetectorRef.markForCheck();
+        };
+        update();
+        this.retryTimer = setInterval(update, 1000);
+    }
+
+    private stopRetryCountdown() {
+        if (this.retryTimer != null) {
+            clearInterval(this.retryTimer);
+            this.retryTimer = null;
+        }
+    }
+
+    private formatDuration(seconds: number): string {
+        const min = Math.floor(seconds / 60);
+        const sec = seconds % 60;
+        if (min === 0) return `${sec} sec`;
+        return sec === 0 ? `${min} min` : `${min} min ${sec} sec`;
     }
 
 }
